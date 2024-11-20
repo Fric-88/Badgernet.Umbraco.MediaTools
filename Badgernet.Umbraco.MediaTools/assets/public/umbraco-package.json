@@ -1,0 +1,15 @@
+{
+    "$schema": "../umbraco-package-schema.json",
+    "name": "Badgernet.Umbraco.MediaTools",
+    "id": "Badgernet.Umbraco.MediaTools",
+    "version": "0.1.0",
+    "allowTelemetry": true,
+    "extensions": [
+        {
+            "name": "Badgernet.Umbraco.MediaTools.entrypoint",
+            "alias": "Badgernet.Umbraco.MediaTools.EntryPoint",
+            "type": "entryPoint",
+            "js": "/App_Plugins/Badgernet.Umbraco.MediaTools/assets.js"
+        }
+    ]
+}

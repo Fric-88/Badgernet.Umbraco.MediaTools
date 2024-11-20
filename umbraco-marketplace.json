@@ -1,0 +1,17 @@
+{
+    "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+    "AuthorDetails": {
+    "Name": "David Jazbec",
+    "Description": "",
+    "Url": "https://badgernet.de",
+    "ImageUrl": ""
+    },
+    "Title": "MediaTools",
+    "Description": "This package adds additional functionalities to Umbraco media section.",
+    "Category": "Editor Tools",
+    "LicenseTypes": [ "Free" ],
+    "PackageType": "Package",
+    "Tags": [
+    "Media tools"
+    ]
+}

@@ -1,0 +1,14 @@
+﻿using Umbraco.Cms.Core.PropertyEditors.ValueConverters;
+
+namespace Badgernet.Umbraco.MediaTools.Core;
+
+public class ImageMediaDto
+{
+        public int Id { get; init; }
+        public string Name { get; init; } = string.Empty;
+        public int Width { get; init; }
+        public int Height { get; init; }
+        public string Extension { get; init; } = string.Empty;
+        public string Path {get; init;} = string.Empty;
+        public string Size { get; init; } = "0";
+}
