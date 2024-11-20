@@ -1,7 +1,6 @@
-using System;
 using Umbraco.Cms.Core.IO;
 
-namespace Badgernet.Umbraco.MediaTools.Core.Services.FileManager;
+namespace Badgernet.Umbraco.MediaTools.Services.FileManager;
 
 public class FileManager(MediaFileManager mediaFileManager) : IFileManager
 {
@@ -47,7 +46,7 @@ public class FileManager(MediaFileManager mediaFileManager) : IFileManager
 
         ArgumentNullException.ThrowIfNull("Cannot determine file extension from {relativePath}", nameof(relativePath));
 
-        string directory = Path.GetDirectoryName(relativePath) ?? string.Empty;    
+        var directory = Path.GetDirectoryName(relativePath) ?? string.Empty;    
 
         string newPath;
 

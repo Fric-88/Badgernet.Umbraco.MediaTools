@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Badgernet.Umbraco.MediaTools.Core;
+namespace Badgernet.Umbraco.MediaTools.Configurations;
 
 internal class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
 

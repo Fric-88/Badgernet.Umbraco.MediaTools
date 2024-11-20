@@ -1,6 +1,4 @@
-﻿using Umbraco.Cms.Core.PropertyEditors.ValueConverters;
-
-namespace Badgernet.Umbraco.MediaTools.Core;
+﻿namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class ImageMediaDto
 {

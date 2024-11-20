@@ -1,26 +1,21 @@
 ﻿using Asp.Versioning;
+using Badgernet.Umbraco.MediaTools.Models;
+using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Umbraco.Cms.Core.Web;
-using Umbraco.Cms.Core.PropertyEditors.ValueConverters;
-using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Extensions;
-using Badgernet.Umbraco.MediaTools.Core.Services.Settings;
-using Umbraco.Cms.Core.IO;
 
-
-namespace Badgernet.Umbraco.MediaTools.Core.Controllers;
+namespace Badgernet.Umbraco.MediaTools.Controllers;
 
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "mediatools")]
+[Route("settings")]
 public class SettingsController(ISettingsService settingsService) : ControllerBase
 {
     private readonly ISettingsService _settingsService = settingsService;
     
     private UserSettingsDto? _currentSettings;
 
-    [HttpGet("settings/get")]
+    [HttpGet("get")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserSettingsDto))]
     public IActionResult GetSettings(string userKey)
     {
@@ -30,7 +25,7 @@ public class SettingsController(ISettingsService settingsService) : ControllerBa
         return Ok(_currentSettings);
     }
 
-    [HttpPost("settings/set")]
+    [HttpPost("set")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult SetSettings(string userKey, UserSettingsDto settings)
     {

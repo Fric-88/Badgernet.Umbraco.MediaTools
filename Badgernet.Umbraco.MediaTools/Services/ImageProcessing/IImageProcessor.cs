@@ -1,9 +1,7 @@
-using System;
-using System.Text;
+using Badgernet.Umbraco.MediaTools.Models;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
 
-namespace Badgernet.Umbraco.MediaTools.Core.Services.ImageProcessing;
+namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 
 public interface IImageProcessor
 {

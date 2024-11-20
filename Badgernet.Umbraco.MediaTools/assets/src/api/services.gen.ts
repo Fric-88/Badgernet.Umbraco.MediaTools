@@ -13,7 +13,7 @@ import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, Filte
  */
 export const downloadMedia = (data: DownloadMediaData = {}): CancelablePromise<DownloadMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/download',
+    url: '/gallery/download',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -26,7 +26,7 @@ export const downloadMedia = (data: DownloadMediaData = {}): CancelablePromise<D
  */
 export const filterGallery = (data: FilterGalleryData = {}): CancelablePromise<FilterGalleryResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/filter',
+    url: '/gallery/filter',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -37,7 +37,7 @@ export const filterGallery = (data: FilterGalleryData = {}): CancelablePromise<F
  */
 export const getGalleryInfo = (): CancelablePromise<GetGalleryInfoResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/get-info'
+    url: '/gallery/get-info'
 }); };
 
 /**
@@ -46,7 +46,7 @@ export const getGalleryInfo = (): CancelablePromise<GetGalleryInfoResponse> => {
  */
 export const listFolders = (): CancelablePromise<ListFoldersResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/list-folders'
+    url: '/gallery/list-folders'
 }); };
 
 /**
@@ -57,7 +57,7 @@ export const listFolders = (): CancelablePromise<ListFoldersResponse> => { retur
  */
 export const processImages = (data: ProcessImagesData = {}): CancelablePromise<ProcessImagesResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/process',
+    url: '/gallery/process',
     body: data.requestBody,
     mediaType: 'application/json',
     errors: {
@@ -73,7 +73,7 @@ export const processImages = (data: ProcessImagesData = {}): CancelablePromise<P
  */
 export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<RecycleMediaResponse2> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/umbraco/mediatools/api/v1/mediatools/gallery/trash',
+    url: '/gallery/trash',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -86,7 +86,7 @@ export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<Rec
  */
 export const getSettings = (data: GetSettingsData = {}): CancelablePromise<GetSettingsResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/umbraco/mediatools/api/v1/mediatools/settings/get',
+    url: '/settings/get',
     query: {
         userKey: data.userKey
     }
@@ -101,7 +101,7 @@ export const getSettings = (data: GetSettingsData = {}): CancelablePromise<GetSe
  */
 export const setSettings = (data: SetSettingsData = {}): CancelablePromise<SetSettingsResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/umbraco/mediatools/api/v1/mediatools/settings/set',
+    url: '/settings/set',
     query: {
         userKey: data.userKey
     },

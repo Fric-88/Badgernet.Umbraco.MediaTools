@@ -1,12 +1,9 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Badgernet.Umbraco.MediaTools.Models;
 using SixLabors.ImageSharp;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
-using Umbraco.Cms.Core.PropertyEditors;
-using Umbraco.Cms.Core.Services;
 
-
-namespace Badgernet.Umbraco.MediaTools.Core;
+namespace Badgernet.Umbraco.MediaTools.Helpers;
 
 public interface IMediaHelper
 {

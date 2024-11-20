@@ -1,18 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp;
+﻿using System;
+using Badgernet.Umbraco.MediaTools.Helpers;
+using Badgernet.Umbraco.MediaTools.Models;
+using Badgernet.Umbraco.MediaTools.Services.FileManager;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.Settings;
+using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core.Events;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Scoping;
-using Size = SixLabors.ImageSharp.Size;
-using File = System.IO.File;
-using System.Text.Json.Nodes;
-using Badgernet.Umbraco.MediaTools.Core.Services.Settings;
 using Umbraco.Cms.Core.Security;
-using Badgernet.Umbraco.MediaTools.Core.Services.ImageProcessing;
-using Badgernet.Umbraco.MediaTools.Core.Services.FileManager;
+using Size = SixLabors.ImageSharp.Size;
 
-namespace Badgernet.Umbraco.MediaTools.Core;
+namespace Badgernet.Umbraco.MediaTools.Handlers;
 
 
 public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotification>
@@ -41,14 +40,14 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             _fileManager = fileManager;
             _scopeProvider = scopeProvider;
             _logger = logger;
-            _backOfficeSecurity = backOfficeSecurity ?? throw new System.ArgumentNullException(nameof(backOfficeSecurity));
+            _backOfficeSecurity = backOfficeSecurity ?? throw new ArgumentNullException(nameof(backOfficeSecurity));
         }
 
 
 
         public void Handle(MediaSavingNotification notification)
         {
-            //Try to get current current backoffice user, bail if none found
+            //Try to get current backoffice user, bail if none found
             if (_backOfficeSecurity.BackOfficeSecurity == null) return;
             var user = _backOfficeSecurity.BackOfficeSecurity.CurrentUser;
             if(user == null) return;
@@ -58,15 +57,15 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             var settings = _settingsService.GetUserSettings(userKey);
 
             //Read settings object 
-            bool resizingEnabled = settings.ResizerEnabled;
-            bool convertingEnabled = settings.ConverterEnabled;
-            int convertQuality = settings.ConvertQuality;
-            bool ignoreAspectRatio = settings.IgnoreAspectRatio;
-            int targetWidth = settings.TargetWidth;
-            int targetHeight = settings.TargetHeight;
-            bool keepOriginals = settings.KeepOriginals;
-            ConvertMode convertMode = settings.ConvertMode;
-            string ignoreKeyword = settings.IgnoreKeyword;
+            var resizingEnabled = settings.ResizerEnabled;
+            var convertingEnabled = settings.ConverterEnabled;
+            var convertQuality = settings.ConvertQuality;
+            var ignoreAspectRatio = settings.IgnoreAspectRatio;
+            var targetWidth = settings.TargetWidth;
+            var targetHeight = settings.TargetHeight;
+            var keepOriginals = settings.KeepOriginals;
+            var convertMode = settings.ConvertMode;
+            var ignoreKeyword = settings.IgnoreKeyword;
 
             //Prevent Options being out of bounds 
             if (targetHeight < 1) targetHeight = 1;
@@ -208,25 +207,16 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
 
                     if(convertedImageStream != null)
                     {
-                        //Calculate size difference after converting
-                        var bytesSaved = imageStream.Length - convertedImageStream.Length;
-                        // settings.BytesSavedConverting += bytesSaved;
-                        // settings.ConverterCounter++;
-
                         _fileManager.DeleteFile(pathWithOldExtension);
 
                         //Adjust medias src property
                         if(!wasResizedFlag)
                         {
                             var newFilename = Path.GetFileNameWithoutExtension(alternativeFilepath);
-
                             _mediaHelper.SetUmbFilename(media, newFilename);
-                            _mediaHelper.SetUmbExtension(media, ".webp");
                         }
-                        else
-                        {
-                            _mediaHelper.SetUmbExtension(media, ".webp");
-                        }
+
+                        _mediaHelper.SetUmbExtension(media, ".webp");
 
                         media.SetValue("umbracoBytes", convertedImageStream.Length);
 
@@ -256,9 +246,6 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     _fileManager.DeleteFile(originalFilepath);
                 }
             }
-
-            //Write settings to file to preserve saved bytes values   
-            _settingsService.SaveUserSettings(userKey, settings);
         }
 
         private Size? ParseSizeFromFilename(string fileName)

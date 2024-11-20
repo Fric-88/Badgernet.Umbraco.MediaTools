@@ -1,6 +1,4 @@
-using System;
-
-namespace Badgernet.Umbraco.MediaTools.Core.Models;
+namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class ImageProcessingResponse
 {

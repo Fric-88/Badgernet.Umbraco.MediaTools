@@ -1,6 +1,4 @@
-using System;
-
-namespace Badgernet.Umbraco.MediaTools.Core.Services.FileManager;
+namespace Badgernet.Umbraco.MediaTools.Services.FileManager;
 
 public interface IFileManager
 {

@@ -1,15 +1,15 @@
-﻿using Badgernet.Umbraco.MediaTools.Core.Services.FileManager;
-using Badgernet.Umbraco.MediaTools.Core.Services.ImageProcessing;
-using Badgernet.Umbraco.MediaTools.Core.Services.Settings;
-using Badgernet.WebPicAuto.Helpers;
+﻿using Badgernet.Umbraco.MediaTools.Configurations;
+using Badgernet.Umbraco.MediaTools.Handlers;
+using Badgernet.Umbraco.MediaTools.Helpers;
+using Badgernet.Umbraco.MediaTools.Services.FileManager;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core.Composing;
-using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 
-
-namespace Badgernet.Umbraco.MediaTools.Core;
+namespace Badgernet.Umbraco.MediaTools;
 
 public class MediaToolsComposer : IComposer
 {

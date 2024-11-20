@@ -1,7 +1,6 @@
-using System;
-using Umbraco.Cms.Core.Services;
+using Badgernet.Umbraco.MediaTools.Models;
 
-namespace Badgernet.Umbraco.MediaTools.Core.Services.Settings;
+namespace Badgernet.Umbraco.MediaTools.Services.Settings;
 
 public interface ISettingsService
 {

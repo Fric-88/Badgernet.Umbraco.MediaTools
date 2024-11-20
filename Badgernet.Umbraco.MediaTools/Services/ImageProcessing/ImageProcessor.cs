@@ -1,13 +1,10 @@
-using System;
-using System.Text;
+using Badgernet.Umbraco.MediaTools.Models;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
-namespace Badgernet.Umbraco.MediaTools.Core.Services.ImageProcessing;
+namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 
 public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 {
@@ -69,10 +66,6 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             var newWidth = originalResolution.Width;
             var newHeight = originalResolution.Height;
 
-            //Upscaling not intended -> return original size
-            // if (originalSize.Width <= targetedSize.Width && originalSize.Height <= targetedSize.Height)
-            //     return new Size(newWidth, newHeight);
-
             if (!preserveAspectRatio)
             {
                 return targetResolution;
@@ -84,6 +77,7 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             {
                 newWidth = targetResolution.Width;
                 newHeight = (int)(newWidth / aspectRatio);
+                
                 if (newHeight > targetResolution.Height)
                 {
                     newHeight = targetResolution.Height;

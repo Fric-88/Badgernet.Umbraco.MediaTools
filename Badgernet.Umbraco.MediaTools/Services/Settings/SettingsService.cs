@@ -1,13 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Math.EC.Rfc7748;
-using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
-using Umbraco.Cms.Infrastructure.Scoping;
+using Badgernet.Umbraco.MediaTools.Models;
+using Microsoft.Extensions.Logging;
 
-
-namespace Badgernet.Umbraco.MediaTools.Core.Services.Settings;
+namespace Badgernet.Umbraco.MediaTools.Services.Settings;
 
 public class SettingsService : ISettingsService
 {

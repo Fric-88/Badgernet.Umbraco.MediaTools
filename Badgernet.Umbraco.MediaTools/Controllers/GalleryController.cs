@@ -1,34 +1,35 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using Asp.Versioning;
+using Badgernet.Umbraco.MediaTools.Helpers;
+using Badgernet.Umbraco.MediaTools.Models;
+using Badgernet.Umbraco.MediaTools.Services.FileManager;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using Umbraco.Extensions;
-using Badgernet.Umbraco.MediaTools.Core.Models;
-using System.IO.Compression;
-using Badgernet.Umbraco.MediaTools.Core.Services.FileManager;
-using Badgernet.Umbraco.MediaTools.Core.Services.ImageProcessing;
 using Size = SixLabors.ImageSharp.Size;
-using Badgernet.Umbraco.MediaTools.Core.Helpers;
-using Umbraco.Cms.Core.Models;
-using Org.BouncyCastle.Crypto;
-namespace Badgernet.Umbraco.MediaTools.Core.Controllers;
+
+namespace Badgernet.Umbraco.MediaTools.Controllers;
 
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "mediatools")]
+[Route("gallery")]
 public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor) : ControllerBase
 {
-    private readonly IMediaHelper _mediaHelper = mediaHelper;
     private readonly IFileManager _fileManager = fileManager;
     private readonly IImageProcessor _imageProcessor = imageProcessor;
     private readonly ILogger<SettingsController> _logger = logger;
 
-
-    [HttpGet("gallery/get-info")]
+    [HttpGet("get-info")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GalleryInfoDto))]
     public GalleryInfoDto GetGalleryInfo()
     {
         var response = new GalleryInfoDto();
-        var allMedia = _mediaHelper.GetAllMedia();
+        var allMedia = mediaHelper.GetAllMedia();
 
         
         response.FolderCount = allMedia.OfTypes("Folder").Count(); //Count Folders 
@@ -45,16 +46,16 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return response;
     }
 
-    [HttpGet("gallery/list-folders")]
+    [HttpGet("list-folders")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
     public string[] ListFolders()
     {
-        var response = _mediaHelper.ListFolders();
+        var response = mediaHelper.ListFolders();
         return response.ToArray();
     }
 
 
-    [HttpPost("gallery/filter")]
+    [HttpPost("filter")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
     public IActionResult FilterGallery(FilterImagesDto requestData)
     {
@@ -62,11 +63,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         if(string.IsNullOrEmpty(requestData.FolderName))  
         {
-            images = _mediaHelper.GetMediaDtoByType("Image");
+            images = mediaHelper.GetMediaDtoByType("Image");
         }
         else
         {
-            images = _mediaHelper.GetMediaDtoByFolderName(requestData.FolderName);
+            images = mediaHelper.GetMediaDtoByFolderName(requestData.FolderName);
         }
 
         if (images == null)
@@ -91,13 +92,13 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         }
         
         //If NameLike provided, filter after Name 
-        if(requestData.NameLike != string.Empty && requestData.NameLike != null)
+        if(requestData.NameLike != string.Empty)
         {
             images = images.Where((x) => x.Name.IndexOf(requestData.NameLike, StringComparison.OrdinalIgnoreCase) > -1);
         } 
 
         //If ExtensionLike provided, filter after extension
-        if(requestData.ExtensionLike != string.Empty && requestData.ExtensionLike != null)
+        if(requestData.ExtensionLike != string.Empty)
         {
             images = images.Where((x) => x.Extension.IndexOf(requestData.ExtensionLike, StringComparison.OrdinalIgnoreCase) > -1);
         }
@@ -107,7 +108,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
 
 
-    [HttpPost("gallery/process")]
+    [HttpPost("process")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageProcessingResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageProcessingResponse))]
     public IActionResult ProcessImages(ProcessImagesDto requestData)
@@ -145,7 +146,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         {
             try
             {
-                var imageMedia = _mediaHelper.GetMediaById(id);
+                var imageMedia = mediaHelper.GetMediaById(id);
 
                 if(imageMedia == null)
                 {
@@ -154,7 +155,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     continue;
                 }
 
-                var originalResolution = _mediaHelper.GetUmbResolution(imageMedia);
+                var originalResolution = mediaHelper.GetUmbResolution(imageMedia);
                 if(originalResolution == Size.Empty)
                 {
                     _logger.LogError("Could not read resolution of media with id: {id}", id);
@@ -166,7 +167,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var targetResolution = new Size(requestData.Width,requestData.Height);
                 var newResolution =_imageProcessor.CalculateResolution(originalResolution, targetResolution, preserveAspectRatio);
 
-                var mediaPath = _mediaHelper.GetRelativePath(imageMedia);
+                var mediaPath = mediaHelper.GetRelativePath(imageMedia);
                 var newMediaPath = _fileManager.GetFreePath(mediaPath);
                 var filename = Path.GetFileName(newMediaPath);
 
@@ -189,8 +190,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     if(resizedImageStream != null)//If resizing succeeded
                     {
                         //Set properties
-                        _mediaHelper.SetUmbFilename(imageMedia, filename);
-                        _mediaHelper.SetUmbResolution(imageMedia, newResolution);
+                        mediaHelper.SetUmbFilename(imageMedia, filename);
+                        mediaHelper.SetUmbResolution(imageMedia, newResolution);
 
                         //Delete old image File
                         _fileManager.DeleteFile(mediaPath);
@@ -229,9 +230,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                         {
                             if(convertedImage != null)//If converting succeeded
                             {
-                                _mediaHelper.SetUmbFilename(imageMedia, filename);
-                                _mediaHelper.SetUmbExtension(imageMedia, ".webp" );
-                                _mediaHelper.SetUmbBytes(imageMedia, convertedImage.Length);
+                                mediaHelper.SetUmbFilename(imageMedia, filename);
+                                mediaHelper.SetUmbExtension(imageMedia, ".webp" );
+                                mediaHelper.SetUmbBytes(imageMedia, convertedImage.Length);
 
                                 //Delete original image (before extension change)
                                 _fileManager.DeleteFile(mediaPath);
@@ -268,7 +269,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     }
 
                     if(writtenToDisk)
-                        _mediaHelper.SaveMedia(imageMedia);
+                        mediaHelper.SaveMedia(imageMedia);
 
                 }
 
@@ -305,19 +306,19 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
     }
 
-    [HttpPost("gallery/trash")]
+    [HttpPost("trash")]
     [ProducesResponseType(typeof(RecycleMediaResponse),200)]
     public RecycleMediaResponse RecycleMedia(int[] ids)
     {
-        int trashedCount = 0;
-        int errorCount = 0;
+        var trashedCount = 0;
+        var errorCount = 0;
         var trashedIds = new List<int>();  
 
-        foreach (int id in ids)
+        foreach (var id in ids)
         {
             try
             {
-                _mediaHelper.TrashMedia(id);
+                mediaHelper.TrashMedia(id);
                 trashedIds.Add(id);
                 trashedCount++;
             }
@@ -338,7 +339,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
             };
         }
-        else if(errorCount == ids.Length)//All media failed to trash
+
+        if(errorCount == ids.Length)//All media failed to trash
         {
             return new RecycleMediaResponse
             {
@@ -347,30 +349,29 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 Payload = trashedIds.ToArray()
             };
         }
-        else//Some succeeded some failed
-        {
-            return new RecycleMediaResponse
-            { 
-                Status = ResponseStatus.Warning,
-                Message = $"{trashedCount} media items were moved to recycle bin. {errorCount} items could not be recycled.",
-                Payload = trashedIds.ToArray()
-            };
-        }
+        //Some succeeded some failed
+        return new RecycleMediaResponse
+        { 
+            Status = ResponseStatus.Warning,
+            Message = $"{trashedCount} media items were moved to recycle bin. {errorCount} items could not be recycled.",
+            Payload = trashedIds.ToArray()
+        };
+        
     }
 
-    [HttpPost("gallery/download")]
+    [HttpPost("download")]
     [ProducesResponseType(typeof(Stream), 200, "application/zip")]
     [Produces("application/zip")]
     public IActionResult DownloadMedia(int[] ids)
     {
-        var images = _mediaHelper.GetMediaByIds(ids);
+        var images = mediaHelper.GetMediaByIds(ids);
         var zipStream = new MemoryStream();
         using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
         {
             foreach (var imageMedia in images)
             {
                 //Read physical file into a stream
-                var relativePath = _mediaHelper.GetRelativePath(imageMedia);
+                var relativePath = mediaHelper.GetRelativePath(imageMedia);
                 using var fileStream = _fileManager.ReadFile(relativePath);
 
                 //Add it to the zip archive if it was successfully read 

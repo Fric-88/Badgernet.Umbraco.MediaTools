@@ -5,8 +5,8 @@
     "type": "commonjs",
     "description": "proxy package.json, so NPM Taskrunner extension in visual studio can find the commands",
     "scripts": {
-        "build": "cd ./Badgernet.Umbraco.MediaTools.Client/Assets/ && npm run build",
-        "watch": "cd ./Badgernet.Umbraco.MediaTools.Client/Assets/ && npm run watch"
+        "build": "cd ./Badgernet.Umbraco.MediaTools/assets/ && npm run build",
+        "watch": "cd ./Badgernet.Umbraco.MediaTools/assets/ && npm run watch"
     },
     "devDependencies": {
         "@hey-api/openapi-ts": "^0.46.3"

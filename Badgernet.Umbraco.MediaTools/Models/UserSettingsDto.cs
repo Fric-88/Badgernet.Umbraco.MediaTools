@@ -1,4 +1,4 @@
-﻿namespace Badgernet.Umbraco.MediaTools.Core;
+﻿namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class UserSettingsDto
 {

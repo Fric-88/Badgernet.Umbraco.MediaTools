@@ -123,7 +123,7 @@ export type SetSettingsData = {
 export type SetSettingsResponse = string;
 
 export type $OpenApiTs = {
-    '/umbraco/mediatools/api/v1/mediatools/gallery/download': {
+    '/gallery/download': {
         post: {
             req: DownloadMediaData;
             res: {
@@ -134,7 +134,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/gallery/filter': {
+    '/gallery/filter': {
         post: {
             req: FilterGalleryData;
             res: {
@@ -145,7 +145,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/gallery/get-info': {
+    '/gallery/get-info': {
         get: {
             res: {
                 /**
@@ -155,7 +155,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/gallery/list-folders': {
+    '/gallery/list-folders': {
         get: {
             res: {
                 /**
@@ -165,7 +165,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/gallery/process': {
+    '/gallery/process': {
         post: {
             req: ProcessImagesData;
             res: {
@@ -180,7 +180,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/gallery/trash': {
+    '/gallery/trash': {
         post: {
             req: RecycleMediaData;
             res: {
@@ -191,7 +191,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/settings/get': {
+    '/settings/get': {
         get: {
             req: GetSettingsData;
             res: {
@@ -202,7 +202,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/umbraco/mediatools/api/v1/mediatools/settings/set': {
+    '/settings/set': {
         post: {
             req: SetSettingsData;
             res: {

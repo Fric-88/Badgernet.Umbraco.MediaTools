@@ -1,8 +1,7 @@
-using System;
-using Umbraco.Cms.Api.Management.Mapping.Item;
+using Badgernet.Umbraco.MediaTools.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
-namespace Badgernet.Umbraco.MediaTools.Core.Helpers;
+namespace Badgernet.Umbraco.MediaTools.Helpers;
 
 public static class ExtensionMethods
 {
@@ -16,7 +15,7 @@ public static class ExtensionMethods
     public static string ToReadableFileSize(long bytes, bool binary = true, int decimalPlaces = 1)
     {
         // Define the threshold based on SI (1000) or binary (1024) mode.
-        int threshold = binary ? 1024 : 1000;
+        var threshold = binary ? 1024 : 1000;
 
         // If the bytes value is less than the threshold, return the value in bytes.
         if (Math.Abs(bytes) < threshold)
@@ -30,9 +29,9 @@ public static class ExtensionMethods
             : ["KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"];
 
         // Variable to keep track of which unit to use.
-        int u = -1;
-        double r = Math.Pow(10, decimalPlaces);
-        double numBytes = bytes;
+        var u = -1;
+        var r = Math.Pow(10, decimalPlaces);
+        var numBytes = bytes;
 
         // Loop to divide the bytes by the threshold until it's small enough to fit within the unit.
         do
@@ -58,7 +57,7 @@ public static class ExtensionMethods
         {
             try
             {
-                result.Add(new ImageMediaDto()
+                result.Add(new ImageMediaDto
                 {
                     Id =contentItem.Id,
                     Name = contentItem.Name,
@@ -69,9 +68,9 @@ public static class ExtensionMethods
                     Size = ToReadableFileSize(Convert.ToInt64(contentItem.GetProperty("umbracoBytes")?.GetValue() ?? 0)) 
                 });
             }
-            catch 
-            { 
-                continue;
+            catch
+            {
+                // ignored
             }
         }
 
