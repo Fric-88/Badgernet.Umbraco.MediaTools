@@ -37,7 +37,7 @@ dotnet add package Badgernet.Umbraco.MediaTools
 ```
 dotnet remove package Badgernet.Umbraco.MediaTools
 ```
-After uninstalling the package, make sure to delete the folder "App_Plugins/Badgernet.Umbraco.WebPicAuto", <br> otherwise the dashboard may still be displayed in the backoffice. 
+After uninstalling the package, make sure to delete the folder "App_Plugins/Badgernet.Umbraco.MediaTools".
 
 <br>
 
