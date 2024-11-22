@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
 
     <Description> 
         This package adds additional functionalities to Umbraco media section.
@@ -24,7 +24,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Initial build</PackageReleaseNotes> 
+    <PackageReleaseNotes>Package reference bump for Umbraco 15</PackageReleaseNotes> 
 
   </PropertyGroup>
 
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms" Version="[14, 15]" />
+    <PackageReference Include="Umbraco.Cms" Version="[14, 16)" />
   </ItemGroup>
 
 

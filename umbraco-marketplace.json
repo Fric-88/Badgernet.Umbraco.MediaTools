@@ -13,5 +13,15 @@
     "PackageType": "Package",
     "Tags": [
     "Media tools"
+    ],
+    "Screenshots": [
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Uploads.png",
+            "Caption": "Uploads"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Gallery.png",
+            "Caption": "Gallery"
+        }
     ]
 }
