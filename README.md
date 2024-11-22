@@ -7,7 +7,8 @@
 - Ability to resize, convert or download multiple images from the media section.
 
 
----
+<br>
+
 # Important notes
 
 ### When using uSync
