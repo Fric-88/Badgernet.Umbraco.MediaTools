@@ -7,8 +7,7 @@
 - Ability to resize, convert or download multiple images from the media section.
 
 
-<br>
-
+---
 # Important notes
 
 ### When using uSync
@@ -22,8 +21,7 @@ Any testing with those would be very welcome.
 This package is compatible with Umbraco version 14 and newer. <br>
 If you are looking for similar functionalities for Umbraco 13, take a look at [this repository](https://github.com/Fric-88/Badgernet.Umbraco.WebPicAuto)  
 
-<br>
-
+---
 
 # Installation
 Simply add the package by using dotnet add package to install the latest version:
@@ -31,35 +29,34 @@ Simply add the package by using dotnet add package to install the latest version
 dotnet add package Badgernet.Umbraco.MediaTools
 ```
 
-<br>
+
 
 # Un-installation
 ```
 dotnet remove package Badgernet.Umbraco.MediaTools
 ```
-After uninstalling the package, make sure to delete the folder "App_Plugins/Badgernet.Umbraco.WebPicAuto", <br> otherwise the dashboard may still be displayed in the backoffice. 
-
-<br>
 
 
+---
 
 # Changelog
+
+#### Version 1.0.1
+- Works with Umbraco 15
+
 #### Version 1.0.0
-- First iteration
+- First version
 
 
-<br>
-
-
-
+---
 
 # Settings
-You can change settings by accessing the "Upload processing" dashboard in the Media section in backoffice. <br>
+You can change settings by accessing the "Upload processing" dashboard in the Media section in backoffice. 
 This package uses settings on per-user basis, settings files are stored under: "App_Plugins/Badgernet.Umbraco.MediaTools/Settings
 
-<br>
+---
 
-# Downsizer
+# Resolution limiter
 
 ## Max width
 Resizer will scale images down to fit max width value
@@ -70,7 +67,7 @@ Resizer will scale images down to fit max height
 ## Ignore aspect ratio
 By default, resizing will maintain image aspect ratio.
 
-<br>
+---
 
 # WebP Converter
 
@@ -87,7 +84,7 @@ If turned on, original images will not be deleted
 ### Ignore keyword
 Any images containing this keyword in its filename will be ignored by this package. -> "ignoreme_IMG01012024.png" would not get processed.
 
-<br>
+---
 
 ### Credits
 Big thanks to [Kevin Jump](https://github.com/kevinjump) for providing "EarlyAdopter's Guide Umbraco v14" series on [dev.to](https://dev.to/kevinjump/series) 
