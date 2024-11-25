@@ -1,8 +1,16 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, state, query } from "@umbraco-cms/backoffice/external/lit";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
-import { UUICheckboxElement,  UUIPaginationElement, UUITableCellElement, UUITableRowElement, UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
-import { FilterGalleryData, ImageMediaDto, ProcessImagesData } from "../api";
+import {
+    UUICheckboxElement,
+    UUIInputElement,
+    UUIPaginationElement,
+    UUITableCellElement,
+    UUITableRowElement,
+    UUIToastNotificationContainerElement,
+    UUIToastNotificationElement
+} from "@umbraco-cms/backoffice/external/uui";
+import {FilterGalleryData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
 import "../elements/process_image_panel.element";
 import ProcessImagePanel, { ProcessingSettings } from "../elements/process_image_panel.element";
@@ -10,7 +18,8 @@ import ImagePreview from "../elements/image_preview.element";
 import "../elements/image_preview.element"
 import ImageSearchBar from "../elements/image_search_bar.element";
 import "../elements/image_search_bar.element"
-
+import RenameMediaDialog from "../elements/rename_media_dialog.element.ts";  
+import "../elements/rename_media_dialog.element" 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
 export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
@@ -25,6 +34,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
     @state() allSelected: boolean = false;
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
+    @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
 
     constructor() {
         super();
@@ -120,6 +130,42 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
         }
 
     }
+    
+    private async renameMedia(e: Event){
+        
+        if(e.target instanceof ProcessImagePanel){
+            const dialog = this.renameMediaDialog as RenameMediaDialog;
+            
+            //Exactly one element has to be selected
+            if(this.itemsList.countSelectedItems() !== 1) return;
+            
+            let selectedImage = this.itemsList.getSelectedItems()[0];
+            
+            if(selectedImage == undefined) return;
+            
+            if(dialog){
+                dialog.showModal(selectedImage.name, async () => {
+                    
+                    const requestData: RenameMediaData = {
+                        mediaId: selectedImage.id,
+                        newName: dialog.mediaName
+                    }
+                    
+                    const response = await this.#mediaToolsContext?.renameMedia(requestData);
+                    if(response){
+                        const operationResponse = response.data as OperationResponse;
+                        if(operationResponse){
+                            if(operationResponse.status === "Success"){
+                                this.#showToastNotification("Done",operationResponse.message, "","positive");
+                                selectedImage.name = dialog.mediaName;
+                                this.requestUpdate();
+                            }
+                        }
+                    }    
+                });
+            }
+        }
+    }
 
     private async processSelectedImages(e: CustomEvent<ProcessingSettings>){
         let target = e.target;
@@ -132,9 +178,16 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                 return;
             }
 
+            //Set buttons styles 
+            target.processButtonState = "waiting";
+            target.trashButtonEnabled = false;
+            target.downloadButtonEnabled = false;
+            
+            const selectedItems = this.itemsList.getSelectedItems();
+
             let requestData: ProcessImagesData = {
                 requestBody: {
-                    ids: this.itemsList.getSelectedItems().map((item) => item.id),
+                    ids: selectedItems.map((item) => item.id),
                     resize: settings.resize,
                     resizeMode: settings.resizeMode,
                     width: settings.width,
@@ -145,28 +198,38 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                 }
             }
 
-            //Set buttons styles 
-            target.processButtonState = "waiting";
-            target.trashButtonEnabled = false;
-            target.downloadButtonEnabled = false;
-
-
             try{
-                var response = await this.#mediaToolsContext?.processImage(requestData);
+                const response = await this.#mediaToolsContext?.processImage(requestData);
 
                 if(response){
-                    if(response.error){ //API Error 
-                        this.#showToastNotification("Oops",response.error.message, "API Error","danger");
-                    }
-                    else{
-                        var responseData = response.data!;
-                        
-                        if(responseData.status === "Warning"){
-                            this.#showToastNotification("Done", responseData.message, "Check logs for more information.", "warning");
+                    const operationResponse = response.data;
+                    
+                    if(operationResponse){
+                        if(operationResponse.status === "Warning"){
+                            this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
+                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
+                            
+                            for( let i = 0; i < processedImages.length; i++){
+                                for(let x = 0; x < selectedItems.length; x++){
+                                    if(processedImages[i].id === selectedItems[x].id){
+                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                    }
+                                }
+                            }
+                            
                         }
-                        else if(responseData.status === "Success") {
-                            var messages: Array<string>
-                            this.#showToastNotification("Done",responseData.message, "", "positive");
+                        else if(operationResponse.status === "Success") {
+                            this.#showToastNotification("Done",operationResponse.message, "", "positive");
+                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
+                            
+                            for( let i = 0; i < processedImages.length; i++){
+                                for(let x = 0; x < selectedItems.length; x++){
+                                    if(processedImages[i].id === selectedItems[x].id){
+                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                    }
+                                }
+                            }
+                            
                         }
                         else{
                             this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.","danger");
@@ -355,7 +418,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                                 convertQuality="85"
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.trashSelectedImages}"
-                                @download-images-click="${this.downloadSelectedMedia}"></process-image-panel>
+                                @download-images-click="${this.downloadSelectedMedia}"
+                                @rename-media-click="${this.renameMedia}"></process-image-panel>
                             </process-image-panel>
                         </span>
 
@@ -365,12 +429,14 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             </div>
 
             <image-preview id="imagePreviewElement"></image-preview>
-            <image-editor id="imageEditorElement"></image-editor> 
+            <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
 
             <uui-toast-notification-container 
                 id="notificationContainer"
                 auto-close="3000">
             </uui-toast-notification-container>
+            
+            
         `
     }
 
@@ -566,9 +632,6 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             margin-left: auto;
             margin-right: auto;
         }
-
-
-
     `
 }
 

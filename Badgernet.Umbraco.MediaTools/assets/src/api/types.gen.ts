@@ -29,12 +29,6 @@ export type ImageMediaDto = {
     size: string;
 };
 
-export type ImageProcessingResponse = {
-    status: ResponseStatus;
-    message: string;
-    payload?: unknown;
-};
-
 export type KeyValuePair_2 = {
     key?: string | null;
     value: number;
@@ -46,6 +40,12 @@ export type NotificationHeaderModel = {
     type: EventMessageTypeModel;
 };
 
+export type OperationResponse = {
+    status: ResponseStatus;
+    message: string;
+    payload?: unknown;
+};
+
 export type ProcessImagesDto = {
     ids: Array<(number)>;
     resize: boolean;
@@ -55,12 +55,6 @@ export type ProcessImagesDto = {
     height: number;
     convertMode: ConvertMode;
     convertQuality: number;
-};
-
-export type RecycleMediaResponse = {
-    status: ResponseStatus;
-    message: string;
-    payload?: unknown;
 };
 
 export type ResizeMode = 'FitInside' | 'ExactSize';
@@ -101,13 +95,20 @@ export type ProcessImagesData = {
     requestBody?: ProcessImagesDto;
 };
 
-export type ProcessImagesResponse = ImageProcessingResponse;
+export type ProcessImagesResponse = OperationResponse;
+
+export type RenameMediaData = {
+    mediaId?: number;
+    newName?: string;
+};
+
+export type RenameMediaResponse = OperationResponse;
 
 export type RecycleMediaData = {
     requestBody?: Array<(number)>;
 };
 
-export type RecycleMediaResponse2 = RecycleMediaResponse;
+export type RecycleMediaResponse = OperationResponse;
 
 export type GetSettingsData = {
     userKey?: string;
@@ -172,11 +173,26 @@ export type $OpenApiTs = {
                 /**
                  * OK
                  */
-                200: ImageProcessingResponse;
+                200: OperationResponse;
                 /**
                  * Bad Request
                  */
-                400: ImageProcessingResponse;
+                400: OperationResponse;
+            };
+        };
+    };
+    '/gallery/rename': {
+        post: {
+            req: RenameMediaData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: OperationResponse;
+                /**
+                 * Bad Request
+                 */
+                400: OperationResponse;
             };
         };
     };
@@ -187,7 +203,7 @@ export type $OpenApiTs = {
                 /**
                  * OK
                  */
-                200: RecycleMediaResponse;
+                200: OperationResponse;
             };
         };
     };

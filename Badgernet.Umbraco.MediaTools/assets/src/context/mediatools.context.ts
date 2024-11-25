@@ -3,7 +3,18 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbArrayState, UmbBooleanState, UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
-import { ConvertMode, DownloadMediaData, FilterGalleryData, GetSettingsData, ProcessImagesData, SetSettingsData, UserSettingsDto, RecycleMediaData, GalleryInfoDto } from "../api";
+import {
+    ConvertMode,
+    DownloadMediaData,
+    FilterGalleryData,
+    GetSettingsData,
+    ProcessImagesData,
+    SetSettingsData,
+    UserSettingsDto,
+    RecycleMediaData,
+    GalleryInfoDto,
+    RenameMediaData
+} from "../api";
 import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
 0
 
@@ -200,6 +211,10 @@ export class MediaToolsContext extends UmbControllerBase {
         if(responseData){
             return responseData;
         }
+    }
+    
+    async renameMedia(requestData: RenameMediaData ){
+        return await this.#repository.renameMedia(requestData);
     }
 }
 

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, ListFoldersResponse, ProcessImagesData, ProcessImagesResponse, RecycleMediaData, RecycleMediaResponse2, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
+import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, ListFoldersResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
 
 /**
  * @param data The data for the request.
@@ -67,11 +67,30 @@ export const processImages = (data: ProcessImagesData = {}): CancelablePromise<P
 
 /**
  * @param data The data for the request.
+ * @param data.mediaId
+ * @param data.newName
+ * @returns unknown OK
+ * @throws ApiError
+ */
+export const renameMedia = (data: RenameMediaData = {}): CancelablePromise<RenameMediaResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/gallery/rename',
+    query: {
+        mediaId: data.mediaId,
+        newName: data.newName
+    },
+    errors: {
+        400: 'Bad Request'
+    }
+}); };
+
+/**
+ * @param data The data for the request.
  * @param data.requestBody
  * @returns unknown OK
  * @throws ApiError
  */
-export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<RecycleMediaResponse2> => { return __request(OpenAPI, {
+export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<RecycleMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
     url: '/gallery/trash',
     body: data.requestBody,

@@ -78,6 +78,17 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
             }); 
         }
     }
+    
+    //Dispatch Rename Media event
+    private dispatchRenameEvent(){
+        const event = new CustomEvent("rename-media-click",{
+            detail: { message: 'Button clicked!' },
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true       // Allows the event to pass through shadow DOM boundaries
+        });
+
+        this.dispatchEvent(event);
+    }
 
     //Show modal before downloading
     private confirmDownloading(){
@@ -194,17 +205,26 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             </div>
 
+            <uui-button
+                    class="centered"
+                    look="primary"
+                    color="default"
+                    style="margin-top: 1rem;"
+                    .disabled="${this.selectionCount != 1}"
+                    @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
+            </uui-button>
+            
             <uui-button 
                 class="centered"
                 state=${ifDefined(this.processButtonState)}
                 look="primary"
                 color="positive" 
-                style="margin-top: 1rem;"
+                style="margin-top: 0.5rem;"
                 .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
                 popovertarget="areYouSurePopover"
                 @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
             </uui-button>
-
+            
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 
                     state=${ifDefined(this.trashButtonState)}

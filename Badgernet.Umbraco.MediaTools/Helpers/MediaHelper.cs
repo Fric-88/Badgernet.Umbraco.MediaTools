@@ -137,32 +137,29 @@ public class MediaHelper(
     public string GetUmbExtension(IMedia media)
     {
         var umbracoFileJson = media.GetValue("umbracoFile");
-        if(umbracoFileJson != null)
-        {
-            var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-            var srcProp = umbracoFile!["src"]!.GetValue<string>();
-            var extension = Path.GetExtension(srcProp);
+        if (umbracoFileJson == null) return string.Empty;
+        
+        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
+        var srcProp = umbracoFile!["src"]!.GetValue<string>();
+        var extension = Path.GetExtension(srcProp);
 
-            extension = extension.TrimStart('.');
-            return extension;
-        }
+        extension = extension.TrimStart('.');
+        return extension;
 
-        return string.Empty;
     }
     public void SetUmbExtension(IMedia media, string extension)
     {
         var umbracoFileJson = media.GetValue("umbracoFile");
-        if (umbracoFileJson != null)
-        {
-            //Remove starting dots like in '.webp'
-            extension = extension.TrimStart('.');    
+        if (umbracoFileJson == null) return;
+        
+        //Remove starting dots like in '.webp'
+        extension = extension.TrimStart('.');    
 
-            var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-            var srcProp = umbracoFile!["src"]!.GetValue<string>();
-            umbracoFile["src"] = Path.ChangeExtension(srcProp, extension);
-            media.SetValue("umbracoFile", umbracoFile.ToJsonString());
-            media.SetValue("umbracoExtension", extension);
-        }
+        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
+        var srcProp = umbracoFile!["src"]!.GetValue<string>();
+        umbracoFile["src"] = Path.ChangeExtension(srcProp, extension);
+        media.SetValue("umbracoFile", umbracoFile.ToJsonString());
+        media.SetValue("umbracoExtension", extension);
     }
 
     public long GetUmbBytes(IMedia media){
@@ -177,17 +174,16 @@ public class MediaHelper(
     public void SetUmbFilename(IMedia media, string filename)
     {
         var umbracoFileJson = media.GetValue("umbracoFile");
-        if (umbracoFileJson != null)
-        {
-            var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-            var srcProp = umbracoFile!["src"]!.GetValue<string>();
-            var directory = Path.GetDirectoryName(srcProp)!;
-            var path = Path.Combine(directory, filename);
-            path = path.Replace('\\', '/');
-            umbracoFile["src"] = path;
+        if (umbracoFileJson == null) return;
+        
+        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
+        var srcProp = umbracoFile!["src"]!.GetValue<string>();
+        var directory = Path.GetDirectoryName(srcProp)!;
+        var path = Path.Combine(directory, filename);
+        path = path.Replace('\\', '/');
+        umbracoFile["src"] = path;
 
-            media.SetValue("umbracoFile", umbracoFile.ToJsonString());
-        }
+        media.SetValue("umbracoFile", umbracoFile.ToJsonString());
     }
 
     public void SaveMedia(IMedia media)
@@ -201,5 +197,18 @@ public class MediaHelper(
         mediaService.MoveToRecycleBin(media);
     }
 
+    public bool RenameMedia(IMedia media, string newName)
+    {
+        try
+        {
+            media.Name = newName;
+            SaveMedia(media);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false; 
+        }
+    }
 
 }
