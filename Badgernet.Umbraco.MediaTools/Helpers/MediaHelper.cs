@@ -201,5 +201,18 @@ public class MediaHelper(
         mediaService.MoveToRecycleBin(media);
     }
 
+    public bool RenameMedia(IMedia media, string newName)
+    {
+        try
+        {
+            media.Name = newName;
+            SaveMedia(media);
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false; 
+        }
+    }
 
 }

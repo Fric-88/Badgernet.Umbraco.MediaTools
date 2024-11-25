@@ -31,7 +31,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var response = new GalleryInfoDto();
         var allMedia = mediaHelper.GetAllMedia();
 
-        
         response.FolderCount = allMedia.OfTypes("Folder").Count(); //Count Folders 
         response.MediaCount = allMedia.Count() - response.FolderCount; //The rest should be media files
 
@@ -53,6 +52,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var response = mediaHelper.ListFolders();
         return response.ToArray();
     }
+    
+    
 
 
     [HttpPost("filter")]
@@ -106,14 +107,43 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(images.ToArray());
     }
 
+    [HttpPost("rename")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
+    public IActionResult RenameMedia(int mediaId, string newName)
+    {
+       if (string.IsNullOrEmpty(newName))
+       {
+           _logger.LogError("New name cannot be empty");
+           return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
+       }
+       
+       var imageMedia = mediaHelper.GetMediaById(mediaId);
 
+       if (imageMedia == null)
+       {
+           _logger.LogError("Media not found");
+           return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
+       }
+
+       var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
+
+       if (renameOperation == false)
+       {
+           _logger.LogError("Could not rename media.");
+           return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
+       }
+
+       return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
+
+    }
 
     [HttpPost("process")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageProcessingResponse))]
-    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageProcessingResponse))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult ProcessImages(ProcessImagesDto requestData)
     {
-        var response = new ImageProcessingResponse();
+        var response = new OperationResponse();
 
         //Validate request
         var ids = requestData.Ids;
@@ -222,7 +252,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     var convertQuality = requestData.ConvertQuality; 
 
                     if(!mediaPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) &&
-                        !mediaPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
+                       !mediaPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                     {
                         newMediaPath = Path.ChangeExtension(newMediaPath, ".webp");
 
@@ -270,15 +300,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                     if(writtenToDisk)
                         mediaHelper.SaveMedia(imageMedia);
-
                 }
 
                 //Dispose the stream
                 imageStream.Dispose();
                 imageStream  = null;
-
-                //SEND SUCCESS NOTIFICATION
-
             }
             catch (Exception ex)
             {
@@ -307,8 +333,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     }
 
     [HttpPost("trash")]
-    [ProducesResponseType(typeof(RecycleMediaResponse),200)]
-    public RecycleMediaResponse RecycleMedia(int[] ids)
+    [ProducesResponseType(typeof(OperationResponse),200)]
+    public OperationResponse RecycleMedia(int[] ids)
     {
         var trashedCount = 0;
         var errorCount = 0;
@@ -331,7 +357,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         if(trashedCount == ids.Length)//All media trashed successfully 
         {
-            return new RecycleMediaResponse
+            return new OperationResponse()
             {
                 Status = ResponseStatus.Success,
                 Message = $"{trashedCount} media items were moved to recycle bin.",
@@ -342,7 +368,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         if(errorCount == ids.Length)//All media failed to trash
         {
-            return new RecycleMediaResponse
+            return new OperationResponse()
             {
                 Status = ResponseStatus.Error,
                 Message = $"{errorCount} items could not be recycled.",
@@ -350,7 +376,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             };
         }
         //Some succeeded some failed
-        return new RecycleMediaResponse
+        return new OperationResponse()
         { 
             Status = ResponseStatus.Warning,
             Message = $"{trashedCount} media items were moved to recycle bin. {errorCount} items could not be recycled.",
@@ -375,17 +401,17 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 using var fileStream = _fileManager.ReadFile(relativePath);
 
                 //Add it to the zip archive if it was successfully read 
-                if(fileStream != null){
-                    var zipEntry = zipArchive.CreateEntry(imageMedia.Name! + Path.GetExtension(relativePath));
-                    using (var entryStream = zipEntry.Open()){
-                        fileStream.CopyTo(entryStream);
-                    }
+                if (fileStream == null) continue;
+                
+                var zipEntry = zipArchive.CreateEntry(imageMedia.Name! + Path.GetExtension(relativePath));
+                using (var entryStream = zipEntry.Open()){
+                    fileStream.CopyTo(entryStream);
+                }
                     
-                    //Stop if resulting archive exceeds 300MB
-                    if(zipStream.Length > 314572800)
-                    {
-                        break;
-                    }
+                //Stop if resulting archive exceeds 300MB
+                if(zipStream.Length > 314572800)
+                {
+                    break;
                 }
             }
         }

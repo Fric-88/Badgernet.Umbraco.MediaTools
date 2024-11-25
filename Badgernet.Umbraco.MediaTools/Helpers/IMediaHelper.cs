@@ -17,6 +17,7 @@ public interface IMediaHelper
         IEnumerable<ImageMediaDto> GetMediaDtoByType(string type);
         void SaveMedia(IMedia media);
         void TrashMedia(int mediaId);
+        bool RenameMedia(IMedia media, string newName);
         string GetRelativePath(IMedia media);
         Size GetUmbResolution(IMedia media);
         void SetUmbResolution(IMedia media, Size size);
