@@ -19,7 +19,6 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             {
                 x.Resize(targetResolution.Width, targetResolution.Height);
             });
-            img.Mutate(x => x.AutoOrient());
 
             var resizedStream = new MemoryStream();
             img.Save(resizedStream, format);
