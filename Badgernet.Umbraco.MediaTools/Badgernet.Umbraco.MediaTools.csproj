@@ -10,10 +10,9 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
 
-    <Description> 
-        This package adds additional functionalities to Umbraco media section.
+    <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
 
     <PackageProjectUrl>https://github.com/Fric-88/Badgernet.Umbraco.MediaTools</PackageProjectUrl> 
@@ -24,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Package reference bump for Umbraco 15</PackageReleaseNotes> 
+    <PackageReleaseNotes>Image renaming</PackageReleaseNotes> 
 
   </PropertyGroup>
 
