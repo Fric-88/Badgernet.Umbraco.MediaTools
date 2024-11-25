@@ -45,6 +45,7 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 #### Version 1.0.2
 - Rename image from the dashboard
 - Fix: Image list updates after processing
+- Fix: Images would sometimes rotate when resizing
 
 #### Version 1.0.1
 - Works with Umbraco 15
