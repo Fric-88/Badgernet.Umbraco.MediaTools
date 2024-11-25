@@ -71,7 +71,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             images = mediaHelper.GetMediaDtoByFolderName(requestData.FolderName);
         }
 
-        if (images == null)
+        if (!images.Any())
         {
             _logger.LogWarning("No existing images found");
             return NoContent();
@@ -79,9 +79,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         switch(requestData.SizeFilter)
         {
-            case SizeFilter.AllSizes:
-                //Do nothing
-                break;
             case SizeFilter.BiggerThan:
                 //Get all images that are bigger than provided size, ignore .svg images
                 images = images.Where(x => x.Width > requestData.Width || x.Height > requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
@@ -89,6 +86,10 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             case SizeFilter.SmallerThan:
                 //Get all images that are smaller than provided size, ignore .svg images
                 images = images.Where(x => x.Width < requestData.Width || x.Height < requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
+                break;
+            case SizeFilter.AllSizes:
+            default:
+                //No filter
                 break;
         }
         
@@ -147,7 +148,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         //Validate request
         var ids = requestData.Ids;
-        if(ids == null || ids.Length == 0)
+        
+        if(ids.Length == 0)
         {
             _logger.LogError("No media ids provided.");
 
@@ -171,6 +173,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         var converterCounter = 0;
         var resizerCounter = 0;
+        var processedMedias = new List<ImageMediaDto>();
+        
 
         foreach(var id in ids)
         {
@@ -298,24 +302,49 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                         _logger.LogError("Image with id: {id} could not be saved to file system.", id);
                     }
 
-                    if(writtenToDisk)
+                    if (writtenToDisk)
+                    {
+                        //Save processed media back to database
                         mediaHelper.SaveMedia(imageMedia);
+
+                        try
+                        {
+                            var imgResolution = mediaHelper.GetUmbResolution(imageMedia);
+                            
+                            processedMedias.Add(new ImageMediaDto
+                            {
+                                Id = imageMedia.Id,
+                                Name = imageMedia.Name ?? string.Empty,
+                                Path = mediaHelper.GetRelativePath(imageMedia),
+                                Extension = mediaHelper.GetUmbExtension(imageMedia),
+                                Width = imgResolution.Width,
+                                Height = imgResolution.Height,
+                                Size = ExtensionMethods.ToReadableFileSize(mediaHelper.GetUmbBytes(imageMedia))
+                            });
+
+                        }
+                        catch
+                        {
+                            //Ignore
+                        }
+                    }
+                        
                 }
 
                 //Dispose the stream
                 imageStream.Dispose();
-                imageStream  = null;
             }
             catch (Exception ex)
             {
                 _logger.LogError("Error processing image: {Message}", ex.Message);
                 response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
-                continue;
             }
             
         }
 
         //Build response message
+        response.Payload = processedMedias; 
+        
         if(requestData.Resize && requestData.Convert)
         {
             response.Message = $"{resizerCounter} images resized \n\n {converterCounter} images converted.";

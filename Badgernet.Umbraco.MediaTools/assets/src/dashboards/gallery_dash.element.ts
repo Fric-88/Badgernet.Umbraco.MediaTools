@@ -182,10 +182,12 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             target.processButtonState = "waiting";
             target.trashButtonEnabled = false;
             target.downloadButtonEnabled = false;
+            
+            const selectedItems = this.itemsList.getSelectedItems();
 
             let requestData: ProcessImagesData = {
                 requestBody: {
-                    ids: this.itemsList.getSelectedItems().map((item) => item.id),
+                    ids: selectedItems.map((item) => item.id),
                     resize: settings.resize,
                     resizeMode: settings.resizeMode,
                     width: settings.width,
@@ -205,9 +207,29 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                     if(operationResponse){
                         if(operationResponse.status === "Warning"){
                             this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
+                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
+                            
+                            for( let i = 0; i < processedImages.length; i++){
+                                for(let x = 0; x < selectedItems.length; x++){
+                                    if(processedImages[i].id === selectedItems[x].id){
+                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                    }
+                                }
+                            }
+                            
                         }
                         else if(operationResponse.status === "Success") {
                             this.#showToastNotification("Done",operationResponse.message, "", "positive");
+                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
+                            
+                            for( let i = 0; i < processedImages.length; i++){
+                                for(let x = 0; x < selectedItems.length; x++){
+                                    if(processedImages[i].id === selectedItems[x].id){
+                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                    }
+                                }
+                            }
+                            
                         }
                         else{
                             this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.","danger");
