@@ -1,7 +1,7 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property } from "@umbraco-cms/backoffice/external/lit";
 import { UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../code/box.event";
+import { BoxEventDetail } from "../../code/box.event";
 
 
 @customElement('radio-box')

@@ -2,10 +2,10 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, query,  ifDefined } from "@umbraco-cms/backoffice/external/lit";
 import { BoxEventDetail } from "../code/box.event";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
-import "../elements/toggle.box.element"
-import "../elements/input.box.element"
-import "../elements/slider.box.element"
-import "../elements/radio.box.element"
+import "../elements/inputElements/toggle.box.element"
+import "../elements/inputElements/input.box.element"
+import "../elements/inputElements/slider.box.element"
+import "../elements/inputElements/radio.box.element"
 import { UserSettingsDto, ConvertMode } from "../api";
 import { UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";

@@ -20,7 +20,6 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) width: number = 1;
     @property({attribute : true, type: Number}) height: number = 1;
     
-
     @state() convert: boolean = false;
     @property({attribute: true, type: String}) convertMode: ConvertMode = "lossy";
     @property({attribute: true, type: Number}) convertQuality: number = 85;   
@@ -82,6 +81,17 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
     //Dispatch Rename Media event
     private dispatchRenameEvent(){
         const event = new CustomEvent("rename-media-click",{
+            detail: { message: 'Button clicked!' },
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true       // Allows the event to pass through shadow DOM boundaries
+        });
+
+        this.dispatchEvent(event);
+    }
+
+    //Dispatch Edit Media event
+    private dispatchEditEvent(){
+        const event = new CustomEvent("edit-media-click",{
             detail: { message: 'Button clicked!' },
             bubbles: true,       // Allows the event to bubble up through the DOM
             composed: true       // Allows the event to pass through shadow DOM boundaries
@@ -205,14 +215,23 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             </div>
 
-            <uui-button
-                    class="centered"
-                    look="primary"
-                    color="default"
-                    style="margin-top: 1rem;"
-                    .disabled="${this.selectionCount != 1}"
-                    @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
-            </uui-button>
+            <div style="display:flex; gap: 0.5rem">
+                <uui-button
+                        look="primary"
+                        color="default"
+                        style="margin-top: 0.5rem; width: 100%"
+                        .disabled="${this.selectionCount != 1}"
+                        @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
+                </uui-button>
+    
+                <uui-button
+                        look="primary"
+                        color="default"
+                        style="margin-top: 0.5rem; width: 100%"
+                        .disabled="${this.selectionCount != 1}"
+                        @click="${this.dispatchEditEvent}"> <uui-icon name="wand"></uui-icon> Edit
+                </uui-button>
+            </div>
             
             <uui-button 
                 class="centered"
@@ -224,6 +243,8 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                 popovertarget="areYouSurePopover"
                 @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
             </uui-button>
+
+
             
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 

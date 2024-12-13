@@ -3,7 +3,6 @@ import { LitElement, html, css, customElement, state, query } from "@umbraco-cms
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 import {
     UUICheckboxElement,
-    UUIInputElement,
     UUIPaginationElement,
     UUITableCellElement,
     UUITableRowElement,
@@ -19,7 +18,10 @@ import "../elements/image_preview.element"
 import ImageSearchBar from "../elements/image_search_bar.element";
 import "../elements/image_search_bar.element"
 import RenameMediaDialog from "../elements/rename_media_dialog.element.ts";  
-import "../elements/rename_media_dialog.element" 
+import "../elements/rename_media_dialog.element"
+import ImageEditorDialog from "../elements/imageEditor/image_editor_dialog.element.ts";
+import "../elements/imageEditor/image_editor_dialog.element"
+
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
 export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
@@ -35,6 +37,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
+    @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
+
 
     constructor() {
         super();
@@ -164,6 +168,23 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                     }    
                 });
             }
+        }
+    }
+    
+    private editMedia(e: Event){
+        if(e.target instanceof ProcessImagePanel){
+
+            //Get selected image  
+            let selectedImage = this.itemsList.getSelectedItems()[0];
+            if(selectedImage == undefined) return;
+            if(this.itemsList.countSelectedItems() !== 1) return;
+            
+            //Find editor element 
+            const editor = this.editImageDialog as ImageEditorDialog;
+            if (editor == undefined) return;
+            
+            //Open editor
+            editor.openEditor(900, 900, selectedImage.path);
         }
     }
 
@@ -419,7 +440,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.trashSelectedImages}"
                                 @download-images-click="${this.downloadSelectedMedia}"
-                                @rename-media-click="${this.renameMedia}"></process-image-panel>
+                                @rename-media-click="${this.renameMedia}"
+                                @edit-media-click="${this.editMedia}"></process-image-panel>
                             </process-image-panel>
                         </span>
 
@@ -430,6 +452,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
             <image-preview id="imagePreviewElement"></image-preview>
             <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
+            <image-editor-dialog id="editImageDialog"></image-editor-dialog>
 
             <uui-toast-notification-container 
                 id="notificationContainer"
