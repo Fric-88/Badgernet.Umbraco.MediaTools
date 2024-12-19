@@ -1,17 +1,11 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import {
-    LitElement,
-    html,
-    css,
-    customElement,
-    query,
-    state,
-    property
-} from "@umbraco-cms/backoffice/external/lit";
+import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
 import {PropertyValues} from "lit";
 import {Point} from "./point.ts";
 import {CanvasImage} from "./canvas_image.ts";
 import {Camera} from "./camera.ts";
+import "./canvas_tools_panel.element.ts"
+
 
 const MAX_ZOOM: number = 5;
 const MIN_ZOOM: number = 0.1;
@@ -299,22 +293,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             <div id="editorContainer">
                 
                 <div id="toolbar">
-
-                    <p>Contrast</p>
-                    <uui-slider pristine="" min="-100" max="100" step="1" label="Slider label" value="0"></uui-slider>
-                  
-                    <p>Brightness</p>
-                    <uui-slider pristine="" min="-100" max="100" step="1" label="Slider label" value="0"></uui-slider>
-
-                    <p>Exposure</p>
-                    <uui-slider pristine="" min="-100" max="100" step="1" label="Slider label" value="0"></uui-slider>                            
-                    
-                    <div class="toolbarItem">
-                        <uui-button look="primary" color="danger" @click="${this.dispatchCloseEditor}">Close</uui-button>
-                        <uui-button look="primary" color="positive">Save</uui-button>
-                    </div>
+                    <canvas-tools-panel></canvas-tools-panel>
                 </div>
-                
                 <canvas id="canvasEditor"></canvas>
                 
 
@@ -328,9 +308,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         #editorContainer{
             display: flex;
             flex-direction: row;
-            min-width: 100vh;
-            min-height: 80vh;
             padding: 0;
+            gap: 3px;
         }
         
         .flexRow{
@@ -345,25 +324,14 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         
         #canvasEditor{
             background-color: whitesmoke;
+            flex-grow: 1;
         }
         
         #toolbar{
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            padding: 0.5rem;
-            width: 300px;
-            height: 90vh;
-            justify-content: flex-end;
-        }
-        
-        .toolbarItem{
-            display: flex;
-            flex-direction: row;
-            gap: 0.5rem;
             align-items: center;
-            width: 100%;
-            align-self: center;
+            justify-content: center;
         }
     `
 }
