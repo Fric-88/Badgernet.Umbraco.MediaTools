@@ -13,7 +13,17 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     
     #changeTool(tool: ToolSelection) {
         this.selectedTool = tool;
+        this.#dispatchEvent(tool + "-selected");
     }
+    
+    #dispatchEvent(eventName: string){
+        const event = new Event(eventName,{
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true       // Allows the event to pass through shadow DOM boundaries
+        });
+        this.dispatchEvent(event);
+    }
+    
 
     render() {
         return html`
@@ -54,7 +64,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                         <div class="selectionBar ${ this.selectedTool === "rotate" ? "selected" : ""}"></div>
                         <uui-button look="secondary" color="default" @click = "${ () => this.#changeTool("rotate")}">
                             <div class="centeredColumn">
-                                <uui-icon name="move"></uui-icon>
+                                <uui-icon name="rotate"></uui-icon>
                                 <small>Rotate</small>
                             </div>
                         </uui-button>
@@ -82,7 +92,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
 
                     <div class="centeredRow">
                         <div class="selectionBar"></div>
-                        <uui-button look="secondary" color="default" @click = "">
+                        <uui-button look="secondary" color="positive" @click = "${() => this.#dispatchEvent("save-click")}">
                             <div class="centeredColumn">
                                 <uui-icon name="save"></uui-icon>
                                 <small>Save</small>
@@ -92,7 +102,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
 
                     <div class="centeredRow">
                         <div class="selectionBar"></div>
-                        <uui-button look="secondary" color="default" @click = "">
+                        <uui-button look="secondary" color="danger" @click = "${() => this.#dispatchEvent("exit-click")}">
                             <div class="centeredColumn">
                                 <uui-icon name="exit"></uui-icon>
                                 <small>Exit</small>

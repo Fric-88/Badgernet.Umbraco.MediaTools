@@ -65,7 +65,6 @@ export class ImageEditorDialog extends UmbElementMixin(LitElement) {
                                              height="${height}" 
                                              imgPath="${imagePath}" 
                                              @close-editor="${this.#handleCloseEvent}">
-                            
                         </canvas-image-editor>
                     </div>
                 </uui-dialog-layout>
@@ -86,6 +85,7 @@ export class ImageEditorDialog extends UmbElementMixin(LitElement) {
         #canvasContainer{
             display: block;
             overflow: hidden;
+
         }
     `
 }

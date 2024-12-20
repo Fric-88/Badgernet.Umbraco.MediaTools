@@ -1,4 +1,4 @@
-export class Point{
+export class Vector {
     
     #x: number= 0;
     #y: number= 0;

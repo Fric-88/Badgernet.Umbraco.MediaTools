@@ -1,42 +1,24 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
 import {PropertyValues} from "lit";
-import {Point} from "./point.ts";
+import {Vector} from "./vector.ts";
 import {CanvasImage} from "./canvas_image.ts";
 import {Camera} from "./camera.ts";
 import "./canvas_tools_panel.element.ts"
-
-
-const MAX_ZOOM: number = 5;
-const MIN_ZOOM: number = 0.1;
-const SCROLL_SENSITIVITY: number = 0.0005;
-type Tool = "Move" | "Pen";
-let resizeTimeout: number = 0; 
+import {Mouse} from "./mouse.ts";
+import {ToolSelection} from "./canvas_tools_panel.element.ts";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
-    #selectedTool: Tool = "Move"; 
+    #selectedTool: ToolSelection = "move"; 
     
     private ctx?: CanvasRenderingContext2D;
     private image?: CanvasImage;
-
-    private canvasWidth: number = 0;
-    private canvasHeight: number = 0;
     private camera: Camera = new Camera();  
-    private isDragging: boolean = false
-    private dragStart: Point = new Point(0, 0);
-    private initialPinchDistance: number | null = null;
-
-    private exiting: boolean = false; 
+    private mouse?: Mouse;
     
-    private get scaledCanvasWidth(){
-        return this.canvasWidth * (1 / this.camera.zoom);
-    }
-
-    private get scaledCanvasHeight(){
-        return this.canvasWidth * (1 / this.camera.zoom);
-    }
+    private exiting: boolean = false; 
     
     @property({attribute: true, type: Number}) width: number = 600;
     @property({attribute: true, type: Number}) height: number = 400;
@@ -51,55 +33,32 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     async connectedCallback() {
         super.connectedCallback();
         
+        //Wait until DOM renders
         await this.updateComplete; 
         
-        this.canvasElement.addEventListener('mousedown', this.onPointerDown)
-        this.canvasElement.addEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
-        this.canvasElement.addEventListener('mouseup', this.onPointerUp)
-        this.canvasElement.addEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
-        this.canvasElement.addEventListener('mousemove', this.onPointerMove)
-        this.canvasElement.addEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
-        this.canvasElement.addEventListener( 'wheel', (e) => this.adjustZoom(e.deltaY*SCROLL_SENSITIVITY, null))
+        //Initialize mouse and register its events
+        this.mouse = new Mouse(this.camera, this.canvasElement);
+        this.mouse.registerEventListeners();
 
         window.addEventListener('resize', () => this.resizeCanvas()); 
     }
-
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.canvasElement.removeEventListener('mousedown', this.onPointerDown)
-        this.canvasElement.removeEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
-        this.canvasElement.removeEventListener('mouseup', this.onPointerUp)
-        this.canvasElement.removeEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
-        this.canvasElement.removeEventListener('mousemove', this.onPointerMove)
-        this.canvasElement.removeEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
-        this.canvasElement.removeEventListener( 'wheel', (e) => this.adjustZoom(e.deltaY*SCROLL_SENSITIVITY, null))
+        this.mouse?.unregisterEventListeners();
         
         window.removeEventListener('resize',() => this.resizeCanvas());
         
         this.exiting = true;
     }
-
     protected firstUpdated(_changedProperties: PropertyValues) {
         super.firstUpdated(_changedProperties);
         
+        //Load the image and initialize canvas when load finishes
         this.image = new CanvasImage(this.imgPath, () => {
             this.initializeCanvas();
         });
     }
 
-    //Dispatch close editor event
-    private dispatchCloseEditor(){
-        
-        this.exiting = true; 
-        
-        const event = new CustomEvent("close-editor",{
-            detail: { message: 'Button clicked!' },
-            bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
-        });
-        this.dispatchEvent(event);
-    }
-    
     private initializeCanvas() {
 
         this.ctx = this.canvasElement.getContext("2d") as CanvasRenderingContext2D;
@@ -112,59 +71,47 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.renderCanvas();
     }
     
-    private resizeCanvas(){
-        
-        //Set canvas size adapt to window size 
-        const windowWidth = window.innerWidth - 500;
-        const windowHeight = window.innerHeight - 250;
-        const dpr: number = window.devicePixelRatio || 1;
-        this.canvasElement.width = windowWidth * dpr;
-        this.canvasElement.height = windowHeight * dpr;
-        this.canvasWidth= this.canvasElement.width;
-        this.canvasHeight= this.canvasElement.height;
-        
-
-        //Set zoom the image so it fits the canvas bounds
-        if(this.image!.width > this.canvasWidth || this.image!.height > this.canvasHeight){
-            const xZoom = (this.canvasWidth - 30) / this.image!.width;
-            const yZoom = (this.canvasHeight - 30) / this.image!.height;
-            
-            if(xZoom <= yZoom){
-                this.camera.zoom = xZoom;
-            }
-            else{
-                this.camera.zoom = yZoom;
-            } 
-        }
-
-    }
-    
     //Rendering loop
     private renderCanvas = ()=>  {
         
         if(this.ctx === undefined) return;
         if(this.image === undefined) return;
-        
+        if(this.mouse === undefined) return;
         
         this.ctx.save();
-        this.ctx.clearRect(0,0, this.canvasWidth, this.canvasHeight);
-        this.ctx.scale(this.camera.zoom, this.camera.zoom);
+        if(this.#selectedTool === "move" ){
+            this.ctx.scale(this.camera.zoom, this.camera.zoom);
+        }
         
-        //this.#renderGrid();
-        
-        this.ctx.translate(
-            ((this.canvasWidth / 2) / this.camera.zoom) - this.image.width /2,
-            ((this.canvasHeight / 2) / this.camera.zoom) - this.image.height /2
-        );
+        let nCanvasWidth = this.camera.normalize(this.canvasElement.width);
+        let nCanvasHeight = this.camera.normalize(this.canvasElement.height);
 
-        if(this.#selectedTool === "Move"){
-            this.ctx.translate(this.camera.offset.x, this.camera.offset.y);
+        //Clear canvas 
+        this.ctx.clearRect(0, 0, nCanvasWidth, nCanvasHeight);
+        
+        //Center image in the middle of the canvas
+        this.image.x = (nCanvasWidth - this.image.width)/2;
+        this.image.y = (nCanvasHeight - this.image.height)/2;
+
+        //Adjust image position based on dragging  
+        if(this.#selectedTool === "move"){
+            this.image.x += this.camera.offset.x;
+            this.image.y += this.camera.offset.y;
         }
 
         this.ctx.drawImage(
-            this.image.imageElement, 0, 0
+            this.image.imageElement, this.image.x, this.image.y,
         );
         
+        //TODO OTHER DRAWING STUFF
+        
+        //Draw cursor
+        this.ctx.beginPath();
+        let cursorSize = this.camera.normalize(5); 
+        this.ctx.arc(this.mouse.nPos.x, this.mouse.nPos.y, cursorSize, 0, 360);
+        this.ctx.stroke();
+        this.ctx.closePath();
+ 
 
         let imageCorners = this.image.corners;
 
@@ -188,146 +135,95 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         }
     }
 
-    private adjustZoom = (zoomAmount: number | null, zoomFactor: number | null) =>
-    {
+    private resizeCanvas(){
 
-        if (!this.isDragging)
-        {
-            if (zoomAmount)
-            {
-                this.camera.zoom += zoomAmount;
-            }
-            else if (zoomFactor)
-            {
-                console.log(zoomFactor);
-                this.camera.zoom = zoomFactor * this.camera.previousZoom;
-            }
+        //Set canvas size adapt to window size 
+        const windowWidth = window.innerWidth - 300;
+        const windowHeight = window.innerHeight - 250;
+        const dpr: number = window.devicePixelRatio || 1;
+        this.canvasElement.width = windowWidth * dpr;
+        this.canvasElement.height = windowHeight * dpr;
 
-            this.camera.zoom = Math.min( this.camera.zoom, MAX_ZOOM );
-            this.camera.zoom = Math.max( this.camera.zoom, MIN_ZOOM );
-        }
-    }
+        //Set zoom the image so it fits the canvas bounds
+        if(this.image!.width > this.canvasElement.width || this.image!.height > this.canvasElement.height){
+            const xZoom = (this.canvasElement.width - 30) / this.image!.width;
+            const yZoom = (this.canvasElement.height - 30) / this.image!.height;
 
-    private getPointerLocation = (e: MouseEvent | TouchEvent) : Point | undefined =>
-    {
-        if(e instanceof TouchEvent ){
-            if (e.touches && e.touches.length == 1)
-            {
-                return new Point(e.touches[0].clientX, e.touches[0].clientY);
+            if(xZoom <= yZoom){
+                this.camera.zoom = xZoom;
             }
-        }
-        if(e instanceof MouseEvent){
-            if (e.clientX && e.clientY)
-            {
-                return new Point(e.clientX, e.clientY);
+            else{
+                this.camera.zoom = yZoom;
             }
         }
     }
 
-    private onPointerDown = (e: MouseEvent | TouchEvent) : void =>
-    {
-        const pointerLocation = this.getPointerLocation(e);
-        
-        if(pointerLocation){
-            this.isDragging = true;
-            this.dragStart.x = pointerLocation.x/this.camera.zoom - this.camera.offset.x;
-            this.dragStart.y = pointerLocation.y/this.camera.zoom - this.camera.offset.y;
-        }
+    //Dispatch close editor event
+    private dispatchCloseEditor(){
 
+        this.exiting = true;
+
+        const event = new Event("close-editor",{
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true       // Allows the event to pass through shadow DOM boundaries
+        });
+        this.dispatchEvent(event);
     }
-    private onPointerUp = () =>
-    {
-        this.isDragging = false;
-        this.initialPinchDistance = null;
-        //this.lastZoom = this.cameraZoom;
-    }
-    private onPointerMove = (e: MouseEvent | TouchEvent)=>
-    {
-        if (this.isDragging)
-        {
-            const pointerLocation = this.getPointerLocation(e);
-            if(pointerLocation){
-                this.camera.offset.x = pointerLocation.x/this.camera.zoom - this.dragStart.x;
-                this.camera.offset.y = pointerLocation.y/this.camera.zoom - this.dragStart.y;
-            }
-
-        }
-    }
-
-    private handlePinch = (e: TouchEvent)=>
-    {
-        e.preventDefault()
-
-        let touch1 = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-        let touch2 = { x: e.touches[1].clientX, y: e.touches[1].clientY };
-
-        // This is distance squared, but no need for an expensive sqrt as it's only used in ratio
-        let currentDistance = (touch1.x - touch2.x)**2 + (touch1.y - touch2.y)**2
-
-        if (this.initialPinchDistance == null)
-        {
-            this.initialPinchDistance = currentDistance
-        }
-        else
-        {
-            this.adjustZoom( null, currentDistance/this.initialPinchDistance )
-        }
-    }
-
-
-    private handleTouch = (e: TouchEvent, singleTouchHandler: ((e: TouchEvent) => void))=>
-    {
-        if ( e.touches.length == 1 )
-        {
-            singleTouchHandler(e)
-        }
-        else if (e.type == "touchmove" && e.touches.length == 2)//Two fingers
-        {
-            this.isDragging = false
-            this.handlePinch(e)
-        }
-    }
+    
+    
+    
 
     render() {
         return html`
             <div id="editorContainer">
-                
                 <div id="toolbar">
-                    <canvas-tools-panel></canvas-tools-panel>
+                    <canvas-tools-panel 
+                            @move-selected="${()=> this.#changeTool("move")}" 
+                            @draw-selected="${()=> this.#changeTool("draw")}"
+                            @spray-selected="${()=> this.#changeTool("spray")}"
+                            @rotate-selected="${()=> this.#changeTool("rotate")}"
+                            @crop-selected="${()=> this.#changeTool("crop")}"
+                            @adjust-selected="${()=> this.#changeTool("adjust")}"
+                            @exit-click="${this.dispatchCloseEditor}">
+                    </canvas-tools-panel>
                 </div>
                 <canvas id="canvasEditor"></canvas>
-                
-
-               
             </div>
         `
+    }
+    
+    #changeTool(tool:ToolSelection){
+        this.#selectedTool = tool;
+        console.log(this.#selectedTool);
     }
 
     static styles = css`
 
-        #editorContainer{
+        #editorContainer {
             display: flex;
             flex-direction: row;
             padding: 0;
             gap: 3px;
         }
-        
-        .flexRow{
+
+        .flexRow {
             display: flex;
             flex-direction: row;
         }
-        
-        .flexColumn{
+
+        .flexColumn {
             display: flex;
             flex-direction: column;
         }
-        
-        #canvasEditor{
+
+        #canvasEditor {
             background-color: whitesmoke;
             flex-grow: 1;
+            border: 1px #d5d4d4 solid;
+            cursor: none;
         }
-        
-        #toolbar{
+
+        #toolbar {
             display: flex;
             flex-direction: column;
             align-items: center;

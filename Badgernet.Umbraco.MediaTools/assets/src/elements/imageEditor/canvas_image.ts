@@ -1,17 +1,17 @@
-import {Point} from "./point.ts";
+import {Vector} from "./vector.ts";
 
 export class CanvasImage{
     
     readonly image : HTMLImageElement;
-    #position: Point = new Point();
-    #size:Point = new Point();
+    #position: Vector = new Vector();
+    #size:Vector = new Vector();
 
     constructor(imagePath: string, onLoadCallback: () => void) {
-        this.#position = new Point(0,0);
+        this.#position = new Vector(0,0);
         this.image = new Image();
         this.image.src = imagePath;
         this.image.onload = () => {
-            this.#size = new Point(this.image.width, this.image.height);
+            this.#size = new Vector(this.image.width, this.image.height);
             onLoadCallback();
         }
     }
@@ -51,12 +51,12 @@ export class CanvasImage{
         return this.height * (1 / zoom);
     }
 
-    get corners(): Point[]{
+    get corners(): Vector[]{
         return [
-            new Point(this.x, this.y),
-            new Point(this.x + this.width, this.y),
-            new Point(this.x + this.width, this.y + this.height),
-            new Point(this.x, this.y + this.height)
+            new Vector(this.x, this.y),
+            new Vector(this.x + this.width, this.y),
+            new Vector(this.x + this.width, this.y + this.height),
+            new Vector(this.x, this.y + this.height)
         ] 
     }
     
