@@ -1,8 +1,8 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, query, TemplateResult, state} from "@umbraco-cms/backoffice/external/lit";
 import { UUIModalContainerElement, UUIModalDialogElement } from "@umbraco-cms/backoffice/external/uui";
-import "../imageEditor/canvas_image_editor.element"
-import CanvasImageEditor from "./canvas_image_editor.element.ts";
+import "./imageEditor/imageEditor.element.ts"
+import CanvasImageEditor from "./imageEditor/imageEditor.element.ts";
 
 
 

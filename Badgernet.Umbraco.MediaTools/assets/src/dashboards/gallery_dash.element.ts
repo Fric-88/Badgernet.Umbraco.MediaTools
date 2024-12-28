@@ -19,8 +19,8 @@ import ImageSearchBar from "../elements/image_search_bar.element";
 import "../elements/image_search_bar.element"
 import RenameMediaDialog from "../elements/rename_media_dialog.element.ts";  
 import "../elements/rename_media_dialog.element"
-import ImageEditorDialog from "../elements/imageEditor/image_editor_dialog.element.ts";
-import "../elements/imageEditor/image_editor_dialog.element"
+import ImageEditorDialog from "../elements/image_editor_dialog.element.ts";
+import "../elements/image_editor_dialog.element"
 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')

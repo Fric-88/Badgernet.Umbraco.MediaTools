@@ -2,7 +2,8 @@ import {Vector} from "./vector.ts";
 import {Camera} from "./camera.ts";
 
 export class Mouse {
-    #pos: Vector = new Vector(0, 0);
+
+    #position: Vector = new Vector(0, 0);
     #isDragging: boolean = false
     #dragStart: Vector = new Vector(0, 0);
     #initialPinchDistance: number | null = null;
@@ -15,27 +16,31 @@ export class Mouse {
     }
     
     public registerEventListeners(): void{
-        this.#canvas!.addEventListener('mousedown', this.onPointerDown)
-        this.#canvas!.addEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
-        this.#canvas!.addEventListener('mouseup', this.onPointerUp)
-        this.#canvas!.addEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
-        this.#canvas!.addEventListener('mousemove', (e) => this.onPointerMove(e))
-        this.#canvas!.addEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
-        this.#canvas!.addEventListener( 'wheel', (e) => this.#camera!.adjustZoom(e.deltaY, null))
+        if(this.#canvas === undefined) return;
+        
+        this.#canvas.addEventListener('mousedown', this.onPointerDown)
+        this.#canvas.addEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
+        this.#canvas.addEventListener('mouseup', this.onPointerUp)
+        this.#canvas.addEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
+        this.#canvas.addEventListener('mousemove', (e) => this.onPointerMove(e))
+        this.#canvas.addEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
+        this.#canvas.addEventListener( 'wheel', (e) => this.#camera!.adjustZoom(e.deltaY, null))
     }  
     
     public unregisterEventListeners(): void{
-        this.#canvas!.removeEventListener('mousedown', this.onPointerDown)
-        this.#canvas!.removeEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
-        this.#canvas!.removeEventListener('mouseup', this.onPointerUp)
-        this.#canvas!.removeEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
-        this.#canvas!.removeEventListener('mousemove', this.onPointerMove)
-        this.#canvas!.removeEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
-        this.#canvas!.removeEventListener( 'wheel', (e) => this.#camera!.adjustZoom(e.deltaY, null))
+        if(this.#canvas === undefined) return;
+        
+        this.#canvas.removeEventListener('mousedown', this.onPointerDown)
+        this.#canvas.removeEventListener('touchstart', (e) => this.handleTouch(e, this.onPointerDown))
+        this.#canvas.removeEventListener('mouseup', this.onPointerUp)
+        this.#canvas.removeEventListener('touchend',  (e) => this.handleTouch(e, this.onPointerUp))
+        this.#canvas.removeEventListener('mousemove', this.onPointerMove)
+        this.#canvas.removeEventListener('touchmove', (e) => this.handleTouch(e, this.onPointerMove))
+        this.#canvas.removeEventListener( 'wheel', (e) => this.#camera!.adjustZoom(e.deltaY, null))
     }
-
+    
     get nPos():Vector{
-        return this.#camera!.normalizeVector(this.#pos);
+        return this.#camera!.normalizeVector(this.#position);
     } 
 
     private getPointerLocation = (e: MouseEvent | TouchEvent) : Vector | undefined =>
@@ -58,16 +63,18 @@ export class Mouse {
     {
         if(e instanceof MouseEvent){
             const rect = this.#canvas!.getBoundingClientRect(); // Get canvas position relative to the page
-            this.#pos.x = e.clientX - rect.left;
-            this.#pos.y = e.clientY - rect.top;
+            this.#position.x = e.clientX - rect.left;
+            this.#position.y = e.clientY - rect.top;
         }
 
         if (this.#isDragging)
         {
             const pointerLocation = this.getPointerLocation(e);
             if(pointerLocation){
-                this.#camera!.offset.x = pointerLocation.x/this.#camera!.zoom - this.#dragStart.x;
-                this.#camera!.offset.y = pointerLocation.y/this.#camera!.zoom - this.#dragStart.y;
+                
+                this.#camera!.adjustOffset(
+                    pointerLocation.x - this.#dragStart.x,
+                    pointerLocation.y - this.#dragStart.y,);
             }
         }
     }
@@ -82,6 +89,12 @@ export class Mouse {
             this.#dragStart.y = pointerLocation.y/this.#camera!.zoom - this.#camera!.offset.y;
         }
 
+    }
+
+    public onPointerUp = () =>
+    {
+        this.#isDragging = false;
+        this.#initialPinchDistance = null;
     }
 
     public handlePinch = (e: TouchEvent)=>
@@ -118,11 +131,7 @@ export class Mouse {
         }
     }
 
-    public onPointerUp = () =>
-    {
-        this.#isDragging = false;
-        this.#initialPinchDistance = null;
-    }
+
 
 
     
