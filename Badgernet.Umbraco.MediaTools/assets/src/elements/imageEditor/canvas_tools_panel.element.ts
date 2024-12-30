@@ -38,15 +38,23 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                         <uui-icon name="rotate"></uui-icon>
                     </uui-button>
 
-                    <uui-button look="secondary" color="default" @click = "">
+                    <uui-button popovertarget="adjust-popover" look="secondary" color="default">
                         <uui-icon name="adjust"></uui-icon>
                     </uui-button>
+                    <uui-popover-container id="adjust-popover" placement="top" margin="10" >
+                        <uui-box width="100">
+                            <uui-slider id="brightnessSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                            <uui-slider id="contrastSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                            <uui-slider id="exposureSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                        </uui-box>
+                    </uui-popover-container>
+                    
 
-                    <uui-button look="secondary" color="default" @click = "${() => this.#dispatchEvent("go-back")}">
+                    <uui-button look="secondary" color="default" @click = "${() => this.#dispatchEvent("undo")}">
                         <uui-icon name="undo"></uui-icon>
                     </uui-button>
                 
-                    <uui-button look="secondary" color="default" @click = "">
+                    <uui-button look="secondary" color="default" @click = "${() => this.#dispatchEvent("redo")}">
                         <uui-icon name="redo"></uui-icon>
                     </uui-button>
 

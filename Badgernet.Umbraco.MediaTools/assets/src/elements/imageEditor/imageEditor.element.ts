@@ -1,7 +1,7 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
 import {PropertyValues} from "lit";
-import {EditableImage} from "./editableImage.ts";
+import {ImageDataList} from "./imageDataList.ts";
 import {Camera} from "./camera.ts";
 import "./canvas_tools_panel.element.ts"
 import {Mouse} from "./mouse.ts";
@@ -13,7 +13,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     
     #canvas?: Canvas; 
 
-    private image: EditableImage = new EditableImage();
+    private image: ImageDataList = new ImageDataList();
     private camera: Camera = new Camera();  
     private mouse?: Mouse;
     
@@ -92,7 +92,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                     <canvas-tools-panel 
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
-                            @go-back="${() => this.#canvas?.goBack() }"
+                            @undo="${() => this.#canvas?.undoChanges() }"
+                            @redo="${() => this.#canvas?.redoChanges()}"
                             @exit-click="${this.dispatchCloseEditor}">
                     </canvas-tools-panel>
                 </div>
