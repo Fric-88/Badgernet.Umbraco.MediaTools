@@ -12,7 +12,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     #dispatchEvent(eventName: string){
         const event = new Event(eventName,{
             bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
+            composed: true// Allows the event to pass through shadow DOM boundaries
         });
         this.dispatchEvent(event);
     }
@@ -42,10 +42,33 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                         <uui-icon name="adjust"></uui-icon>
                     </uui-button>
                     <uui-popover-container id="adjust-popover" placement="top" margin="10" >
-                        <uui-box width="100">
-                            <uui-slider id="brightnessSlider" value="0" min="-50" max="50" step="1"></uui-slider>
-                            <uui-slider id="contrastSlider" value="0" min="-50" max="50" step="1"></uui-slider>
-                            <uui-slider id="exposureSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                        <uui-box class="popoverLayout">
+                            <small slot="header">Adjustments</small>
+                            
+                            <div class="centeredRow">
+                                <uui-icon name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
+                                <uui-slider id="brightnessSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                            </div>
+
+                            <div class="centeredRow">
+                                <uui-icon name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
+                                <uui-slider id="contrastSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                            </div>
+
+                            <div class="centeredRow">
+                                <uui-icon name="exposure" style="margin-bottom: 1.7rem;"></uui-icon>
+                                <uui-slider id="exposureSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                            </div>
+                            
+                            <div class="centeredRow" style="gap: 0.5rem">
+                                <uui-button style="flex-grow: 1" look="primary" color="danger" compact>
+                                    <uui-icon name="cross"></uui-icon> 
+                                </uui-button>
+                                <uui-button style="flex-grow: 1" look="primary" color="positive" compact="">
+                                    <uui-icon name="checkmark"></uui-icon>
+                                </uui-button>
+                            </div>
+
                         </uui-box>
                     </uui-popover-container>
                     
@@ -78,6 +101,10 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
             flex-direction: row;
             align-items: center;
             gap: 0;
+        }
+        
+        .popoverLayout{
+            width: 16rem;
         }
     `
 }
