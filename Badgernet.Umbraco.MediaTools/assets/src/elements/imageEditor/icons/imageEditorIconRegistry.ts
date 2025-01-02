@@ -19,7 +19,8 @@ const crossSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" fill=\"currentColor\"
 const checkmarkSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" fill=\"currentColor\" stroke=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 31.638913,2.5170035 9.6335449,31.361565 0.76822345,19.991525 2.437992,18.408716 9.5184626,24.521395 29.929112,0.91724837 Z\" /></svg>";
 
 class ImageEditorIconRegistry extends UUIIconRegistryElement {
-    constructor() {        super();
+    constructor() {        
+        super();
         this.registry.defineIcon("move", moveSvg);
         this.registry.defineIcon("pen", penSvg);
         this.registry.defineIcon("spray", spraySvg);

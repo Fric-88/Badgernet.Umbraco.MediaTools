@@ -6,6 +6,7 @@ import {Camera} from "./camera.ts";
 import "./canvas_tools_panel.element.ts"
 import {Mouse} from "./mouse.ts";
 import {Canvas} from "./canvas.ts";
+import CanvasToolsPanel from "./canvas_tools_panel.element.ts";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
@@ -24,9 +25,12 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: String}) imgPath: string = "";
 
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
+    @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
     
     constructor() {
         super();
+        
+        
     }
     async connectedCallback() {
         super.connectedCallback();
@@ -71,7 +75,6 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.#canvas?.renderCanvas();
     }
 
-
     //Dispatch close editor event
     private dispatchCloseEditor(){
 
@@ -89,9 +92,11 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             <div id="editorContainer">
                 <canvas id="canvasEditor"></canvas>
                 <div id="toolbar">
-                    <canvas-tools-panel 
+                    <canvas-tools-panel
+                            id="canvasToolsPanel"
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
+                            @adjust-brightness="${() => this.#canvas?.adjustBrightness(this.toolsElement.brightnessValue)}"
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
                             @exit-click="${this.dispatchCloseEditor}">

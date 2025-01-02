@@ -41,7 +41,6 @@ export class Canvas {
     }
     public renderCanvas(): void{
         if (!this.#backCanvas) return;
-
         const ctx = this.#canvas.getContext("2d");
         if (!ctx) return;
         
@@ -49,8 +48,6 @@ export class Canvas {
         const canvasHeight = this.#canvas.height;
         
         const image = this.#imageDataList.getImageData();
-        
-
         
         const CANVAS_PADDING = 10;
 
@@ -159,6 +156,25 @@ export class Canvas {
         temp.close();
 
         this.#saveChanges();
+        this.renderCanvas();
+    }
+    
+    public adjustBrightness(brightnessValue: number): void{
+        if (!this.#backCanvas) return;
+
+        const ctx = this.#backCanvas.getContext("2d");
+        if (!ctx) return;
+        
+        const image = this.#imageDataList.getImageData();
+        
+        for(let i= 0; i < image.data.length; i++){
+            for(let j = 0; j < 3; j ++ ){
+                
+                image.data[i + j] += brightnessValue;
+            }
+        }
+        
+        ctx.putImageData(image, 0, 0);
         this.renderCanvas();
     }
     

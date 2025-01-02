@@ -1,9 +1,18 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, state, property } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
 import "./icons/imageEditorIconRegistry.ts"
+import {UUISliderElement} from "@umbraco-cms/backoffice/external/uui";
 
 @customElement('canvas-tools-panel')
 export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
+
+
+    
+    @query("#brightnessSlider") brightnessSlider!: UUISliderElement;
+    
+    get brightnessValue(): number{
+        return Number(this.brightnessSlider.value); 
+    }
     
     constructor() {
         super();
@@ -16,7 +25,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         });
         this.dispatchEvent(event);
     }
-    
+
     render() {
         return html`
             <mediatools-icon-registry>
@@ -47,12 +56,12 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                             
                             <div class="centeredRow">
                                 <uui-icon name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
-                                <uui-slider id="brightnessSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                                <uui-slider id="brightnessSlider" value="0" min="-255" max="255" step="1" @input="${() => this.#dispatchEvent("adjust-brightness")}"></uui-slider>
                             </div>
 
                             <div class="centeredRow">
                                 <uui-icon name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
-                                <uui-slider id="contrastSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                                <uui-slider id="contrastSlider" value="0" min="-100" max="100" step="1"></uui-slider>
                             </div>
 
                             <div class="centeredRow">
