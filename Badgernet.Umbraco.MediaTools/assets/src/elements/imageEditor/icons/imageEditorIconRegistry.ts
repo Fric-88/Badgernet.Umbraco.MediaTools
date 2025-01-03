@@ -17,6 +17,8 @@ const contrastSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" fill=\"currentColo
 const exposureSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 0.86198228,0.8696281 H 31.584625 V 31.592258 H 0.86198228 Z M 29.457676,4.6433288 4.413595,29.701646 29.653367,29.487059 Z M 18.350256,21.666489 h 8.980464 v 2.363284 H 18.350256 Z M 2.7526073,2.8813657 V 28.040639 L 27.810923,2.9965757 Z M 8.4244804,10.795415 H 5.1158871 V 8.4321126 H 8.4244804 V 5.1235425 H 10.78776 v 3.3085701 h 3.308591 V 10.795415 H 10.78776 v 3.308571 H 8.4244804 Z\"</svg>";
 const crossSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" fill=\"currentColor\" stroke=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 21.586085,-20.402164 20.837731,-1.987817 2.4760015,-1.2394624 V 1.2657717 L 20.837731,2.0141263 21.586085,20.258925 h 2.505234 L 24.839673,2.0141263 43.13636,1.2657717 V -1.2394624 L 24.839673,-1.987817 24.091319,-20.402164 Z\" transform=\"rotate(45)\" /></svg>";
 const checkmarkSvg = "<svg viewBox=\"0 0 32.241771 32.241757\" fill=\"currentColor\" stroke=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M 31.638913,2.5170035 9.6335449,31.361565 0.76822345,19.991525 2.437992,18.408716 9.5184626,24.521395 29.929112,0.91724837 Z\" /></svg>";
+const rgbSvg = "<svg viewBox=\"0 0 33.866664 33.866664\" xmlns=\"http://www.w3.org/2000/svg\"><path style=\"fill:#000be5;fill-opacity:1;stroke-width:3.26995\" d=\"M 24.854031,9.4058215 A 7.9206972,7.9206972 0 0 1 16.933334,17.32652 7.9206972,7.9206972 0 0 1 9.0126358,9.4058215 7.9206972,7.9206972 0 0 1 16.933334,1.4851243 7.9206972,7.9206972 0 0 1 24.854031,9.4058215 Z\" /><path style=\"fill:#0ea600;fill-opacity:1;stroke-width:3.26995\" d=\"m 33.307675,24.057611 a 7.9206972,7.9206972 0 0 1 -7.920697,7.920698 7.9206972,7.9206972 0 0 1 -7.920697,-7.920698 7.9206972,7.9206972 0 0 1 7.920697,-7.920697 7.9206972,7.9206972 0 0 1 7.920697,7.920697 z\" /><path style=\"fill:#e5002a;fill-opacity:1;stroke-width:3.26995\" d=\"M 16.560458,24.057611 A 7.9206972,7.9206972 0 0 1 8.6397618,31.978309 7.9206972,7.9206972 0 0 1 0.71906459,24.057611 7.9206972,7.9206972 0 0 1 8.6397618,16.136914 7.9206972,7.9206972 0 0 1 16.560458,24.057611 Z\" /></svg>";
+
 
 class ImageEditorIconRegistry extends UUIIconRegistryElement {
     constructor() {        
@@ -38,6 +40,7 @@ class ImageEditorIconRegistry extends UUIIconRegistryElement {
         this.registry.defineIcon("exposure", exposureSvg);
         this.registry.defineIcon("cross", crossSvg);
         this.registry.defineIcon("checkmark", checkmarkSvg);
+        this.registry.defineIcon("rgb", rgbSvg);
     }
 }
 

@@ -44,7 +44,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         let loaded = await this.#canvas?.loadImage(this.imgPath);
         
         if(loaded){
-            this.#canvas?.renderCanvas();
+            this.#canvas?.renderFrontCanvas();
         }
         
         //Initialize mouse and register its events
@@ -72,7 +72,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.canvasElement.height = windowHeight * dpr;
         
         //Redraw canvas
-        this.#canvas?.renderCanvas();
+        this.#canvas?.renderFrontCanvas();
     }
 
     //Dispatch close editor event
@@ -87,15 +87,15 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.dispatchEvent(event);
     }
     
-    #adjustImageData(){
+    #previewAdjustments(){
         const brightness = this.toolsElement.brightnessValue;
         const contrast = this.toolsElement.contrastValue;
         const exposure = this.toolsElement.exposureValue;
         
-        this.#canvas?.adjustImageData(brightness, contrast, exposure);
+        this.#canvas?.changeBCEValues(brightness, contrast, exposure);
         
         
-        console.log("Adjusting Image Array: Brightness: "+ brightness + ", Exposure: "+ contrast + ", Exposure: "+ exposure );
+        //console.log("Adjusting Image Array: Brightness: "+ brightness + ", Exposure: "+ contrast + ", Exposure: "+ exposure );
     }
 
     render() {
@@ -107,7 +107,9 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             id="canvasToolsPanel"
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
-                            @adjust-image="${this.#adjustImageData}"
+                            @preview-adjustments="${this.#previewAdjustments}"
+                            @apply-changes="${() => this.#canvas?.applyChanges()}"
+                            @discard-changes="${() => this.#canvas?.renderFrontCanvas()}"
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
                             @exit-click="${this.dispatchCloseEditor}">
