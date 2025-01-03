@@ -86,6 +86,17 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         });
         this.dispatchEvent(event);
     }
+    
+    #adjustImageData(){
+        const brightness = this.toolsElement.brightnessValue;
+        const contrast = this.toolsElement.contrastValue;
+        const exposure = this.toolsElement.exposureValue;
+        
+        this.#canvas?.adjustImageData(brightness, contrast, exposure);
+        
+        
+        console.log("Adjusting Image Array: Brightness: "+ brightness + ", Exposure: "+ contrast + ", Exposure: "+ exposure );
+    }
 
     render() {
         return html`
@@ -96,7 +107,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             id="canvasToolsPanel"
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
-                            @adjust-brightness="${() => this.#canvas?.adjustBrightness(this.toolsElement.brightnessValue)}"
+                            @adjust-image="${this.#adjustImageData}"
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
                             @exit-click="${this.dispatchCloseEditor}">

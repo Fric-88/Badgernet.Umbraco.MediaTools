@@ -159,18 +159,28 @@ export class Canvas {
         this.renderCanvas();
     }
     
-    public adjustBrightness(brightnessValue: number): void{
+    public adjustImageData(brightness: number, contrast: number, exposure: number): void{
         if (!this.#backCanvas) return;
 
         const ctx = this.#backCanvas.getContext("2d");
         if (!ctx) return;
+
+        //Need to work with a copy of the unedited image to prevent stacking of the adjustments
+        const image = this.#imageDataList.getCopy();
         
-        const image = this.#imageDataList.getImageData();
+        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast)); // Contrast factor
         
         for(let i= 0; i < image.data.length; i++){
             for(let j = 0; j < 3; j ++ ){
+
+                let value = image.data[i + j] + brightness;
                 
-                image.data[i + j] += brightnessValue;
+                // Apply contrast
+                value = factor * (value - 128) + 128;
+                // Apply exposure
+                value = value * exposure;
+
+                image.data[i + j] = value;
             }
         }
         

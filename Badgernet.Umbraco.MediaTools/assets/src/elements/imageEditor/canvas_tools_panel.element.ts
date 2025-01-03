@@ -9,9 +9,17 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
 
     
     @query("#brightnessSlider") brightnessSlider!: UUISliderElement;
+    @query("#contrastSlider") contrastSlider!: UUISliderElement;
+    @query("#exposureSlider") exposureSlider!: UUISliderElement;
     
     get brightnessValue(): number{
         return Number(this.brightnessSlider.value); 
+    }
+    get contrastValue(): number{
+        return Number(this.contrastSlider.value);
+    }
+    get exposureValue(): number{
+        return Number(this.exposureSlider.value);
     }
     
     constructor() {
@@ -56,17 +64,23 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                             
                             <div class="centeredRow">
                                 <uui-icon name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
-                                <uui-slider id="brightnessSlider" value="0" min="-255" max="255" step="1" @input="${() => this.#dispatchEvent("adjust-brightness")}"></uui-slider>
+                                <uui-slider id="brightnessSlider" value="0" min="-255" max="255" step="1" 
+                                            @input="${() => this.#dispatchEvent("adjust-image")}">
+                                </uui-slider>
                             </div>
 
                             <div class="centeredRow">
                                 <uui-icon name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
-                                <uui-slider id="contrastSlider" value="0" min="-100" max="100" step="1"></uui-slider>
+                                <uui-slider id="contrastSlider" value="0" min="-100" max="100" step="1" 
+                                            @input="${() => this.#dispatchEvent("adjust-image")}">
+                                </uui-slider>
                             </div>
 
                             <div class="centeredRow">
                                 <uui-icon name="exposure" style="margin-bottom: 1.7rem;"></uui-icon>
-                                <uui-slider id="exposureSlider" value="0" min="-50" max="50" step="1"></uui-slider>
+                                <uui-slider id="exposureSlider" value="1" min="0.2" max="2" step="0.1" 
+                                            @input="${() => this.#dispatchEvent("adjust-image")}">
+                                </uui-slider>
                             </div>
                             
                             <div class="centeredRow" style="gap: 0.5rem">

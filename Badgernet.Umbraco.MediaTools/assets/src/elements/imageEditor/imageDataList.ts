@@ -53,4 +53,12 @@ export class ImageDataList {
     public getImageData():ImageData{
         return this.#changesList[this.#currentIndex];
     }
+    
+    public getCopy(): ImageData{
+        return new ImageData(
+            new Uint8ClampedArray(this.#changesList[this.#currentIndex].data),
+            this.#changesList[this.#currentIndex].width,
+            this.#changesList[this.#currentIndex].height
+        );
+    }  
 }
