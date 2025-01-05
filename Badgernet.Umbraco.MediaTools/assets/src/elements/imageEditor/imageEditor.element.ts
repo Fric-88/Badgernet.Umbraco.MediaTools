@@ -6,7 +6,7 @@ import {Camera} from "./camera.ts";
 import "./canvas_tools_panel.element.ts"
 import {Mouse} from "./mouse.ts";
 import {Canvas} from "./canvas.ts";
-import CanvasToolsPanel from "./canvas_tools_panel.element.ts";
+import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
@@ -87,15 +87,10 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.dispatchEvent(event);
     }
     
-    #previewAdjustments(){
-        const brightness = this.toolsElement.brightnessValue;
-        const contrast = this.toolsElement.contrastValue;
-        const exposure = this.toolsElement.exposureValue;
+    #adjustArray(e: CustomEvent){
         
-        this.#canvas?.changeBCEValues(brightness, contrast, exposure);
-        
-        
-        //console.log("Adjusting Image Array: Brightness: "+ brightness + ", Exposure: "+ contrast + ", Exposure: "+ exposure );
+        const values = e.detail as SliderValues;
+        this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
 
     render() {
@@ -107,9 +102,10 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             id="canvasToolsPanel"
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
-                            @preview-adjustments="${this.#previewAdjustments}"
+                            @slider-values-change ="${this.#adjustArray}"
                             @apply-changes="${() => this.#canvas?.applyChanges()}"
-                            @discard-changes="${() => this.#canvas?.renderFrontCanvas()}"
+                            @discard-changes="${() => this.#canvas?.discardChanges()}"
+                            @rotate="${(e: CustomEvent) => this.#canvas?.rotateImage(e.detail as number)}" 
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
                             @exit-click="${this.dispatchCloseEditor}">

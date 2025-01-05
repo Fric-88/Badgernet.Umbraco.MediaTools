@@ -27,7 +27,10 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                 
                 <img src="${imageUrl}?width=800" alt="${headline}" width="800">
 
-                <uui-button slot="actions" look="primary" color="default" @click="${this.#closeDialog}">Close</uui-button>
+                <uui-button slot="actions" label="Close"
+                            look="primary" color="default" 
+                            @click="${this.#closeDialog}">Close
+                </uui-button>
 
             </uui-dialog-layout>
 

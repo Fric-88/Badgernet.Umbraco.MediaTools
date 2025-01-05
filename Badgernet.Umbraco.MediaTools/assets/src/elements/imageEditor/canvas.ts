@@ -134,6 +134,7 @@ export class Canvas {
         this.#imageDataList.addNew(ctx.getImageData(0, 0, this.#backCanvas.width, this.#backCanvas.height));
     }
 
+    //Flips image around the x-axis
     public flipVertically():void{
         if (!this.#backCanvas) return;
 
@@ -153,6 +154,7 @@ export class Canvas {
         this.renderFrontCanvas();
     }
 
+    //Flips image around thy y-axis
     public flipHorizontally():void{
         if (!this.#backCanvas) return;
 
@@ -174,9 +176,13 @@ export class Canvas {
         this.renderFrontCanvas();
     }
     
+    public rotateImage(rotation: number):void{
+        console.log("Rotating image: " + rotation);
+        //TODO actual rotation 
+    } 
 
-    //Changes brightness, contrast, exposure of the image on backCanvas   
-    public changeBCEValues(brightness: number, contrast: number, exposure: number): void{
+    //Changes brightness, contrast, exposure and colors of the image on backCanvas   
+    public adjustArrayValues(red: number, green: number, blue: number, brightness: number, contrast: number, exposure: number): void{
         if (!this.#backCanvas) return;
         const ctx = this.backContext
         if (!ctx) return;
@@ -185,21 +191,29 @@ export class Canvas {
         const image = this.#imageDataList.getCopy();
         
         const factor = (259 * (contrast + 255)) / (255 * (259 - contrast)); // Contrast factor
+        let adjustment: number = 0; 
         
         for(let i= 0; i < image.data.length; i+= 4){
-            for(let j = 0; j < 3; j ++ ){
 
-                let value = image.data[i + j] + brightness;
-                value = factor * (value - 128) + 128;
-                value = value * exposure;
-                image.data[i + j] = value;
-            }
+            adjustment = image.data[i] + brightness;
+            adjustment = factor * (adjustment - 128) + 128;
+            adjustment = adjustment * exposure;
+            image.data[i] = adjustment + red;
+
+            adjustment = image.data[i + 1] + brightness;
+            adjustment = factor * (adjustment - 128) + 128;
+            adjustment = adjustment * exposure;
+            image.data[i + 1] = adjustment + green;
+
+            adjustment = image.data[i + 2] + brightness + blue;
+            adjustment = factor * (adjustment - 128) + 128;
+            adjustment = adjustment * exposure;
+            image.data[i + 2] = adjustment + blue;
         }
         
         ctx.putImageData(image, 0, 0);
         this.renderFrontCanvas();
     }
-    
     
     //Saves backCanvas and re-renders frontCanvas 
     public applyChanges(){
@@ -207,6 +221,19 @@ export class Canvas {
         this.renderFrontCanvas();
     }
     
+    //Discards backCanvas and re-renders from the image list
+    public discardChanges(){
+        if (!this.#backCanvas) return;
+        const ctx = this.backContext
+        if (!ctx) return;
+        
+        const image = this.#imageDataList.getImageData();
+        
+        ctx.putImageData(image, 0, 0);
+        this.renderFrontCanvas();
+    }
+    
+    //Navigates back (undo)
     public undoChanges(){
         if (!this.#backCanvas) return;
         
@@ -229,6 +256,7 @@ export class Canvas {
        
     }
     
+    //Navigates forward (redo)
     public redoChanges(){
         if (!this.#backCanvas) return;
 

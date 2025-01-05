@@ -129,7 +129,8 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
 
                 <div class="settingItem" style="flex: 1 1 120px;">
                     <uui-label class="inputLabel" for="Folder">Folder</uui-label> 
-                    <uui-select 
+                    <uui-select
+                        label="Select folder"
                         placeholder="Select an option"
                         .options="${this.mediaFolders}"
                         @change="${this.folderSelectionChanged}">
@@ -139,6 +140,7 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
                 <div class="settingItem" style="flex: 1 1 120px;">
                     <uui-label class="inputLabel" for="Dimensions">Resolution</uui-label> 
                     <uui-select 
+                        label="Select option"
                         placeholder="Select an option"
                         .options="${this.#resolutionOptions}"
                         @change="${this.resolutionFilterChanged}">

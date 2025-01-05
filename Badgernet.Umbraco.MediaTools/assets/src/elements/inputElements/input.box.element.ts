@@ -37,7 +37,8 @@ export class InputBox extends UmbElementMixin(LitElement) {
                         <uui-label class="header">${this.name}:</uui-label>
                     </div>
                     <div class="column">
-                        <uui-input 
+                        <uui-input
+                            label="${this.name}"
                             type="${this.type}"
                             min="${this.min}"
                             step="${this.step}"

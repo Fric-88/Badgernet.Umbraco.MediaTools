@@ -157,7 +157,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                 
                 <div style="display: flex; gap: 1rem;">  
                     <div class="settingItem">
-                        <uui-label  for="Width">Width</uui-label>
+                        <uui-label for="Width">Width</uui-label>
                         <uui-input 
                             label="Width"
                             name="Width"
@@ -190,7 +190,11 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div class="toolbox" style="margin-top: 1rem;">
 
-                <uui-toggle label-position="left" name="convert" .checked="${this.convert}" @change="${this.toggleConvert}">Convert to WebP</uui-toggle>
+                <uui-toggle label="Toggle convert" label-position="left" 
+                            name="convert" 
+                            .checked="${this.convert}" 
+                            @change="${this.toggleConvert}">Convert to WebP
+                </uui-toggle>
 
                 <div class="settingItem">
                     <uui-label for="Convert mode">Convert mode</uui-label>
@@ -217,6 +221,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div style="display:flex; gap: 0.5rem">
                 <uui-button
+                        label="Rename"
                         look="primary"
                         color="default"
                         style="margin-top: 0.5rem; width: 100%"
@@ -225,6 +230,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                 </uui-button>
     
                 <uui-button
+                        label="Edit"
                         look="primary"
                         color="default"
                         style="margin-top: 0.5rem; width: 100%"
@@ -234,6 +240,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
             </div>
             
             <uui-button 
+                label="Resize convert"    
                 class="centered"
                 state=${ifDefined(this.processButtonState)}
                 look="primary"
@@ -248,6 +255,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
             
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 
+                    label="Trash"
                     state=${ifDefined(this.trashButtonState)}
                     look="primary"
                     color="warning" 
@@ -258,6 +266,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                 </uui-button>
 
                 <uui-button 
+                    label="Download"
                     state=${ifDefined(this.downloadButtonState)}
                     look="primary"
                     color="default" 
