@@ -155,7 +155,7 @@ export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted" >Any images being uploaded that exceed the specified resolution will be sized-down to the desired resolution.</uui-label>
                 </div>
 
-                <uui-toggle slot="header-actions" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
 
                 <input-box
                     class="boxElement"
@@ -200,7 +200,7 @@ export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted">Any images being uploaded will be converted to .webp format, resulting in a smaller file size without losing too much image quality.</uui-label>
                 </div>
 
-                <uui-toggle slot="header-actions" lable="Toggle converter" ?checked=${this.converterEnabled} @change="${this.#toggleConverter}"></uui-toggle>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.converterEnabled} @change="${this.#toggleConverter}"></uui-toggle>
 
                     <slider-box
                         class="boxElement"

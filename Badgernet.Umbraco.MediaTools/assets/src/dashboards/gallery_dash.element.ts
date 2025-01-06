@@ -309,7 +309,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                     const trashedIds = responseData.payload as Array<number>;
 
                     //This is slow
-                    for(var i = 0; i < trashedIds.length; i++)
+                    for(let i = 0; i < trashedIds.length; i++)
                     {
                         for(let x = 0; x < selectedImages.length; x ++){
                             if(trashedIds[i] == selectedImages[x].id){
@@ -477,7 +477,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
                     <uui-table-head>
                         <uui-table-head-cell>
-                            <uui-checkbox name="selectAll" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
+                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
                         </uui-table-head-cell>
                         <uui-table-head-cell>Name</uui-table-head-cell>
                         <uui-table-head-cell>Width</uui-table-head-cell>

@@ -153,7 +153,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div class="toolbox">
 
-                <uui-toggle label-position="left" name="resize" .checked="${this.resize}" @change="${this.toggleResize}">Resize</uui-toggle>
+                <uui-toggle label-position="left" label="Resize toggle" name="resize" .checked="${this.resize}" @change="${this.toggleResize}">Resize</uui-toggle>
                 
                 <div style="display: flex; gap: 1rem;">  
                     <div class="settingItem">
@@ -190,7 +190,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div class="toolbox" style="margin-top: 1rem;">
 
-                <uui-toggle label="Toggle convert" label-position="left" 
+                <uui-toggle label="Convert toggle" label-position="left" 
                             name="convert" 
                             .checked="${this.convert}" 
                             @change="${this.toggleConvert}">Convert to WebP
