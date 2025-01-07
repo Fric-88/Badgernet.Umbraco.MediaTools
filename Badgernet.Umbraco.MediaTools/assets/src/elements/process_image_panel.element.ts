@@ -123,11 +123,9 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
         this.resize = !this.resize;
     }
     
-
     private toggleConvert(){
         this.convert = !this.convert;
     }
-
 
     private widthChanged(e: Event){
         let target = e.target as UUIInputElement
@@ -219,6 +217,19 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             </div>
 
+            <uui-button
+                    label="Resize convert"
+                    class="centered"
+                    state=${ifDefined(this.processButtonState)}
+                    look="primary"
+                    color="positive"
+                    style="margin-top: 0.5rem; margin-bottom: 1rem;"
+                    .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
+                    popovertarget="areYouSurePopover"
+                    @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
+            </uui-button>
+            
+
             <div style="display:flex; gap: 0.5rem">
                 <uui-button
                         label="Rename"
@@ -238,20 +249,6 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                         @click="${this.dispatchEditEvent}"> <uui-icon name="wand"></uui-icon> Edit
                 </uui-button>
             </div>
-            
-            <uui-button 
-                label="Resize convert"    
-                class="centered"
-                state=${ifDefined(this.processButtonState)}
-                look="primary"
-                color="positive" 
-                style="margin-top: 0.5rem;"
-                .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
-                popovertarget="areYouSurePopover"
-                @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
-            </uui-button>
-
-
             
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 

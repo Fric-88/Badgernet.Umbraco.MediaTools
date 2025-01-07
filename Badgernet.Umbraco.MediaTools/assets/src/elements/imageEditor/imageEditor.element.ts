@@ -22,7 +22,11 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
     @property({attribute: true, type: Number}) width: number = 600;
     @property({attribute: true, type: Number}) height: number = 400;
+    @property({attribute: true, type: Number}) minWidth: number = 400;
+    @property({attribute: true, type: Number}) minHeight: number = 300;
     @property({attribute: true, type: String}) imgPath: string = "";
+
+    
 
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
     @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
@@ -64,13 +68,23 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     }
     
     private resizeCanvas(){
+        
+        
         //Set canvas size adapt to window size 
-        const windowWidth = window.innerWidth - 300;
+        const windowWidth = window.innerWidth - 200;
         const windowHeight = window.innerHeight - 250;
         const dpr: number = window.devicePixelRatio || 1;
-        this.canvasElement.width = windowWidth * dpr;
-        this.canvasElement.height = windowHeight * dpr;
         
+        //Limit to minWidth
+        if(windowWidth * dpr > this.minWidth){
+            this.canvasElement.width = windowWidth * dpr;
+        }
+        
+        //Limit to minHeight
+        if (windowHeight * dpr > this.minHeight){
+            this.canvasElement.height = windowHeight * dpr;
+        }
+       
         //Redraw canvas
         this.#canvas?.renderFrontCanvas();
     }
