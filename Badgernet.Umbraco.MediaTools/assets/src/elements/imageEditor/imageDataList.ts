@@ -1,4 +1,4 @@
-import {Vector} from "./vector.ts";
+import {Point} from "./point.ts";
 
 export class ImageDataList {
     
@@ -22,8 +22,7 @@ export class ImageDataList {
     get currentIndex(): number {
         return this.#currentIndex;
     }
-    
-    public addNew(data: ImageData){
+    public addData(data: ImageData){
 
         if(this.#changesList.length - 1 > this.#currentIndex){
             this.#changesList.splice(this.#currentIndex + 1, Infinity);
@@ -42,23 +41,23 @@ export class ImageDataList {
         if(this.#currentIndex > 0){
             this.#currentIndex--;
         }
-    } 
-    
+    }
     public goForward(){
         if(this.#currentIndex < this.#changesList.length - 1){
             this.#currentIndex++;
         }
     } 
-    
-    public getImageData():ImageData{
+    public getData():ImageData{
         return this.#changesList[this.#currentIndex];
     }
-    
     public getCopy(): ImageData{
         return new ImageData(
             new Uint8ClampedArray(this.#changesList[this.#currentIndex].data),
             this.#changesList[this.#currentIndex].width,
             this.#changesList[this.#currentIndex].height
         );
-    }  
+    } 
+    public isRotatedImage(data:ImageData): boolean{
+        return data.width > this.#changesList[0].width || data.height > this.#changesList[0].height;
+    }
 }

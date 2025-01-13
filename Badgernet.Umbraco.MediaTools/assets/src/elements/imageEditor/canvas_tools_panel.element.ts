@@ -27,6 +27,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     @state() brightness: number = 0;
     @state() contrast: number = 0;
     @state() exposure: number = 1;
+    @state() rotationAdjustment: number = 0;
     
     constructor() {
         super();
@@ -79,7 +80,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     
     #dispatchRotate(e: Event){
         const element = e.target as UUISliderElement;
-        this.#dispatchEvent("rotate", Number(element.value));
+        this.rotationAdjustment = Number(element.value); 
+        this.#dispatchEvent("rotate", this.rotationAdjustment);
     }
     
     #resetSliders(){
@@ -89,6 +91,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.brightness = 0;
         this.contrast = 0;
         this.exposure = 1;
+        this.rotationAdjustment = 0;
     }
     
     #dispatchApplyChanges(){
@@ -187,7 +190,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
 
                             <div class="centeredRow" style="margin-bottom: -1rem">
                                 <uui-slider id="rotationSlider" label="Rotation"
-                                            value="0" min="-360" max="360" step="1"
+                                            min="-360" max="360" step="1"
+                                            value="${this.rotationAdjustment}"
                                             @input="${this.#dispatchRotate}">
                                 </uui-slider>
                             </div>
@@ -264,7 +268,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow">
                                         <uui-icon title="Brightness" name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
                                         <uui-slider id="brightnessSlider" label="Brightness"
-                                                    value="0" min="-255" max="255" step="1"
+                                                    min="-255" max="255" step="1"
+                                                    value="${this.brightness}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>
@@ -273,7 +278,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow">
                                         <uui-icon title="Contrast" name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
                                         <uui-slider id="contrastSlider" label="Contrast"
-                                                    value="0" min="-100" max="100" step="1"
+                                                    min="-100" max="100" step="1"
+                                                    value="${this.contrast}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>
@@ -282,7 +288,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow" style="margin-bottom: -1rem">
                                         <uui-icon title="Exposure" name="exposure" style="margin-bottom: 1.7rem;"></uui-icon>
                                         <uui-slider id="exposureSlider" label="Exposure"
-                                                    value="1" min="0.2" max="2" step="0.1"
+                                                    min="0.2" max="2" step="0.1"
+                                                    value="${this.exposure}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>
@@ -293,7 +300,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow">
                                         <div title="Red component" class="colorDot" style="background-color: red"></div>
                                         <uui-slider id="redSlider" label="Red component"
-                                                    value="0" min="-255" max="255" step="1"
+                                                    min="-255" max="255" step="1"
+                                                    value="${this.red}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>
@@ -302,7 +310,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow">
                                         <div title="Green component" class="colorDot" style="background-color: green"></div>
                                         <uui-slider id="greenSlider" label="Green component"
-                                                    value="0" min="-255" max="255" step="1"
+                                                    min="-255" max="255" step="1"
+                                                    value="${this.green}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>
@@ -311,7 +320,8 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                     <div class="centeredRow" style="margin-bottom: -1rem">
                                         <div title="Blue component" class="colorDot" style="background-color: blue"></div>
                                         <uui-slider id="blueSlider" label="Blue component"
-                                                    value="0" min="-255" max="255" step="1"
+                                                    min="-255" max="255" step="1"
+                                                    value="${this.blue}"
                                                     @input="${this.#handleSliderChange}"
                                                     @change="${this.#dispatchSliderChange}">
                                         </uui-slider>

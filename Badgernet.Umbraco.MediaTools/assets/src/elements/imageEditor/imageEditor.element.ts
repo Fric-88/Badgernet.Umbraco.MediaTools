@@ -2,9 +2,7 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
 import {PropertyValues} from "lit";
 import {ImageDataList} from "./imageDataList.ts";
-import {Camera} from "./camera.ts";
 import "./canvas_tools_panel.element.ts"
-import {Mouse} from "./mouse.ts";
 import {Canvas} from "./canvas.ts";
 import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 
@@ -15,8 +13,6 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     #canvas?: Canvas; 
 
     private image: ImageDataList = new ImageDataList();
-    private camera: Camera = new Camera();  
-    private mouse?: Mouse;
     
     private exiting: boolean = false;
 
@@ -50,17 +46,11 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         if(loaded){
             this.#canvas?.renderFrontCanvas();
         }
-        
-        //Initialize mouse and register its events
-        this.mouse = new Mouse(this.camera, this.canvasElement);
-        this.mouse.registerEventListeners();
 
         window.addEventListener('resize', () => this.resizeCanvas()); 
     }
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.mouse?.unregisterEventListeners();
-        
         window.removeEventListener('resize',() => this.resizeCanvas());
     }
     protected async firstUpdated(_changedProperties: PropertyValues) {
