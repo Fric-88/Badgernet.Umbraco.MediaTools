@@ -1,6 +1,7 @@
 import {ImageDataList} from "./imageDataList.ts";
 import {Point} from "./point.ts";
 import {CropOverlay} from "./cropOverlay.ts";
+import {Mouse} from "./mouse.ts";
 
 
 export class Canvas {
@@ -11,6 +12,7 @@ export class Canvas {
     #imageDataList: ImageDataList;
     #cropOverlay: CropOverlay;
     #cropOverlayVisible: boolean;
+    #mouse: Mouse;
     
     readonly #context: CanvasRenderingContext2D | null;
     #offscreenContext?: OffscreenCanvasRenderingContext2D | null;
@@ -21,6 +23,19 @@ export class Canvas {
         this.#imageDataList = new ImageDataList(50);
         this.#cropOverlay = new CropOverlay({x: 400, y: 400},{x: 250, y: 250 }, 12);
         this.#cropOverlayVisible = true;
+        this.#mouse = new Mouse();
+        this.#mouse.mouseDownCallback = (pointerLocation) => this.#onMouseDown(pointerLocation);
+        this.#mouse.mouseUpCallback = ( ) => this.#onMouseUp();
+        this.#mouse.mouseDragCallback = (moveAmount) => this.#onMouseDrag(moveAmount);
+        
+    }
+    
+    public registerListeners(){
+        this.#mouse.registerListeners(this.#canvas);
+    }
+    
+    public removeListeners(): void{
+        this.#mouse.removeListeners();
     }
     
     private get backContext(){
@@ -28,6 +43,25 @@ export class Canvas {
     }
     private get frontContext(){
         return this.#context;
+    }
+    
+    #onMouseDown(pointerLocation: Point){
+        if(this.#cropOverlayVisible){
+            this.#cropOverlay.selectControl(pointerLocation);
+        }
+    }
+    #onMouseUp(){
+        if(this.#cropOverlayVisible){
+            this.#cropOverlay.unselectControl();
+        }
+    }
+    #onMouseDrag(moveAmount: Point){
+        if(this.#cropOverlayVisible){
+            
+            this.#cropOverlay.moveActiveControl(moveAmount);
+            this.renderFrontCanvas();
+            
+        }
     }
     
     public enableCropOverlay(){
@@ -207,6 +241,7 @@ export class Canvas {
         ctx.fillText("Draw target  : " + drawTarget.x + " - " + drawTarget.y, 5,50);
         ctx.fillText("History  : " + this.#imageDataList.length, 5,60);
         ctx.fillText("History index  : " + this.#imageDataList.currentIndex, 5,70);
+        
         
     } 
     

@@ -44,6 +44,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         let loaded = await this.#canvas?.loadImage(this.imgPath);
         
         if(loaded){
+            this.#canvas?.registerListeners();
             this.#canvas?.renderFrontCanvas();
         }
 
@@ -51,6 +52,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     }
     disconnectedCallback() {
         super.disconnectedCallback();
+        this.#canvas?.removeListeners();
         window.removeEventListener('resize',() => this.resizeCanvas());
     }
     protected async firstUpdated(_changedProperties: PropertyValues) {
