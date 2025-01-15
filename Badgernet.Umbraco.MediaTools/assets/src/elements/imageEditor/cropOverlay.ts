@@ -1,4 +1,4 @@
-import {addPoints, Point} from "./point.ts";
+import {addPoints, Point, Zero} from "./point.ts";
 
 export type ControlPoint = "overlay" |
                            "topLeft" | 
@@ -43,16 +43,10 @@ export class CropOverlay {
         else if(this.#intersectsControl(this.#bottomLeft, pointerLocation)) this.#activeControl = "bottomLeft";
         else
             this.#activeControl = undefined;
-        
-        //DEBUG
-        console.log("Control selected: " + this.#activeControl);
     }
     
     public unselectControl(): void {
         this.#activeControl = undefined;
-
-        //DEBUG
-        console.log("Control selected: " + this.#activeControl);
     }
 
     #intersectsOverlay(pointer: Point): boolean{
@@ -61,12 +55,15 @@ export class CropOverlay {
         const overlayHeight = this.#bottomLeft.y - this.#topLeft.y;
         
         const overlayCenter = { 
-            x: overlayWidth / 2,
-            y: overlayHeight / 2
+            x: this.#topLeft.x + overlayWidth / 2,
+            y: this.#topLeft.y + overlayHeight / 2
         };  
         
-        return pointer.x > (overlayCenter.x - overlayWidth / 2) &&  pointer.y < overlayCenter.x + overlayWidth / 2 &&
-               pointer.y > (overlayCenter.y - overlayHeight / 2) &&  pointer.y < overlayCenter.y + overlayHeight / 2;
+        const xOffset = (Math.abs(overlayWidth) / 2) - this.#controlRadius; 
+        const yOffset = (Math.abs(overlayHeight) / 2) - this.#controlRadius;
+        
+        return pointer.x > overlayCenter.x - xOffset  &&  pointer.y < overlayCenter.x + xOffset &&
+               pointer.y > overlayCenter.y - yOffset &&  pointer.y < overlayCenter.y + yOffset;
     }
     #intersectsControl(controlCenter: Point, pointer: Point):boolean{
         

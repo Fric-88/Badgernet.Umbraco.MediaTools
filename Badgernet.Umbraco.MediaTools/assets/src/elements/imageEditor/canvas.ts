@@ -133,7 +133,6 @@ export class Canvas {
             ctx.fillRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter);
             ctx.strokeRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter );
 
-
         }
     }
     
