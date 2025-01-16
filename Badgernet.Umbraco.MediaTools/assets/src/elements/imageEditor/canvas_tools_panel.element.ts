@@ -17,6 +17,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     @state() menuOpen: boolean = false;
     @query("#adjust-popover") adjustPopover!: UUIPopoverContainerElement;
     @query("#rotate-popover") rotatePopover!: UUIPopoverContainerElement;
+    @query("#crop-popover") cropPopover!: UUIPopoverContainerElement;
     
     //Used for throttling slider input events
     #eventThrottleTimer: number | null = null;  
@@ -33,6 +34,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         super();
     }
     
+    //Generic method for dispatching named events
     #dispatchEvent(eventName: string, detail?: any){
         const event = new CustomEvent(eventName,{
             bubbles: true,       // Allows the event to bubble up through the DOM
@@ -77,13 +79,11 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         
         this.#dispatchEvent("slider-values-change", values);
     }
-    
     #dispatchRotate(e: Event){
         const element = e.target as UUISliderElement;
         this.rotationAdjustment = Number(element.value); 
         this.#dispatchEvent("rotate", this.rotationAdjustment);
     }
-    
     #resetSliders(){
         this.red = 0;
         this.green = 0;
@@ -93,15 +93,12 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.exposure = 1;
         this.rotationAdjustment = 0;
     }
-    
     #dispatchApplyChanges(){
-        
         this.#closeAdjustmentsMenu();
         this.#closeRotationMenu();
         this.#dispatchEvent("apply-changes");
         this.#resetSliders();
     }
-    
     #dispatchDiscardChanges(){
         
         this.#closeAdjustmentsMenu();
@@ -127,6 +124,39 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.menuOpen = false;
         this.rotatePopover.hidePopover();
     }
+    
+    
+    #handleCropClick(){
+        if(this.menuOpen){
+            this.#closeCropMenu();
+            this.#dispatchEvent("disable-cropping");
+        }
+        else{
+            this.#openCropMenu();
+            this.#dispatchEvent("enable-cropping");
+        } 
+    }
+    #openCropMenu(){
+        this.menuOpen = true;
+        this.cropPopover.showPopover();
+    }
+    
+    #closeCropMenu(){
+        this.menuOpen = false;
+        this.cropPopover.hidePopover();
+    }
+    
+    #dispatchApplyCrop(){
+        this.#closeCropMenu();
+        this.#dispatchEvent("apply-crop");
+    }
+    
+    #dispatchDiscardCrop(){
+        this.#closeCropMenu();
+        this.#dispatchEvent("discard-crop");
+    }
+    
+    
 
     render() {
         return html`
@@ -136,10 +166,32 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                     <!-- CROP -->
                     <uui-button title="Crop" label="Crop"
                                 look="secondary" color="default"
+                                popovertarget="crop-popover"
                                 .disabled="${this.menuOpen}"
-                                @click = "">
+                                @click = "${this.#handleCropClick}">
                         <uui-icon name="crop"></uui-icon>
                     </uui-button>
+
+                    <!-- CROP POPOVER -->
+                    <uui-popover-container id="crop-popover" placement="top" margin="10" popover="manual" >
+                        <uui-box class="popoverLayout" style="padding-bottom: -20px">
+                            <div class="centeredRow" style="gap: 0.5rem">
+                                <uui-button title="Apply changes" label="Apply changes"
+                                            pristine="" look="secondary" color="positive"
+                                            style="font-size: 10px"
+                                            @click="${this.#dispatchApplyCrop}">
+                                    <uui-icon name="checkmark"></uui-icon>
+                                </uui-button>
+
+                                <uui-button title="Discard changes" label="Discard changes"
+                                            pristine="" look="secondary" color="danger"
+                                            style="font-size: 10px"
+                                            @click="${this.#dispatchDiscardCrop}">
+                                    <uui-icon name="cross"></uui-icon>
+                                </uui-button>
+                            </div>
+                        </uui-box>
+                    </uui-popover-container>
 
                     <!-- FLIP VERTICAL -->
                     <uui-button title="Flip vertically" label="Flip vertically"

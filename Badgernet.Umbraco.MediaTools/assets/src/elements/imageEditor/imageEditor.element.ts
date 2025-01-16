@@ -9,11 +9,8 @@ import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
-    
     #canvas?: Canvas; 
-
     private image: ImageDataList = new ImageDataList();
-    
     private exiting: boolean = false;
 
     @property({attribute: true, type: Number}) width: number = 600;
@@ -22,16 +19,9 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) minHeight: number = 300;
     @property({attribute: true, type: String}) imgPath: string = "";
 
-    
-
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
     @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
     
-    constructor() {
-        super();
-        
-        
-    }
     async connectedCallback() {
         super.connectedCallback();
         
@@ -50,6 +40,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
         window.addEventListener('resize', () => this.resizeCanvas()); 
     }
+    
     disconnectedCallback() {
         super.disconnectedCallback();
         this.#canvas?.removeListeners();
@@ -59,8 +50,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         super.firstUpdated(_changedProperties);
     }
     
+    //Resizing the canvas element when window size changes
     private resizeCanvas(){
-        
         
         //Set canvas size adapt to window size 
         const windowWidth = window.innerWidth - 200;
@@ -94,7 +85,6 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     }
     
     #adjustArray(e: CustomEvent){
-        
         const values = e.detail as SliderValues;
         this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
@@ -106,6 +96,10 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                 <div id="toolbar">
                     <canvas-tools-panel
                             id="canvasToolsPanel"
+                            @enable-cropping="${() => this.#canvas?.enableCropOverlay()}"
+                            @disable-cropping="${() => this.#canvas?.disableCropOverlay()}"
+                            @apply-crop="${() => this.#canvas?.cropImage()}"
+                            @discard-crop="${() => this.#canvas?.disableCropOverlay()}"
                             @flip-vertically="${() => this.#canvas?.flipVertically() }"
                             @flip-horizontally="${() => this.#canvas?.flipHorizontally() }"
                             @slider-values-change ="${this.#adjustArray}"

@@ -11,8 +11,12 @@ export class Canvas {
     #backCanvas?: OffscreenCanvas;
     #imageDataList: ImageDataList;
     #cropOverlay: CropOverlay;
-    #cropOverlayVisible: boolean;
+    #cropOverlayActive: boolean;
     #mouse: Mouse;
+    
+    #drawOrigin:Point;  //Top left corner of the image being drawn
+    #drawWidth: number; //Width of the current image being drawn
+    #drawHeight: number; //Height of the image being drawn
     
     readonly #context: CanvasRenderingContext2D | null;
     #offscreenContext?: OffscreenCanvasRenderingContext2D | null;
@@ -22,12 +26,14 @@ export class Canvas {
         this.#context = this.#canvas.getContext("2d");
         this.#imageDataList = new ImageDataList(50);
         this.#cropOverlay = new CropOverlay({x: 400, y: 400},{x: 250, y: 250 }, 12);
-        this.#cropOverlayVisible = true;
+        this.#cropOverlayActive = false;
         this.#mouse = new Mouse();
         this.#mouse.mouseDownCallback = (pointerLocation) => this.#onMouseDown(pointerLocation);
         this.#mouse.mouseUpCallback = ( ) => this.#onMouseUp();
         this.#mouse.mouseDragCallback = (moveAmount) => this.#onMouseDrag(moveAmount);
-        
+        this.#drawOrigin = {x: 0, y: 0}
+        this.#drawWidth = 0;
+        this.#drawHeight = 0;
     }
     
     public registerListeners(){
@@ -46,93 +52,21 @@ export class Canvas {
     }
     
     #onMouseDown(pointerLocation: Point){
-        if(this.#cropOverlayVisible){
+        if(this.#cropOverlayActive){
             this.#cropOverlay.selectControl(pointerLocation);
         }
     }
     #onMouseUp(){
-        if(this.#cropOverlayVisible){
+        if(this.#cropOverlayActive){
             this.#cropOverlay.unselectControl();
         }
     }
     #onMouseDrag(moveAmount: Point){
-        if(this.#cropOverlayVisible){
+        if(this.#cropOverlayActive){
             
             this.#cropOverlay.moveActiveControl(moveAmount);
             this.renderFrontCanvas();
             
-        }
-    }
-    
-    public enableCropOverlay(){
-        this.#cropOverlayVisible = true;
-        this.renderFrontCanvas();
-    }
-    
-    public disableCropOverlay(){
-        this.#cropOverlayVisible = false;
-        this.renderFrontCanvas();
-    }
-    
-    #renderCropOverlay(ctx: CanvasRenderingContext2D){
-        
-        if(this.#cropOverlayVisible){
-            const points = this.#cropOverlay.getDrawPoints();
-            const controlRadius = this.#cropOverlay.getControlRadius();
-            const overlayWidth = points.topRight.x - points.topLeft.x;
-            const overlayHeight = points.bottomLeft.y - points.topLeft.y;
-            const controlDiameter = controlRadius * 2;
-            
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle="#611FC4";
-            ctx.fillStyle = "#FFFFFF";
-            ctx.lineWidth = 2;
-
-            //Stroke overlay  
-            ctx.beginPath();
-            ctx.moveTo(points.topLeft.x, points.topLeft.y);
-            ctx.lineTo(points.topRight.x, points.topRight.y);
-            ctx.lineTo(points.bottomRight.x, points.bottomRight.y);
-            ctx.lineTo(points.bottomLeft.x, points.bottomLeft.y);
-            ctx.lineTo(points.topLeft.x, points.topLeft.y);
-            ctx.stroke();
-            
-            //Fill opaque overlay 
-            ctx.globalAlpha = 0.2;
-            ctx.fillRect(points.topLeft.x, points.topLeft.y, overlayWidth, overlayHeight);
-            
-
-            ctx.strokeStyle="#FFFFFF";
-            ctx.globalAlpha = 0.5;
-            ctx.lineWidth = 1;
-             
-            //Grid lines
-            for(let i = 1; i <= 2 ; i++){
-                ctx.beginPath();
-                ctx.moveTo(points.topLeft.x + (overlayWidth / 3) * i , points.topLeft.y);
-                ctx.lineTo(points.topLeft.x + (overlayWidth / 3) * i, points.topLeft.y + overlayHeight );
-                
-                ctx.moveTo(points.topLeft.x, points.topLeft.y + (overlayHeight / 3) * i);
-                ctx.lineTo(points.topLeft.x + overlayWidth, points.topLeft.y + (overlayHeight / 3) * i);
-                
-                ctx.stroke();
-            }
-
-            ctx.globalAlpha = 1;
-            ctx.strokeStyle="#611FC4";
-            ctx.fillStyle = "#9C83C1";
-            
-            
-            //Move controls
-            ctx.fillRect(points.topLeft.x - controlRadius, points.topLeft.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.strokeRect(points.topLeft.x - controlRadius, points.topLeft.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.fillRect(points.topRight.x - controlRadius, points.topRight.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.strokeRect(points.topRight.x - controlRadius, points.topRight.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.fillRect(points.bottomRight.x - controlRadius, points.bottomRight.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.strokeRect(points.bottomRight.x - controlRadius, points.bottomRight.y - controlRadius, controlDiameter, controlDiameter );
-            ctx.fillRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter);
-            ctx.strokeRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter );
-
         }
     }
     
@@ -164,7 +98,90 @@ export class Canvas {
             }
         });
     }
+
+    public enableCropOverlay(){
+        this.#cropOverlayActive = true;
+        this.#cropOverlay = new CropOverlay(this.#drawOrigin, {x: this.#drawWidth, y: this.#drawHeight}, 12);
+        this.renderFrontCanvas();
+    }
+
+    public disableCropOverlay(){
+        this.#cropOverlayActive = false;
+        this.renderFrontCanvas();
+    }
     
+    public cropImage(){
+        if(this.#cropOverlayActive){
+            
+            //TODO Do the cropping
+            this.disableCropOverlay();
+        }
+    }
+    
+    
+
+    #renderCropOverlay(ctx: CanvasRenderingContext2D){
+
+        if(this.#cropOverlayActive){
+            const points = this.#cropOverlay.getDrawPoints();
+            const controlRadius = this.#cropOverlay.getControlRadius();
+            const overlayWidth = points.topRight.x - points.topLeft.x;
+            const overlayHeight = points.bottomLeft.y - points.topLeft.y;
+            const controlDiameter = controlRadius * 2;
+
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle="#611FC4";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.lineWidth = 2;
+
+            //Stroke overlay  
+            ctx.beginPath();
+            ctx.moveTo(points.topLeft.x, points.topLeft.y);
+            ctx.lineTo(points.topRight.x, points.topRight.y);
+            ctx.lineTo(points.bottomRight.x, points.bottomRight.y);
+            ctx.lineTo(points.bottomLeft.x, points.bottomLeft.y);
+            ctx.lineTo(points.topLeft.x, points.topLeft.y);
+            ctx.stroke();
+
+            //Fill opaque overlay 
+            ctx.globalAlpha = 0.2;
+            ctx.fillRect(points.topLeft.x, points.topLeft.y, overlayWidth, overlayHeight);
+
+
+            ctx.strokeStyle="#FFFFFF";
+            ctx.globalAlpha = 0.5;
+            ctx.lineWidth = 1;
+
+            //Grid lines
+            for(let i = 1; i <= 2 ; i++){
+                ctx.beginPath();
+                ctx.moveTo(points.topLeft.x + (overlayWidth / 3) * i , points.topLeft.y);
+                ctx.lineTo(points.topLeft.x + (overlayWidth / 3) * i, points.topLeft.y + overlayHeight );
+
+                ctx.moveTo(points.topLeft.x, points.topLeft.y + (overlayHeight / 3) * i);
+                ctx.lineTo(points.topLeft.x + overlayWidth, points.topLeft.y + (overlayHeight / 3) * i);
+
+                ctx.stroke();
+            }
+
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle="#611FC4";
+            ctx.fillStyle = "#9C83C1";
+
+
+            //Move controls
+            ctx.fillRect(points.topLeft.x - controlRadius, points.topLeft.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.strokeRect(points.topLeft.x - controlRadius, points.topLeft.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.fillRect(points.topRight.x - controlRadius, points.topRight.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.strokeRect(points.topRight.x - controlRadius, points.topRight.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.fillRect(points.bottomRight.x - controlRadius, points.bottomRight.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.strokeRect(points.bottomRight.x - controlRadius, points.bottomRight.y - controlRadius, controlDiameter, controlDiameter );
+            ctx.fillRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter);
+            ctx.strokeRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter );
+
+        }
+    }
+
     //Renders contents of the backCanvas on the frontCanvas
     public renderFrontCanvas(): void{
         if (!this.#backCanvas) return;
@@ -221,6 +238,10 @@ export class Canvas {
         drawTarget.x = (canvasWidth - drawSize.x) / 2;
         drawTarget.y = (canvasHeight - drawSize.y) / 2;
 
+        this.#drawOrigin = drawTarget;
+        this.#drawWidth = drawSize.x;
+        this.#drawHeight = drawSize.y;
+        
         // Draw image
         ctx.drawImage(
             this.#backCanvas,
