@@ -117,8 +117,6 @@ export class Canvas {
             this.disableCropOverlay();
         }
     }
-    
-    
 
     #renderCropOverlay(ctx: CanvasRenderingContext2D){
 
@@ -154,13 +152,20 @@ export class Canvas {
 
             //Grid lines
             for(let i = 1; i <= 2 ; i++){
+                
+                const xOffset = (overlayWidth / 3) * i;
+                const yOffset = (overlayHeight / 3) * i;
+
+                // Vertical grid line
                 ctx.beginPath();
-                ctx.moveTo(points.topLeft.x + (overlayWidth / 3) * i , points.topLeft.y);
-                ctx.lineTo(points.topLeft.x + (overlayWidth / 3) * i, points.topLeft.y + overlayHeight );
+                ctx.moveTo(points.topLeft.x + xOffset, points.topLeft.y);
+                ctx.lineTo(points.topLeft.x + xOffset, points.topLeft.y + overlayHeight);
+                ctx.stroke();
 
-                ctx.moveTo(points.topLeft.x, points.topLeft.y + (overlayHeight / 3) * i);
-                ctx.lineTo(points.topLeft.x + overlayWidth, points.topLeft.y + (overlayHeight / 3) * i);
-
+                // Horizontal grid line
+                ctx.beginPath();
+                ctx.moveTo(points.topLeft.x, points.topLeft.y + yOffset);
+                ctx.lineTo(points.topLeft.x + overlayWidth, points.topLeft.y + yOffset);
                 ctx.stroke();
             }
 
@@ -197,6 +202,8 @@ export class Canvas {
         const image = this.#imageDataList.getData();
         
         const CANVAS_PADDING = 10;
+        const maxDrawWidth = canvasWidth - CANVAS_PADDING * 2;
+        const maxDrawHeight = canvasHeight - CANVAS_PADDING * 2;
 
         // Clear canvas
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -209,26 +216,26 @@ export class Canvas {
         const imageAspectRatio = backCanvasWidth / backCanvasHeight;
 
         // Scale down if image is larger than canvas with padding
-        if (backCanvasWidth > canvasWidth - CANVAS_PADDING * 2 || backCanvasHeight > canvasHeight - CANVAS_PADDING * 2) {
+        if (backCanvasWidth > maxDrawWidth || backCanvasHeight > maxDrawHeight) {
 
             // Wider than taller
             if (imageAspectRatio > 1) {
-                drawSize.x = canvasWidth - CANVAS_PADDING * 2;
+                drawSize.x = maxDrawWidth;
                 drawSize.y = drawSize.x / imageAspectRatio;
 
                 // Adjust if height exceeds canvas (when resizing)
-                if (drawSize.y > canvasHeight - CANVAS_PADDING * 2) {
-                    drawSize.y = canvasHeight - CANVAS_PADDING * 2;
+                if (drawSize.y > maxDrawHeight ) {
+                    drawSize.y = maxDrawHeight;
                     drawSize.x = drawSize.y * imageAspectRatio;
                 }
             } 
             else { // Taller than wider 
-                drawSize.y = canvasHeight - CANVAS_PADDING * 2;
+                drawSize.y = maxDrawHeight;
                 drawSize.x = drawSize.y * imageAspectRatio;
 
                 // Adjust if width exceeds canvas
-                if (drawSize.x > canvasWidth - CANVAS_PADDING * 2) {
-                    drawSize.x = canvasWidth - CANVAS_PADDING * 2;
+                if (drawSize.x > maxDrawWidth) {
+                    drawSize.x = maxDrawWidth;
                     drawSize.y = drawSize.x / imageAspectRatio;
                 }
             }
@@ -251,18 +258,6 @@ export class Canvas {
         
         //Draw the crop overlay if visible
         this.#renderCropOverlay(ctx);
-        
-
-        //Debug draw
-        ctx.fillText("B canvas size: " + this.#backCanvas.width + " x " + this.#backCanvas.height, 5,10);
-        ctx.fillText("F canvas size: " + this.#canvas.width + " x " + this.#canvas.height, 5,20);
-        ctx.fillText("Image size   : " + image.width + " x " + image.height, 5,30);
-        ctx.fillText("Draw size: " + drawSize.x + " x " + drawSize.y, 5,40);
-        ctx.fillText("Draw target  : " + drawTarget.x + " - " + drawTarget.y, 5,50);
-        ctx.fillText("History  : " + this.#imageDataList.length, 5,60);
-        ctx.fillText("History index  : " + this.#imageDataList.currentIndex, 5,70);
-        
-        
     } 
     
     #saveChanges():void{
@@ -317,22 +312,22 @@ export class Canvas {
     
     //Rotates this image around its center
     public rotateImage(rotation: number):void{
-        if (!this.#backCanvas) return;
+        if (!this.#backCanvas || !this.backContext) return;
         const ctx = this.backContext
-        if (!ctx) return;
 
         //Need to work with a copy of the unedited image to prevent stacking of the adjustments
         const image = this.#imageDataList.getCopy();
         
-        this.#backCanvas.width = image.width;
-        this.#backCanvas.height = image.height;
+        if(this.#backCanvas.width != image.width || this.#backCanvas.height != image.height) {
+            this.#backCanvas.width = image.width;
+            this.#backCanvas.height = image.height;
+        }
+
         ctx.putImageData(image, 0, 0);
-        
         const tempImg = this.#backCanvas.transferToImageBitmap();
         
         //Clear back canvas
         ctx.clearRect(0, 0, this.#backCanvas.width, this.#backCanvas.height);
-        
         
         //Resize canvas to fit rotating image
         if(!this.#imageDataList.isRotatedImage(image)){
@@ -340,7 +335,6 @@ export class Canvas {
             this.#backCanvas.width = diagonal;
             this.#backCanvas.height = diagonal;
         }
-
         
         ctx.translate(this.#backCanvas.width/2, this.#backCanvas.height/2);
         ctx.rotate(rotation * Math.PI/180);

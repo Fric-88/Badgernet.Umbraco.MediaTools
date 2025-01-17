@@ -79,6 +79,11 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         
         this.#dispatchEvent("slider-values-change", values);
     }
+    
+    #setRotation(value: number): void {
+        this.rotationAdjustment = value;
+        this.#dispatchEvent("rotate", this.rotationAdjustment);
+    }
     #dispatchRotate(e: Event){
         const element = e.target as UUISliderElement;
         this.rotationAdjustment = Number(element.value); 
@@ -239,6 +244,27 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                 </uui-button>
                             </div>
 
+                            <div class="centeredRow" style="margin-top: -0.5rem; margin-bottom: 1.5rem; justify-content: center; gap:0.5rem" >
+                                <uui-button title="Rotate left 90" label="Rotate left 90"
+                                            pristine="" look="secondary" color="default"
+                                            @click="${() => this.#setRotation(-90)}"> -90°
+                                </uui-button>
+
+                                <uui-button title="Rotate left 45" label="Rotate left 45"
+                                            pristine="" look="secondary" color="default"
+                                            @click="${() => this.#setRotation(-45)}"> -45°
+                                </uui-button>
+
+                                <uui-button title="Rotate right 45" label="Rotate right 45"
+                                            pristine="" look="secondary" color="default"
+                                            @click="${() => this.#setRotation(45)}"> 45°
+                                </uui-button>
+
+                                <uui-button title="Rotate right 90" label="Rotate right 90"
+                                            pristine="" look="secondary" color="default"
+                                            @click="${() => this.#setRotation(90)}"> 90°
+                                </uui-button>
+                            </div>
 
                             <div class="centeredRow" style="margin-bottom: -1rem">
                                 <uui-slider id="rotationSlider" label="Rotation"
@@ -247,6 +273,9 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                             @input="${this.#dispatchRotate}">
                                 </uui-slider>
                             </div>
+                            
+
+                            
                         </uui-box>
                     </uui-popover-container>
 
