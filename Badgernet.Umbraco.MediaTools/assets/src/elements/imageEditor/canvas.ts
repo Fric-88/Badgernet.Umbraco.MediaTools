@@ -1,5 +1,5 @@
 import {ImageDataList} from "./imageDataList.ts";
-import {Point} from "./point.ts";
+import {Point, subtractPoints} from "./point.ts";
 import {CropOverlay} from "./cropOverlay.ts";
 import {Mouse} from "./mouse.ts";
 
@@ -111,10 +111,38 @@ export class Canvas {
     }
     
     public cropImage(){
+        if(!this.#backCanvas || !this.backContext) return;
         if(this.#cropOverlayActive){
             
-            //TODO Do the cropping
+            const ctx = this.backContext;
+            const cropPoints = this.#cropOverlay.getDrawPoints();
+
+            const wRatio = this.#backCanvas.width / this.#drawWidth;
+            const hRatio = this.#backCanvas.height / this.#drawHeight;
+            
+            //Adjust points in relation of frontCanvas image
+            cropPoints.topLeft = subtractPoints(cropPoints.topLeft, this.#drawOrigin);
+            cropPoints.topRight = subtractPoints(cropPoints.topRight, this.#drawOrigin);
+            cropPoints.bottomLeft = subtractPoints(cropPoints.bottomLeft, this.#drawOrigin);
+            cropPoints.bottomRight = subtractPoints(cropPoints.bottomRight, this.#drawOrigin);
+            
+            const sX = cropPoints.topLeft.x * wRatio;
+            const sY = cropPoints.topLeft.y * hRatio;
+            const sW = (cropPoints.topRight.x - cropPoints.topLeft.x) * wRatio;
+            const sH = (cropPoints.bottomLeft.y - cropPoints.topLeft.y) * hRatio;
+
+            
+            const temp = ctx.getImageData(sX, sY, sW, sH);
+            
+            ctx.clearRect(0, 0, this.#backCanvas.width, this.#backCanvas.height);
+            this.#backCanvas.width = temp.width;
+            this.#backCanvas.height = temp.height;
+            
+            ctx.putImageData(temp, 0, 0);
+            
+            this.#saveChanges();
             this.disableCropOverlay();
+            this.renderFrontCanvas();
         }
     }
 
@@ -183,7 +211,6 @@ export class Canvas {
             ctx.strokeRect(points.bottomRight.x - controlRadius, points.bottomRight.y - controlRadius, controlDiameter, controlDiameter );
             ctx.fillRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter);
             ctx.strokeRect(points.bottomLeft.x - controlRadius, points.bottomLeft.y - controlRadius, controlDiameter, controlDiameter );
-
         }
     }
 
@@ -258,8 +285,10 @@ export class Canvas {
         
         //Draw the crop overlay if visible
         this.#renderCropOverlay(ctx);
+        
+
     } 
-    
+
     #saveChanges():void{
         if (!this.#backCanvas) return;
 
