@@ -119,18 +119,38 @@ export class Canvas {
 
             const wRatio = this.#backCanvas.width / this.#drawWidth;
             const hRatio = this.#backCanvas.height / this.#drawHeight;
+
+            //Limit point to not extend over the image
+            if(cropPoints.topLeft.x < this.#drawOrigin.x){
+                cropPoints.topLeft.x = this.#drawOrigin.x;
+                cropPoints.bottomLeft.x = this.#drawOrigin.x;
+            }
+            if(cropPoints.topLeft.y < this.#drawOrigin.y){
+                cropPoints.topLeft.y = this.#drawOrigin.y;
+                cropPoints.topRight.y = this.#drawOrigin.y;
+            }
+            if(cropPoints.topRight.x > this.#drawOrigin.x + this.#drawWidth  ){
+                cropPoints.topRight.x = this.#drawOrigin.x + this.#drawWidth  ;
+                cropPoints.bottomRight.x = cropPoints.topRight.x;
+            }
+            
+            if(cropPoints.bottomLeft.y > this.#drawOrigin.y + this.#drawHeight){
+                cropPoints.bottomLeft.y = this.#drawOrigin.y + this.#drawHeight;
+                cropPoints.bottomRight.y = cropPoints.bottomLeft.y;
+            }
+            
             
             //Adjust points in relation of frontCanvas image
             cropPoints.topLeft = subtractPoints(cropPoints.topLeft, this.#drawOrigin);
             cropPoints.topRight = subtractPoints(cropPoints.topRight, this.#drawOrigin);
             cropPoints.bottomLeft = subtractPoints(cropPoints.bottomLeft, this.#drawOrigin);
             cropPoints.bottomRight = subtractPoints(cropPoints.bottomRight, this.#drawOrigin);
+
             
             const sX = cropPoints.topLeft.x * wRatio;
             const sY = cropPoints.topLeft.y * hRatio;
             const sW = (cropPoints.topRight.x - cropPoints.topLeft.x) * wRatio;
             const sH = (cropPoints.bottomLeft.y - cropPoints.topLeft.y) * hRatio;
-
             
             const temp = ctx.getImageData(sX, sY, sW, sH);
             
