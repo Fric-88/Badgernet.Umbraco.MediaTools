@@ -22,7 +22,6 @@ export class CropOverlay {
     #corner4: Point;
     #activeControl: ControlPoint;
 
-    
     constructor(startPosition: Point, startSize:Point, controlDiameter?: number ) {
         
         if(!controlDiameter) controlDiameter = 6;
@@ -35,8 +34,6 @@ export class CropOverlay {
        
     }
     public selectControl(pointerLocation: Point): void {
-        
-        
         if(this.#intersectsControl(this.#corner1, pointerLocation)) this.#activeControl = "corner1";
         else if(this.#intersectsControl(this.#corner2, pointerLocation)) this.#activeControl = "corner2";
         else if(this.#intersectsControl(this.#corner4, pointerLocation)) this.#activeControl = "corner3";
@@ -45,27 +42,10 @@ export class CropOverlay {
         else
             this.#activeControl = undefined;
     }
-    
-    #center() : Point {
-        return {
-            x: this.#corner1.x + (this.#corner2.x - this.#corner1.x) / 2,
-            y: this.#corner1.y + (this.#corner3.y - this.#corner1.y) / 2
-        };
-    }
-    
-    #width(): number {
-        const sortedPoints = this.#sortCorners();
-        return sortedPoints.topRight.x - sortedPoints.topLeft.x;
-    }
-    #height(): number {
-        const sortedPoints = this.#sortCorners();
-        return sortedPoints.bottomLeft.y - sortedPoints.topLeft.y;
-    }
-    
     public unselectControl(): void {
         this.#activeControl = undefined;
     }
-
+    
     #intersectsOverlay(pointer: Point): boolean{
         
         const corners = this.#sortCorners();

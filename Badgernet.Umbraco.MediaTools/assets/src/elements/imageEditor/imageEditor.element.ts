@@ -88,6 +88,10 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         const values = e.detail as SliderValues;
         this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
+    
+    #saveImage(e: CustomEvent){
+        const image = e.detail as ImageData;
+    }
 
     render() {
         return html`
@@ -108,6 +112,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             @rotate="${(e: CustomEvent) => this.#canvas?.rotateImage(e.detail as number)}" 
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
+                            @save-image="${this.#saveImage}"
                             @exit-click="${this.dispatchCloseEditor}">
                     </canvas-tools-panel>
                 </div>

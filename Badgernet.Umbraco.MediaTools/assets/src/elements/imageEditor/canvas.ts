@@ -109,7 +109,7 @@ export class Canvas {
         this.#cropOverlayActive = false;
         this.renderFrontCanvas();
     }
-    
+
     public cropImage(){
         if(!this.#backCanvas || !this.backContext) return;
         if(this.#cropOverlayActive){
@@ -164,6 +164,12 @@ export class Canvas {
             this.disableCropOverlay();
             this.renderFrontCanvas();
         }
+    }
+    
+    public getImageData(): ImageData | undefined{
+        if(!this.#backCanvas || !this.backContext) return undefined;
+        const ctx = this.backContext;
+        return ctx.getImageData(0,0, this.#backCanvas.width, this.#backCanvas.height);
     }
 
     #renderCropOverlay(ctx: CanvasRenderingContext2D){
