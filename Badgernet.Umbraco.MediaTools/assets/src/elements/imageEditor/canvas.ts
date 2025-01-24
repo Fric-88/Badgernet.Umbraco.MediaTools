@@ -98,6 +98,28 @@ export class Canvas {
             }
         });
     }
+    
+    //Resize front canvas
+    public resizeCanvas(width: number, height: number){
+        if(!this.#canvas) return;
+        
+        
+        //Scale crop overlay to match canvas size
+        if(this.#cropOverlayActive){
+
+            const xRatio = width / this.#canvas.width;
+            const yRatio = height / this.#canvas.height;
+            
+            this.#cropOverlay.scaleOverlay(xRatio, yRatio);
+        }
+
+
+        this.#canvas.width = width;
+        this.#canvas.height = height;
+        
+        //Re-render front canvas
+        this.renderFrontCanvas();
+    }
 
     public enableCropOverlay(){
         this.#cropOverlayActive = true;
@@ -194,6 +216,7 @@ export class Canvas {
             ctx.lineTo(points.bottomLeft.x, points.bottomLeft.y);
             ctx.lineTo(points.topLeft.x, points.topLeft.y);
             ctx.stroke();
+            ctx.closePath();
 
             //Fill opaque overlay 
             ctx.globalAlpha = 0.2;

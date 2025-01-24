@@ -255,6 +255,11 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                             @click="${() => this.#setRotation(-45)}"> -45°
                                 </uui-button>
 
+                                <uui-button title="Rotate to 0" label="Rotate to 0"
+                                            pristine="" look="secondary" color="default"
+                                            @click="${() => this.#setRotation(0)}"> 0°
+                                </uui-button>
+
                                 <uui-button title="Rotate right 45" label="Rotate right 45"
                                             pristine="" look="secondary" color="default"
                                             @click="${() => this.#setRotation(45)}"> 45°
@@ -442,7 +447,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         }
         
         #rotate-popover {
-            width: 20rem;
+            width: 22rem;
         }
     `
 }

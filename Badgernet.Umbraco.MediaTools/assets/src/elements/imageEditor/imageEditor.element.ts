@@ -26,11 +26,11 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         super.connectedCallback();
         
         //Wait until DOM renders
-        await this.updateComplete; 
-        
-        this.resizeCanvas();
+        await this.updateComplete;
         
         this.#canvas = new Canvas(this.canvasElement);
+        this.resizeCanvas();
+        
         let loaded = await this.#canvas?.loadImage(this.imgPath);
         
         if(loaded){
@@ -53,23 +53,19 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     //Resizing the canvas element when window size changes
     private resizeCanvas(){
         
-        //Set canvas size adapt to window size 
-        const windowWidth = window.innerWidth - 200;
-        const windowHeight = window.innerHeight - 250;
-        const dpr: number = window.devicePixelRatio || 1;
+        const dpr = window.devicePixelRatio || 1; 
+        let targetWidth = (window.innerWidth - 200) * dpr;
+        let targetHeight = (window.innerHeight - 250) * dpr;
         
-        //Limit to minWidth
-        if(windowWidth * dpr > this.minWidth){
-            this.canvasElement.width = windowWidth * dpr;
+        if(targetWidth < this.minWidth){
+            targetWidth = this.minWidth;
         }
         
-        //Limit to minHeight
-        if (windowHeight * dpr > this.minHeight){
-            this.canvasElement.height = windowHeight * dpr;
+        if(targetHeight < this.minHeight){
+            targetHeight = this.minHeight;
         }
-       
-        //Redraw canvas
-        this.#canvas?.renderFrontCanvas();
+
+        this.#canvas?.resizeCanvas(targetWidth, targetHeight);
     }
 
     //Dispatch close editor event
