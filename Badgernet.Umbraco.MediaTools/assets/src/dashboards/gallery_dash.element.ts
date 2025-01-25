@@ -184,7 +184,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             if (editor == undefined) return;
             
             //Open editor
-            editor.openEditor(900, 900, selectedImage.path);
+            const imageId = selectedImage.id;
+            editor.openEditor(900, 900, selectedImage.path, imageId);
         }
     }
 

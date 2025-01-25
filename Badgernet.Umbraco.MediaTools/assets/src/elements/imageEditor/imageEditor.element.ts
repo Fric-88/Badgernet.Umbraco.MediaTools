@@ -5,12 +5,15 @@ import {ImageDataList} from "./imageDataList.ts";
 import "./canvas_tools_panel.element.ts"
 import {Canvas} from "./canvas.ts";
 import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
+import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
+import {request} from "../../api/core/request.ts";
+import {ReplaceImageData} from "../../api";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
-    #canvas?: Canvas; 
-    private image: ImageDataList = new ImageDataList();
+    #mediaToolsContext?: MediaToolsContext;
+    #canvas?: Canvas;
     private exiting: boolean = false;
 
     @property({attribute: true, type: Number}) width: number = 600;
@@ -18,9 +21,17 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) minWidth: number = 400;
     @property({attribute: true, type: Number}) minHeight: number = 300;
     @property({attribute: true, type: String}) imgPath: string = "";
+    @property({attribute: true, type: String}) imgId: number = -1;
 
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
     @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
+    
+    constructor() {
+        super();
+        this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) => {
+            this.#mediaToolsContext = _context;
+        });
+    }
     
     async connectedCallback() {
         super.connectedCallback();
@@ -46,10 +57,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.#canvas?.removeListeners();
         window.removeEventListener('resize',() => this.resizeCanvas());
     }
-    protected async firstUpdated(_changedProperties: PropertyValues) {
-        super.firstUpdated(_changedProperties);
-    }
-    
+
     //Resizing the canvas element when window size changes
     private resizeCanvas(){
         
@@ -85,8 +93,24 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
     
-    #saveImage(e: CustomEvent){
-        const image = e.detail as ImageData;
+    //Send image back to the server for it to be saved
+    async #saveImage(){
+        if(this.imgId < 0) return; //Image id was not set
+        const image = this.#canvas?.getImageData();
+        if(!image) return; //No image data
+        
+        // Convert ImageData to Blob
+        const blob = new Blob([image.data.buffer], { type: 'application/octet-stream' });
+
+        const request: ReplaceImageData = {
+            id: this.imgId,
+            formData:  { imageData: blob },
+            width: image.width,
+            height: image.height
+        } 
+        
+        let response =  await this.#mediaToolsContext?.replaceImage(request);
+        
     }
 
     render() {
@@ -108,7 +132,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             @rotate="${(e: CustomEvent) => this.#canvas?.rotateImage(e.detail as number)}" 
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
-                            @save-image="${this.#saveImage}"
+                            @save-image="${() => this.#saveImage()}"
                             @exit-click="${this.dispatchCloseEditor}">
                     </canvas-tools-panel>
                 </div>

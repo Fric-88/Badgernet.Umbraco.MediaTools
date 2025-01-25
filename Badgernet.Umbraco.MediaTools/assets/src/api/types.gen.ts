@@ -104,6 +104,18 @@ export type RenameMediaData = {
 
 export type RenameMediaResponse = OperationResponse;
 
+export type ReplaceImageData = {
+    formData?: {
+        imageData?: (Blob | File);
+    };
+    height?: number;
+    id?: number;
+    saveAs?: string;
+    width?: number;
+};
+
+export type ReplaceImageResponse = OperationResponse;
+
 export type RecycleMediaData = {
     requestBody?: Array<(number)>;
 };
@@ -184,6 +196,21 @@ export type $OpenApiTs = {
     '/gallery/rename': {
         post: {
             req: RenameMediaData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: OperationResponse;
+                /**
+                 * Bad Request
+                 */
+                400: OperationResponse;
+            };
+        };
+    };
+    '/gallery/replace': {
+        post: {
+            req: ReplaceImageData;
             res: {
                 /**
                  * OK

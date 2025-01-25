@@ -57,17 +57,26 @@ public class MediaHelper(
 
     public IEnumerable<ImageMediaDto> GetMediaDtoByType(string type)
     {
-        return GetMediaByType("Image")
-            .Select(i => new ImageMediaDto
-            {
-                Id =i.Id,
-                Name = i.Name,
-                Path = i.GetProperty("UmbracoFile")?.GetValue("Src")?.ToString() ?? string.Empty,
-                Width = Convert.ToInt32(i.GetProperty("umbracoWidth")?.GetValue() ?? 0),
-                Height = Convert.ToInt32(i.GetProperty("umbracoHeight")?.GetValue() ?? 0),
-                Extension = (string) (i.GetProperty("umbracoExtension")?.GetValue() ?? string.Empty),
-                Size = ExtensionMethods.ToReadableFileSize(Convert.ToInt64(i.GetProperty("umbracoBytes")?.GetValue() ?? 0)) 
-            });
+        try
+        {
+            return GetMediaByType("Image")
+                .Select(i => new ImageMediaDto
+                {
+                    Id = i.Id,
+                    Name = i.Name,
+                    Path = i.GetProperty("UmbracoFile")?.GetValue("Src")?.ToString() ?? string.Empty,
+                    Width = Convert.ToInt32(i.GetProperty("umbracoWidth")?.GetValue() ?? 0),
+                    Height = Convert.ToInt32(i.GetProperty("umbracoHeight")?.GetValue() ?? 0),
+                    Extension = (string)(i.GetProperty("umbracoExtension")?.GetValue() ?? string.Empty),
+                    Size = ExtensionMethods.ToReadableFileSize(
+                        Convert.ToInt64(i.GetProperty("umbracoBytes")?.GetValue() ?? 0))
+                });
+        }
+        catch (Exception ex)
+        {
+            return []; //Return empty List
+        }
+
     }
 
     public IEnumerable<IPublishedContent> GetMediaByFolderName(string folderName)

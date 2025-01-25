@@ -1,6 +1,15 @@
 using Badgernet.Umbraco.MediaTools.Models;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Pbm;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Formats.Qoi;
+using SixLabors.ImageSharp.Formats.Tga;
+using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Processing;
 
@@ -8,6 +17,7 @@ namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 
 public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 {
+    
     public MemoryStream? Resize(MemoryStream imageStream, Size targetResolution)
     {
         try
@@ -96,4 +106,24 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             }
             return new Size(newWidth, newHeight);
         }
+
+    public ImageEncoder GetEncoder(string filePath)
+    {
+        var extension = Path.GetExtension(filePath).ToLower();
+
+        return extension switch
+        {
+            ".pbm" => new PbmEncoder(),
+            ".png" => new PngEncoder(),
+            ".gif" => new GifEncoder(),
+            ".qoi" => new QoiEncoder(),
+            ".tga" => new TgaEncoder(),
+            ".jpg" => new JpegEncoder(),
+            ".jpeg" => new JpegEncoder(),
+            ".bmp" => new BmpEncoder(),
+            ".tiff" => new TiffEncoder(),
+            _ => new WebpEncoder()
+        };
+        ;
+    }
 }

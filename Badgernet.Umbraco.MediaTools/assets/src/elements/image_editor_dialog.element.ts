@@ -47,7 +47,7 @@ export class ImageEditorDialog extends UmbElementMixin(LitElement) {
         }
     }
 
-    public openEditor(width: number, height: number, imagePath: string, cancelButtonText?: string, okFunc?: () => void, cancelFunc?: () => void): void{
+    public openEditor(width: number, height: number, imagePath: string, imageId: number, cancelButtonText?: string, okFunc?: () => void, cancelFunc?: () => void): void{
         this.#okFunction = okFunc;
         this.#cancelFunction = cancelFunc;
 
@@ -63,7 +63,8 @@ export class ImageEditorDialog extends UmbElementMixin(LitElement) {
                     <div id="canvasContainer">
                         <canvas-image-editor width="${width}" 
                                              height="${height}" 
-                                             imgPath="${imagePath}" 
+                                             imgPath="${imagePath}"
+                                             imgId="${imageId}"
                                              @close-editor="${this.#handleCloseEvent}">
                         </canvas-image-editor>
                     </div>

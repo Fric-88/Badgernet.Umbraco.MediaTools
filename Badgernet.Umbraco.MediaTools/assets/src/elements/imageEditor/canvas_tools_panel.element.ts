@@ -313,7 +313,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                     <uui-button title="Save image" label="Save image"
                                 look="secondary" color="positive"
                                 .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("save-click")}">
+                                @click = "${() => this.#dispatchEvent("save-image")}">
                         <uui-icon name="save"></uui-icon>
                     </uui-button>
            

@@ -1,7 +1,15 @@
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UmbDataSourceResponse  } from "@umbraco-cms/backoffice/repository";
 import { tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
-import { getSettings, setSettings, filterGallery, downloadMedia, listFolders, renameMedia } from "../api";
+import {
+    getSettings,
+    setSettings,
+    filterGallery,
+    downloadMedia,
+    listFolders,
+    renameMedia,
+    ReplaceImageData, ReplaceImageResponse, replaceImage
+} from "../api";
 
 import {
     DownloadMediaData,
@@ -56,7 +64,10 @@ export class MediaToolsManagementDataSource {
     async renameMedia(requestData: RenameMediaData): Promise<UmbDataSourceResponse<RenameMediaResponse>> {
         return await tryExecuteAndNotify(this.#host, renameMedia(requestData));
     }
-
+    async replaceImage(requestData: ReplaceImageData): Promise<UmbDataSourceResponse<ReplaceImageResponse>>{
+        return await tryExecuteAndNotify(this.#host, replaceImage(requestData))
+    }
+    
 
     
 }
