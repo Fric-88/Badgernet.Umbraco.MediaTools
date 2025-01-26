@@ -18,6 +18,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     @query("#adjust-popover") adjustPopover!: UUIPopoverContainerElement;
     @query("#rotate-popover") rotatePopover!: UUIPopoverContainerElement;
     @query("#crop-popover") cropPopover!: UUIPopoverContainerElement;
+    @query("#save-popover") savePopover!: UUIPopoverContainerElement;
     
     //Used for throttling slider input events
     #eventThrottleTimer: number | null = null;  
@@ -112,6 +113,16 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.#resetSliders();
     }
     
+    #openPopupMenu(popover: UUIPopoverContainerElement ){
+        this.menuOpen = true;
+        popover.showPopover();
+    }
+    
+    #closePopupMenu(popover: UUIPopoverContainerElement ){
+        this.menuOpen = false;
+        popover.hidePopover();
+    }
+    
     #openAdjustmentsMenu(){
         this.menuOpen = true;
         this.adjustPopover.showPopover();
@@ -130,7 +141,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.rotatePopover.hidePopover();
     }
     
-    
+
     #handleCropClick(){
         if(this.menuOpen){
             this.#closeCropMenu();
@@ -278,9 +289,7 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                                             @input="${this.#dispatchRotate}">
                                 </uui-slider>
                             </div>
-                            
 
-                            
                         </uui-box>
                     </uui-popover-container>
 
@@ -312,10 +321,50 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
                     <!-- SAVE -->
                     <uui-button title="Save image" label="Save image"
                                 look="secondary" color="positive"
+                                popovertarget="save-popover"
                                 .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("save-image")}">
+                                @click = "${() => this.#openPopupMenu(this.savePopover)}">
                         <uui-icon name="save"></uui-icon>
                     </uui-button>
+                    
+                    <!-- SAVE POPOVER -->
+                    <uui-popover-container id="save-popover" placement="top" margin="10" popover="manual" >
+                        <uui-box class="popoverLayout" >
+                            <uui-label slot="header">Save</uui-label>
+                            
+                            <div slot="header-actions" class="centeredRow" style="gap: 0.5rem">
+                                <uui-button title="Apply changes" label="Apply changes"
+                                            pristine="" look="secondary" color="positive"
+                                            style="font-size: 10px"> Save
+                                </uui-button>
+                                
+                                <uui-button title="Discard changes" label="Discard changes"
+                                            pristine="" look="secondary" color="danger" 
+                                            style="font-size: 10px"> Cancel
+                                </uui-button>
+                            </div>
+                            
+
+                            <div class="centeredRow" style="margin-top: -0.5rem; margin-bottom: 1.5rem; justify-content: center; gap:0.5rem" >
+                                <uui-radio-group name="replaceOrCreateCopy">
+                                    <uui-radio value="1">Replace</uui-radio>
+                                    <uui-radio value="2">Create copy</uui-radio>
+                                </uui-radio-group>
+                            </div>
+                            
+                            <p>Save as</p>
+                            <div class="centeredRow" style="margin-bottom: -1rem">
+                                <uui-radio-group name="saveAsRadioGroup">
+                                    <uui-radio value="1">Dont change</uui-radio>
+                                    <uui-radio value="2">WebP</uui-radio>
+                                    <uui-radio value="3">Jpeg</uui-radio>
+                                    <uui-radio value="4">Png</uui-radio>
+                                </uui-radio-group>
+                            </div>
+
+                        </uui-box>
+                    </uui-popover-container>
+                    
            
                     <!-- EXIT -->
                     <uui-button title="Exit" label="Exit"
