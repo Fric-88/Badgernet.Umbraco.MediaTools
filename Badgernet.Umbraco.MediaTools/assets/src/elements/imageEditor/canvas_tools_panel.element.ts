@@ -1,5 +1,5 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, html, css, customElement, query, state } from "@umbraco-cms/backoffice/external/lit";
 import "./icons/imageEditorIconRegistry.ts"
 import {UUIPopoverContainerElement, UUISliderElement} from "@umbraco-cms/backoffice/external/uui";
 
@@ -18,7 +18,6 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     @query("#adjust-popover") adjustPopover!: UUIPopoverContainerElement;
     @query("#rotate-popover") rotatePopover!: UUIPopoverContainerElement;
     @query("#crop-popover") cropPopover!: UUIPopoverContainerElement;
-    @query("#save-popover") savePopover!: UUIPopoverContainerElement;
     
     //Used for throttling slider input events
     #eventThrottleTimer: number | null = null;  
@@ -100,15 +99,14 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         this.rotationAdjustment = 0;
     }
     #dispatchApplyChanges(){
-        this.#closeAdjustmentsMenu();
-        this.#closeRotationMenu();
+        this.#closePopupMenu(this.adjustPopover);
+        this.#closePopupMenu(this.rotatePopover);
         this.#dispatchEvent("apply-changes");
         this.#resetSliders();
     }
     #dispatchDiscardChanges(){
-        
-        this.#closeAdjustmentsMenu();
-        this.#closeRotationMenu();
+        this.#closePopupMenu(this.adjustPopover);
+        this.#closePopupMenu(this.rotatePopover);
         this.#dispatchEvent("discard-changes");
         this.#resetSliders();
     }
@@ -123,52 +121,24 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
         popover.hidePopover();
     }
     
-    #openAdjustmentsMenu(){
-        this.menuOpen = true;
-        this.adjustPopover.showPopover();
-    }
-    #closeAdjustmentsMenu(){
-        this.menuOpen = false;
-        this.adjustPopover.hidePopover();
-    }
-
-    #openRotationMenu(){
-        this.menuOpen = true;
-        this.rotatePopover.showPopover();
-    }
-    #closeRotationMenu(){
-        this.menuOpen = false;
-        this.rotatePopover.hidePopover();
-    }
-    
-
     #handleCropClick(){
         if(this.menuOpen){
-            this.#closeCropMenu();
+            this.#closePopupMenu(this.cropPopover);
             this.#dispatchEvent("disable-cropping");
         }
         else{
-            this.#openCropMenu();
+            this.#openPopupMenu(this.cropPopover);
             this.#dispatchEvent("enable-cropping");
         } 
     }
-    #openCropMenu(){
-        this.menuOpen = true;
-        this.cropPopover.showPopover();
-    }
-    
-    #closeCropMenu(){
-        this.menuOpen = false;
-        this.cropPopover.hidePopover();
-    }
-    
+
     #dispatchApplyCrop(){
-        this.#closeCropMenu();
+        this.#closePopupMenu(this.cropPopover);
         this.#dispatchEvent("apply-crop");
     }
     
     #dispatchDiscardCrop(){
-        this.#closeCropMenu();
+        this.#closePopupMenu(this.cropPopover);
         this.#dispatchEvent("discard-crop");
     }
     
@@ -179,294 +149,261 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
             <mediatools-icon-registry>
                 <div class="centeredRow">
 
-                    <!-- CROP -->
-                    <uui-button title="Crop" label="Crop"
-                                look="secondary" color="default"
-                                popovertarget="crop-popover"
-                                .disabled="${this.menuOpen}"
-                                @click = "${this.#handleCropClick}">
-                        <uui-icon name="crop"></uui-icon>
-                    </uui-button>
-
-                    <!-- CROP POPOVER -->
-                    <uui-popover-container id="crop-popover" placement="top" margin="10" popover="manual" >
-                        <uui-box class="popoverLayout" style="padding-bottom: -20px">
-                            <div class="centeredRow" style="gap: 0.5rem">
+                    <uui-button-group>
+                        <!-- CROP BUTTON -->
+                        <uui-button title="Crop" label="Crop"
+                                    look="primary" color="default"
+                                    popovertarget="crop-popover"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${this.#handleCropClick}">
+                            <uui-icon name="crop"></uui-icon>
+                        </uui-button>
+    
+                        <!-- FLIP VERTICAL BUTTON -->
+                        <uui-button title="Flip vertically" label="Flip vertically"
+                                    look="primary" color="default"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${() => this.#dispatchEvent("flip-vertically")}"">
+                            <uui-icon name="flip-vertical"></uui-icon>
+                        </uui-button>
+    
+                        <!-- FLIP HORIZONTAL BUTTON-->
+                        <uui-button title="Flip horizontally" label="Flip horizontally"
+                                    look="primary" color="default"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${() => this.#dispatchEvent("flip-horizontally")}">
+                            <uui-icon name="flip-horizontal"></uui-icon>
+                        </uui-button>
+    
+                        <!-- ROTATE BUTTON-->
+                        <uui-button title="Rotate" label="Rotate"
+                                    look="primary" color="default"
+                                    popovertarget="rotate-popover"
+                                    .disabled="${this.menuOpen}"
+                                    @click="${() => this.#openPopupMenu(this.rotatePopover)}">
+                            <uui-icon name="rotate"></uui-icon>
+                        </uui-button>
+                            
+                        <!-- ADJUST  BUTTON -->
+                        <uui-button title="Adjust parameters" label="Adjust parameters"
+                                    look="primary" color="default"
+                                    popovertarget="adjust-popover"
+                                    .disabled="${this.menuOpen}"
+                                    @click="${() => this.#openPopupMenu(this.adjustPopover)}">
+                            <uui-icon name="adjust"></uui-icon>
+                        </uui-button>
+    
+                        <!-- UNDO BUTTON -->
+                        <uui-button title="Undo changes" label="Undo changes"
+                                    look="primary" color="default"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${() => this.#dispatchEvent("undo")}">
+                            <uui-icon name="undo"></uui-icon>
+                        </uui-button>
+    
+                        <!-- REDO BUTTON-->
+                        <uui-button title="Redo changes" label="Redo changes"
+                                    look="primary" color="default"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${() => this.#dispatchEvent("redo")}">
+                            <uui-icon name="redo"></uui-icon>
+                        </uui-button>
+                        
+                        <!-- SAVE BUTTON -->
+                        <uui-button title="Save image" label="Save image"
+                                    look="primary" color="positive"
+                                    .disabled="${this.menuOpen}"
+                                    @click = "${() => this.#dispatchEvent("save-image")}">
+                            <uui-icon name="save"></uui-icon>
+                        </uui-button>
+               
+                        <!-- EXIT BUTTON -->
+                        <uui-button title="Exit" label="Exit"
+                                    look="primary" color="danger" 
+                                    @click = "${() => this.#dispatchEvent("exit-click")}">
+                            <uui-icon name="exit"></uui-icon>
+                        </uui-button>
+                    </uui-button-group>
+                </div>
+                
+                <!-- ADJUST POPOVER -->
+                <uui-popover-container id="adjust-popover" placement="top" margin="10" popover="manual">
+                    <uui-box class="popoverLayout" >
+                        <uui-label slot="header">Adjustments</uui-label>
+                        
+                        <div slot="header-actions" class="centeredRow">
+                            
+                            <uui-button-group>
                                 <uui-button title="Apply changes" label="Apply changes"
-                                            pristine="" look="secondary" color="positive"
+                                            pristine="" look="primary" color="positive"
+                                            style="font-size: 10px"
+                                            @click="${this.#dispatchApplyChanges}">
+                                    <uui-icon name="checkmark"></uui-icon>
+                                </uui-button>
+                                
+                                <uui-button title="Discard changes" label="Discard changes"
+                                            pristine="" look="primary" color="danger" 
+                                            style="font-size: 10px"
+                                            @click="${this.#dispatchDiscardChanges}">
+                                    <uui-icon name="cross"></uui-icon>
+                                </uui-button>
+                            </uui-button-group>
+
+                        </div>
+
+                        <div class="centeredRow"  style="gap: 2rem">
+                            <div>
+                                <div class="centeredRow">
+                                    <uui-icon title="Brightness" name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
+                                    <uui-slider id="brightnessSlider" label="Brightness"
+                                                min="-255" max="255" step="1"
+                                                value="${this.brightness}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+    
+                                <div class="centeredRow">
+                                    <uui-icon title="Contrast" name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
+                                    <uui-slider id="contrastSlider" label="Contrast"
+                                                min="-100" max="100" step="1"
+                                                value="${this.contrast}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+    
+                                <div class="centeredRow" style="margin-bottom: -1rem">
+                                    <uui-icon title="Exposure" name="exposure" style="margin-bottom: 1.7rem;"></uui-icon>
+                                    <uui-slider id="exposureSlider" label="Exposure"
+                                                min="0.2" max="2" step="0.1"
+                                                value="${this.exposure}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+                            </div> 
+                            
+                            <div>
+                                <div class="centeredRow">
+                                    <div title="Red component" class="colorDot" style="background-color: red"></div>
+                                    <uui-slider id="redSlider" label="Red component"
+                                                min="-255" max="255" step="1"
+                                                value="${this.red}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+
+                                <div class="centeredRow">
+                                    <div title="Green component" class="colorDot" style="background-color: green"></div>
+                                    <uui-slider id="greenSlider" label="Green component"
+                                                min="-255" max="255" step="1"
+                                                value="${this.green}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+
+                                <div class="centeredRow" style="margin-bottom: -1rem">
+                                    <div title="Blue component" class="colorDot" style="background-color: blue"></div>
+                                    <uui-slider id="blueSlider" label="Blue component"
+                                                min="-255" max="255" step="1"
+                                                value="${this.blue}"
+                                                @input="${this.#handleSliderChange}"
+                                                @change="${this.#dispatchSliderChange}">
+                                    </uui-slider>
+                                </div>
+
+                            </div>
+                        </div>
+   
+                    </uui-box>
+                </uui-popover-container>
+
+                <!-- CROP POPOVER -->
+                <uui-popover-container id="crop-popover" placement="top" margin="10" popover="manual" >
+                    <uui-box class="popoverLayout" style="padding-bottom: -20px">
+                        <uui-label slot="header">Crop</uui-label>
+                        <div class="centeredRow" >
+                            <uui-button-group>
+                                <uui-button title="Apply changes" label="Apply changes"
+                                            pristine="" look="primary" color="positive"
                                             style="font-size: 10px"
                                             @click="${this.#dispatchApplyCrop}">
                                     <uui-icon name="checkmark"></uui-icon>
                                 </uui-button>
-
+    
                                 <uui-button title="Discard changes" label="Discard changes"
-                                            pristine="" look="secondary" color="danger"
+                                            pristine="" look="primary" color="danger"
                                             style="font-size: 10px"
                                             @click="${this.#dispatchDiscardCrop}">
                                     <uui-icon name="cross"></uui-icon>
                                 </uui-button>
-                            </div>
-                        </uui-box>
-                    </uui-popover-container>
-
-                    <!-- FLIP VERTICAL -->
-                    <uui-button title="Flip vertically" label="Flip vertically"
-                                look="secondary" color="default"
-                                .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("flip-vertically")}"">
-                        <uui-icon name="flip-vertical"></uui-icon>
-                    </uui-button>
-
-                    <!-- FLIP HORIZONTAL -->
-                    <uui-button title="Flip horizontally" label="Flip horizontally"
-                                look="secondary" color="default"
-                                .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("flip-horizontally")}">
-                        <uui-icon name="flip-horizontal"></uui-icon>
-                    </uui-button>
-
-                    <!-- ROTATE -->
-                    <uui-button title="Rotate" label="Rotate"
-                                look="secondary" color="default"
-                                popovertarget="rotate-popover"
-                                .disabled="${this.menuOpen}"
-                                @click="${this.#openRotationMenu}">
-                        <uui-icon name="rotate"></uui-icon>
-                    </uui-button>
-
-                    <!-- ROTATE POPOVER -->
-                    <uui-popover-container id="rotate-popover" placement="top" margin="10" popover="manual" >
-                        <uui-box class="popoverLayout" >
-                            <uui-label slot="header">Rotation</uui-label>
+                            </uui-button-group>
+                        </div>
+                    </uui-box>
+                </uui-popover-container>
+                
+                <!-- ROTATE POPOVER -->
+                <uui-popover-container id="rotate-popover" placement="top" margin="10" popover="manual" >
+                    <uui-box class="popoverLayout" >
+                        <uui-label slot="header">Rotation</uui-label>
+                        
+                        <uui-button-group slot="header-actions">
+                            <uui-button title="Apply changes" label="Apply changes"
+                                        pristine="" look="primary" color="positive"
+                                        style="font-size: 10px"
+                                        @click="${this.#dispatchApplyChanges}">
+                                <uui-icon name="checkmark"></uui-icon>
+                            </uui-button>
                             
-                            <div slot="header-actions" class="centeredRow" style="gap: 0.5rem">
-                                <uui-button title="Apply changes" label="Apply changes"
-                                            pristine="" look="secondary" color="positive"
-                                            style="font-size: 10px"
-                                            @click="${this.#dispatchApplyChanges}">
-                                    <uui-icon name="checkmark"></uui-icon>
-                                </uui-button>
-                                
-                                <uui-button title="Discard changes" label="Discard changes"
-                                            pristine="" look="secondary" color="danger" 
-                                            style="font-size: 10px"
-                                            @click="${this.#dispatchDiscardChanges}">
-                                    <uui-icon name="cross"></uui-icon>
-                                </uui-button>
-                            </div>
+                            <uui-button title="Discard changes" label="Discard changes"
+                                        pristine="" look="primary" color="danger" 
+                                        style="font-size: 10px"
+                                        @click="${this.#dispatchDiscardChanges}">
+                                <uui-icon name="cross"></uui-icon>
+                            </uui-button>
+                        </uui-button-group>
 
-                            <div class="centeredRow" style="margin-top: -0.5rem; margin-bottom: 1.5rem; justify-content: center; gap:0.5rem" >
-                                <uui-button title="Rotate left 90" label="Rotate left 90"
-                                            pristine="" look="secondary" color="default"
-                                            @click="${() => this.#setRotation(-90)}"> -90°
-                                </uui-button>
 
-                                <uui-button title="Rotate left 45" label="Rotate left 45"
-                                            pristine="" look="secondary" color="default"
-                                            @click="${() => this.#setRotation(-45)}"> -45°
-                                </uui-button>
+                        <uui-button-group style="margin-top: -0.5rem; margin-bottom: 1.5rem;" >
+                            <uui-button title="Rotate left 90" label="Rotate left 90"
+                                        pristine="" look="secondary" color="default"
+                                        @click="${() => this.#setRotation(-90)}"> -90°
+                            </uui-button>
 
-                                <uui-button title="Rotate to 0" label="Rotate to 0"
-                                            pristine="" look="secondary" color="default"
-                                            @click="${() => this.#setRotation(0)}"> 0°
-                                </uui-button>
+                            <uui-button title="Rotate left 45" label="Rotate left 45"
+                                        pristine="" look="secondary" color="default"
+                                        @click="${() => this.#setRotation(-45)}"> -45°
+                            </uui-button>
 
-                                <uui-button title="Rotate right 45" label="Rotate right 45"
-                                            pristine="" look="secondary" color="default"
-                                            @click="${() => this.#setRotation(45)}"> 45°
-                                </uui-button>
+                            <uui-button title="Rotate to 0" label="Rotate to 0"
+                                        pristine="" look="secondary" color="default"
+                                        @click="${() => this.#setRotation(0)}"> 0°
+                            </uui-button>
 
-                                <uui-button title="Rotate right 90" label="Rotate right 90"
-                                            pristine="" look="secondary" color="default"
-                                            @click="${() => this.#setRotation(90)}"> 90°
-                                </uui-button>
-                            </div>
+                            <uui-button title="Rotate right 45" label="Rotate right 45"
+                                        pristine="" look="secondary" color="default"
+                                        @click="${() => this.#setRotation(45)}"> 45°
+                            </uui-button>
 
-                            <div class="centeredRow" style="margin-bottom: -1rem">
-                                <uui-slider id="rotationSlider" label="Rotation"
-                                            min="-360" max="360" step="1"
-                                            value="${this.rotationAdjustment}"
-                                            @input="${this.#dispatchRotate}">
-                                </uui-slider>
-                            </div>
+                            <uui-button title="Rotate right 90" label="Rotate right 90"
+                                        pristine="" look="secondary" color="default"
+                                        @click="${() => this.#setRotation(90)}"> 90°
+                            </uui-button>
+                        </uui-button-group>
 
-                        </uui-box>
-                    </uui-popover-container>
+                        <div class="centeredRow" style="margin-bottom: -1rem">
+                            <uui-slider id="rotationSlider" label="Rotation"
+                                        min="-360" max="360" step="1"
+                                        value="${this.rotationAdjustment}"
+                                        @input="${this.#dispatchRotate}">
+                            </uui-slider>
+                        </div>
 
-                    <!-- ADJUST -->
-                    <uui-button title="Adjust parameters" label="Adjust parameters"
-                                look="secondary" color="default"
-                                popovertarget="adjust-popover"
-                                .disabled="${this.menuOpen}"
-                                @click="${this.#openAdjustmentsMenu}">
-                        <uui-icon name="adjust"></uui-icon>
-                    </uui-button>
-
-                    <!-- UNDO -->
-                    <uui-button title="Undo changes" label="Undo changes"
-                                look="secondary" color="default"
-                                .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("undo")}">
-                        <uui-icon name="undo"></uui-icon>
-                    </uui-button>
-
-                    <!-- REDO -->
-                    <uui-button title="Redo changes" label="Redo changes"
-                                look="secondary" color="default"
-                                .disabled="${this.menuOpen}"
-                                @click = "${() => this.#dispatchEvent("redo")}">
-                        <uui-icon name="redo"></uui-icon>
-                    </uui-button>
-                    
-                    <!-- SAVE -->
-                    <uui-button title="Save image" label="Save image"
-                                look="secondary" color="positive"
-                                popovertarget="save-popover"
-                                .disabled="${this.menuOpen}"
-                                @click = "${() => this.#openPopupMenu(this.savePopover)}">
-                        <uui-icon name="save"></uui-icon>
-                    </uui-button>
-                    
-                    <!-- SAVE POPOVER -->
-                    <uui-popover-container id="save-popover" placement="top" margin="10" popover="manual" >
-                        <uui-box class="popoverLayout" >
-                            <uui-label slot="header">Save</uui-label>
-                            
-                            <div slot="header-actions" class="centeredRow" style="gap: 0.5rem">
-                                <uui-button title="Apply changes" label="Apply changes"
-                                            pristine="" look="secondary" color="positive"
-                                            style="font-size: 10px"> Save
-                                </uui-button>
-                                
-                                <uui-button title="Discard changes" label="Discard changes"
-                                            pristine="" look="secondary" color="danger" 
-                                            style="font-size: 10px"> Cancel
-                                </uui-button>
-                            </div>
-                            
-
-                            <div class="centeredRow" style="margin-top: -0.5rem; margin-bottom: 1.5rem; justify-content: center; gap:0.5rem" >
-                                <uui-radio-group name="replaceOrCreateCopy">
-                                    <uui-radio value="1">Replace</uui-radio>
-                                    <uui-radio value="2">Create copy</uui-radio>
-                                </uui-radio-group>
-                            </div>
-                            
-                            <p>Save as</p>
-                            <div class="centeredRow" style="margin-bottom: -1rem">
-                                <uui-radio-group name="saveAsRadioGroup">
-                                    <uui-radio value="1">Dont change</uui-radio>
-                                    <uui-radio value="2">WebP</uui-radio>
-                                    <uui-radio value="3">Jpeg</uui-radio>
-                                    <uui-radio value="4">Png</uui-radio>
-                                </uui-radio-group>
-                            </div>
-
-                        </uui-box>
-                    </uui-popover-container>
-                    
-           
-                    <!-- EXIT -->
-                    <uui-button title="Exit" label="Exit"
-                                look="secondary" color="danger" 
-                                @click = "${() => this.#dispatchEvent("exit-click")}">
-                        <uui-icon name="exit"></uui-icon>
-                    </uui-button>
-                    
-                </div>
-                    <!-- ADJUST POPOVER -->
-                    <uui-popover-container id="adjust-popover" placement="top" margin="10" popover="manual" >
-                        <uui-box class="popoverLayout" >
-                            <uui-label slot="header">Adjustments</uui-label>
-                            
-                            <div slot="header-actions" class="centeredRow" style="gap: 0.5rem">
-                                
-                                <uui-button title="Apply changes" label="Apply changes"
-                                            pristine="" look="secondary" color="positive"
-                                            style="font-size: 10px"
-                                            @click="${this.#dispatchApplyChanges}">
-                                    <uui-icon name="checkmark"></uui-icon>
-                                </uui-button>
-                                
-                                <uui-button title="Discard changes" label="Discard changes"
-                                            pristine="" look="secondary" color="danger" 
-                                            style="font-size: 10px"
-                                            @click="${this.#dispatchDiscardChanges}">
-                                    <uui-icon name="cross"></uui-icon>
-                                    
-                                </uui-button>
-
-                            </div>
-
-                            <div class="centeredRow"  style="gap: 2rem">
-                                <div>
-                                    <div class="centeredRow">
-                                        <uui-icon title="Brightness" name="brightness" style="margin-bottom: 1.7rem;"></uui-icon>
-                                        <uui-slider id="brightnessSlider" label="Brightness"
-                                                    min="-255" max="255" step="1"
-                                                    value="${this.brightness}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-        
-                                    <div class="centeredRow">
-                                        <uui-icon title="Contrast" name="contrast" style="margin-bottom: 1.7rem;"></uui-icon>
-                                        <uui-slider id="contrastSlider" label="Contrast"
-                                                    min="-100" max="100" step="1"
-                                                    value="${this.contrast}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-        
-                                    <div class="centeredRow" style="margin-bottom: -1rem">
-                                        <uui-icon title="Exposure" name="exposure" style="margin-bottom: 1.7rem;"></uui-icon>
-                                        <uui-slider id="exposureSlider" label="Exposure"
-                                                    min="0.2" max="2" step="0.1"
-                                                    value="${this.exposure}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-                                </div> 
-                                
-                                <div>
-                                    <div class="centeredRow">
-                                        <div title="Red component" class="colorDot" style="background-color: red"></div>
-                                        <uui-slider id="redSlider" label="Red component"
-                                                    min="-255" max="255" step="1"
-                                                    value="${this.red}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-
-                                    <div class="centeredRow">
-                                        <div title="Green component" class="colorDot" style="background-color: green"></div>
-                                        <uui-slider id="greenSlider" label="Green component"
-                                                    min="-255" max="255" step="1"
-                                                    value="${this.green}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-
-                                    <div class="centeredRow" style="margin-bottom: -1rem">
-                                        <div title="Blue component" class="colorDot" style="background-color: blue"></div>
-                                        <uui-slider id="blueSlider" label="Blue component"
-                                                    min="-255" max="255" step="1"
-                                                    value="${this.blue}"
-                                                    @input="${this.#handleSliderChange}"
-                                                    @change="${this.#dispatchSliderChange}">
-                                        </uui-slider>
-                                    </div>
-
-                                </div>
-                            </div>
-       
-                        </uui-box>
-                    </uui-popover-container>
+                    </uui-box>
+                </uui-popover-container>
                 
                 
             </mediatools-icon-registry>
@@ -488,15 +425,14 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
             height: 1rem;
             border-radius: 25%;
             margin-bottom: 1.7rem;
-            
         }
         
         #adjust-popover {
             width: 32rem;
         }
-        
-        #rotate-popover {
-            width: 22rem;
+
+        #save-popover {
+            width: 20rem;
         }
     `
 }

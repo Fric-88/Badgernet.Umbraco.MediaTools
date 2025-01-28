@@ -1,13 +1,11 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
-import {PropertyValues} from "lit";
-import {ImageDataList} from "./imageDataList.ts";
 import "./canvas_tools_panel.element.ts"
 import {Canvas} from "./canvas.ts";
 import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
-import {request} from "../../api/core/request.ts";
 import {ReplaceImageData} from "../../api";
+import SaveImageDialog from "./saveImageDialog.element.ts";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
@@ -25,6 +23,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
     @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
+    @query("#saveImageDialog") saveImageDialog!: SaveImageDialog;
     
     constructor() {
         super();
@@ -93,6 +92,11 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
     
+    //Present saving menu
+    #openSaveMenu(){
+        this.saveImageDialog.openDialog();
+    }
+    
     //Send image back to the server for it to be saved
     async #saveImage(){
         if(this.imgId < 0) return; //Image id was not set
@@ -107,10 +111,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             formData:  { imageData: blob },
             width: image.width,
             height: image.height
-        } 
-        
+        }
         let response =  await this.#mediaToolsContext?.replaceImage(request);
-        
     }
 
     render() {
@@ -132,11 +134,13 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             @rotate="${(e: CustomEvent) => this.#canvas?.rotateImage(e.detail as number)}" 
                             @undo="${() => this.#canvas?.undoChanges() }"
                             @redo="${() => this.#canvas?.redoChanges()}"
-                            @save-image="${() => this.#saveImage()}"
+                            @save-image="${() => this.#openSaveMenu()}"
                             @exit-click="${this.dispatchCloseEditor}">
                     </canvas-tools-panel>
                 </div>
             </div>
+            
+            <save-image-dialog id="saveImageDialog"></save-image-dialog>
         `
     }
     
