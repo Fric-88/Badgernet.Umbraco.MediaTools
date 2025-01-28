@@ -6,6 +6,7 @@ import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
 import {ReplaceImageData} from "../../api";
 import SaveImageDialog from "./saveImageDialog.element.ts";
+import "./saveImageDialog.element.ts"
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
@@ -41,6 +42,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.#canvas = new Canvas(this.canvasElement);
         this.resizeCanvas();
         
+        //Load the image into canvas
         let loaded = await this.#canvas?.loadImage(this.imgPath);
         
         if(loaded){
@@ -87,14 +89,20 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         this.dispatchEvent(event);
     }
     
+    //Adjust values in underlying image array buffer
     #adjustArray(e: CustomEvent){
         const values = e.detail as SliderValues;
-        this.#canvas?.adjustArrayValues(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
+        this.#canvas?.manipulateArrayBuffer(values.red, values.green, values.blue, values.brightness, values.contrast, values.exposure);
     }
     
     //Present saving menu
     #openSaveMenu(){
-        this.saveImageDialog.openDialog();
+       
+        const saveDialog = this.saveImageDialog;
+        
+        if(saveDialog){
+            saveDialog.openDialog();
+        }  
     }
     
     //Send image back to the server for it to be saved
@@ -103,7 +111,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         const image = this.#canvas?.getImageData();
         if(!image) return; //No image data
         
-        // Convert ImageData to Blob
+        //Convert ImageData to Blob
         const blob = new Blob([image.data.buffer], { type: 'application/octet-stream' });
 
         const request: ReplaceImageData = {
@@ -139,6 +147,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                     </canvas-tools-panel>
                 </div>
             </div>
+            
             
             <save-image-dialog id="saveImageDialog"></save-image-dialog>
         `

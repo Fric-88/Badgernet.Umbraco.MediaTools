@@ -22,7 +22,9 @@ export class ImageDataList {
     get currentIndex(): number {
         return this.#currentIndex;
     }
-    public addData(data: ImageData){
+    
+    //Adds image at current index +1 
+    public addEntry(data: ImageData){
 
         if(this.#changesList.length - 1 > this.#currentIndex){
             this.#changesList.splice(this.#currentIndex + 1, Infinity);
@@ -47,16 +49,22 @@ export class ImageDataList {
             this.#currentIndex++;
         }
     } 
-    public getData():ImageData{
+    
+    //Returns entry at current index
+    public getCurrentEntry():ImageData{
         return this.#changesList[this.#currentIndex];
     }
-    public getCopy(): ImageData{
+    
+    //Returns a copy of entry at current index
+    public getCurrentCopy(): ImageData{
         return new ImageData(
             new Uint8ClampedArray(this.#changesList[this.#currentIndex].data),
             this.#changesList[this.#currentIndex].width,
             this.#changesList[this.#currentIndex].height
         );
     } 
+    
+    //Flimsy hack to determine if image was rotated already
     public isRotatedImage(data:ImageData): boolean{
         return data.width > this.#changesList[0].width || data.height > this.#changesList[0].height;
     }

@@ -89,7 +89,7 @@ export class Canvas {
                     return;
                 }
                 ctx.drawImage(tempImgElement, 0, 0);
-                this.#imageDataList.addData(ctx.getImageData(0,0,tempImgElement.naturalWidth, tempImgElement.naturalHeight));
+                this.#imageDataList.addEntry(ctx.getImageData(0,0,tempImgElement.naturalWidth, tempImgElement.naturalHeight));
                 resolve(true);
             }
 
@@ -275,7 +275,7 @@ export class Canvas {
         const backCanvasWidth = this.#backCanvas.width;
         const backCanvasHeight = this.#backCanvas.height;
         
-        const image = this.#imageDataList.getData();
+        const image = this.#imageDataList.getCurrentEntry();
         
         const CANVAS_PADDING = 10;
         const maxDrawWidth = canvasWidth - CANVAS_PADDING * 2;
@@ -343,7 +343,7 @@ export class Canvas {
 
         const ctx = this.backContext;
         if (!ctx) return;
-        this.#imageDataList.addData(ctx.getImageData(0, 0, this.#backCanvas.width, this.#backCanvas.height));
+        this.#imageDataList.addEntry(ctx.getImageData(0, 0, this.#backCanvas.width, this.#backCanvas.height));
     }
 
     //Flips image around the x-axis
@@ -394,7 +394,7 @@ export class Canvas {
         const ctx = this.backContext
 
         //Need to work with a copy of the unedited image to prevent stacking of the adjustments
-        const image = this.#imageDataList.getCopy();
+        const image = this.#imageDataList.getCurrentCopy();
         
         if(this.#backCanvas.width != image.width || this.#backCanvas.height != image.height) {
             this.#backCanvas.width = image.width;
@@ -425,13 +425,13 @@ export class Canvas {
     } 
 
     //Changes brightness, contrast, exposure and colors of the image on backCanvas   
-    public adjustArrayValues(red: number, green: number, blue: number, brightness: number, contrast: number, exposure: number): void{
+    public manipulateArrayBuffer(red: number, green: number, blue: number, brightness: number, contrast: number, exposure: number): void{
         if (!this.#backCanvas) return;
         const ctx = this.backContext
         if (!ctx) return;
 
         //Need to work with a copy of the unedited image to prevent stacking of the adjustments
-        const image = this.#imageDataList.getCopy();
+        const image = this.#imageDataList.getCurrentCopy();
         
         const factor = (259 * (contrast + 255)) / (255 * (259 - contrast)); // Contrast factor
         let adjustment: number = 0; 
@@ -470,7 +470,7 @@ export class Canvas {
         const ctx = this.backContext
         if (!ctx) return;
         
-        const image = this.#imageDataList.getData();
+        const image = this.#imageDataList.getCurrentEntry();
         
         this.#backCanvas.width = image.width;
         this.#backCanvas.height = image.height;
@@ -484,7 +484,7 @@ export class Canvas {
         if (!this.#backCanvas) return;
         
         this.#imageDataList.goBack();
-        const img = this.#imageDataList.getData();
+        const img = this.#imageDataList.getCurrentEntry();
 
         const ctx = this.backContext;
         if (!ctx) return;
@@ -507,7 +507,7 @@ export class Canvas {
         if (!this.#backCanvas) return;
 
         this.#imageDataList.goForward();
-        const img = this.#imageDataList.getData();
+        const img = this.#imageDataList.getCurrentEntry();
 
         const ctx = this.backContext;
         if (!ctx) return;
