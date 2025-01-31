@@ -193,6 +193,12 @@ export class Canvas {
         const ctx = this.backContext;
         return ctx.getImageData(0,0, this.#backCanvas.width, this.#backCanvas.height);
     }
+    
+    public async getBlobAsync(format: string): Promise<Blob | undefined> {
+        if(!this.#backCanvas || !this.backContext || !format) return undefined;
+        
+        return this.#backCanvas.convertToBlob({type: format, quality: 1});
+    }
 
     #renderCropOverlay(ctx: CanvasRenderingContext2D){
 

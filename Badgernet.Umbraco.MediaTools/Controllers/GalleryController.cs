@@ -457,7 +457,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     [Consumes("multipart/form-data")]
-    public IActionResult ReplaceImage(int id, IFormFile imageData, int width, int height, string? saveAs)
+    public IActionResult ReplaceImage(int id, IFormFile imageFile, string? saveAs)
     {
         var response = new OperationResponse();
 
@@ -481,37 +481,28 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
         var oldFilePath = mediaHelper.GetRelativePath(imageMedia);
         var newFilePath = fileManager.GetFreePath(oldFilePath, Path.GetExtension(oldFilePath));
+        
+        var checkFileExtensionString = saveAs == null ?  oldFilePath : "dummyName." + saveAs.Replace(".", "");
 
-        var writeSuccess  = false;
-        
-        using var imgStream = new MemoryStream();
-        imageData.CopyTo(imgStream);
-        
-        using var img = Image.LoadPixelData<Rgba32>(imgStream.ToArray(), width, height);
-        using var converted = new MemoryStream();
-
-        var checkFileExtensionString = "";
-        if (saveAs != null)
-        {
-            checkFileExtensionString = "dummyName." + saveAs.Replace(".", "");
-        }
-        else
-        {
-            checkFileExtensionString = oldFilePath;
-        }
-        
+        var fileExtension = Path.GetExtension(checkFileExtensionString);
+        newFilePath = Path.ChangeExtension(newFilePath, fileExtension);
         var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
+        
+        
+        using var fileStream = imageFile.OpenReadStream();
+        using var img =Image.Load(fileStream);
+        
+        using var converted = new MemoryStream();
+        
         img.Save(converted, encoder);
         converted.Position = 0;
         
-        
-        
-        writeSuccess = fileManager.WriteFile(newFilePath, converted);
+        var writeSuccess = fileManager.WriteFile(newFilePath, converted);
 
         if (writeSuccess)
         {
             mediaHelper.SetUmbFilename(imageMedia, newFilePath);
-            mediaHelper.SetUmbResolution(imageMedia, new Size(width, height));
+            mediaHelper.SetUmbResolution(imageMedia, new Size(img.Width, img.Height));
             mediaHelper.SetUmbBytes(imageMedia,converted.Length);
             mediaHelper.SaveMedia(imageMedia);
             fileManager.DeleteFile(oldFilePath);
@@ -522,8 +513,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
 
     }
-
-
 }
 
 

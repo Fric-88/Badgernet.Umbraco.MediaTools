@@ -52,6 +52,7 @@ public class MediaHelper(
         
     public IEnumerable<IPublishedContent> GetMediaByType(string type)
     {
+        
         return GetAllMedia().OfTypes(type);
     }
 
@@ -59,6 +60,7 @@ public class MediaHelper(
     {
         try
         {
+            
             return GetMediaByType("Image")
                 .Select(i => new ImageMediaDto
                 {

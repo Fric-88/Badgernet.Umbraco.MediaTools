@@ -5,8 +5,12 @@ import {Canvas} from "./canvas.ts";
 import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
 import {ReplaceImageData} from "../../api";
-import SaveImageDialog from "./saveImageDialog.element.ts";
+import SaveImageDialog, {SavingMethod} from "./saveImageDialog.element.ts";
 import "./saveImageDialog.element.ts"
+import {UUIToastNotificationContainerElement, UUIToastNotificationElement} from "@umbraco-cms/backoffice/external/uui";
+import LoadingPopup from "./loadingPopup.ts";
+import "./loadingPopup.ts"
+import {sleep} from "../../code/helperFunctions.ts";
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
@@ -25,6 +29,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
     @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
     @query("#saveImageDialog") saveImageDialog!: SaveImageDialog;
+    @query("#loadingPopup") loadingPopup!: LoadingPopup;
     
     constructor() {
         super();
@@ -39,6 +44,9 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         //Wait until DOM renders
         await this.updateComplete;
         
+        const loadingPopup = this.loadingPopup as LoadingPopup;
+        loadingPopup.openPopup("Loading image...");
+        
         this.#canvas = new Canvas(this.canvasElement);
         this.resizeCanvas();
         
@@ -46,6 +54,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         let loaded = await this.#canvas?.loadImage(this.imgPath);
         
         if(loaded){
+            loadingPopup.closePopup();
             this.#canvas?.registerListeners();
             this.#canvas?.renderFrontCanvas();
         }
@@ -104,23 +113,93 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             saveDialog.openDialog();
         }  
     }
-    
-    //Send image back to the server for it to be saved
-    async #saveImage(){
+
+    //Send image back to the server
+    async #replaceImage(e: CustomEvent){
+      
+        const loadingPopup = this.loadingPopup as LoadingPopup;
+        loadingPopup.openPopup("Saving image...");
+        
         if(this.imgId < 0) return; //Image id was not set
         const image = this.#canvas?.getImageData();
         if(!image) return; //No image data
         
         //Convert ImageData to Blob
-        const blob = new Blob([image.data.buffer], { type: 'application/octet-stream' });
-
+        const pngBlob = await this.#canvas?.getBlobAsync("image/png");
+        
+        if(!pngBlob) return;
+        
+        const imgFile = new File([pngBlob], "editedImage.png", { type: "image/png" });
+        
+        const preferredExtension = e.detail as SavingMethod;
+        
         const request: ReplaceImageData = {
             id: this.imgId,
-            formData:  { imageData: blob },
-            width: image.width,
-            height: image.height
+            formData:  { imageFile: imgFile },
+            saveAs: preferredExtension
         }
         let response =  await this.#mediaToolsContext?.replaceImage(request);
+
+        loadingPopup.closePopup();
+        
+        if(response){
+            let responseData = response.data;
+            if(responseData){
+                switch (responseData.status){
+                    case "Success":
+                        this.#showToastNotification("Success", responseData.message, "", "positive");
+                        break;
+                    case "Warning":
+                        this.#showToastNotification("Success", responseData.message, "", "warning");
+                        break;
+                    case "Error":
+                        this.#showToastNotification("Success", responseData.message, "", "danger");
+                        break;
+                }
+            }
+        }
+    }
+    
+    
+    //Send image back to the server
+    async #saveImage(e: CustomEvent){
+        
+        if(this.imgId < 0) return; //Image id was not set
+        const image = this.#canvas?.getImageData();
+        if(!image) return; //No image data
+
+        //Convert ImageData to Blob
+        const blob = new Blob([image.data.buffer], { type: 'application/octet-stream' });
+
+        const preferredExtension = e.detail as SavingMethod;
+        
+        //TODO build and make request to server
+    }
+
+    #showToastNotification(headline: string , message: string, information: string, color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
+        const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
+        const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
+        toast.color = color;
+
+        const toastLayout = document.createElement('uui-toast-notification-layout');
+        toastLayout.headline = headline;
+        toast.appendChild(toastLayout);
+
+        if(message){
+            const messageElement = document.createElement('p');
+            messageElement.innerHTML = message;
+            toastLayout.appendChild(messageElement);
+        }
+
+        if(information){
+            const smallMessage = document.createElement('small');
+            smallMessage.innerHTML = information;
+            toastLayout.appendChild(smallMessage);
+        }
+
+        if (container) {
+            container.appendChild(toast);
+        }
     }
 
     render() {
@@ -140,16 +219,25 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             @apply-changes="${() => this.#canvas?.applyChanges()}"
                             @discard-changes="${() => this.#canvas?.discardChanges()}"
                             @rotate="${(e: CustomEvent) => this.#canvas?.rotateImage(e.detail as number)}" 
-                            @undo="${() => this.#canvas?.undoChanges() }"
+                            @undo="${() => this.#canvas?.undoChanges()}"
                             @redo="${() => this.#canvas?.redoChanges()}"
-                            @save-image="${() => this.#openSaveMenu()}"
+                            @save-image="${this.#openSaveMenu}"
                             @exit-click="${this.dispatchCloseEditor}">
                     </canvas-tools-panel>
                 </div>
             </div>
             
+            <loading-popup id="loadingPopup" ></loading-popup>
             
-            <save-image-dialog id="saveImageDialog"></save-image-dialog>
+            <save-image-dialog id="saveImageDialog"
+                               @save-image="${this.#saveImage}"
+                               @replace-image ="${this.#replaceImage}">
+            </save-image-dialog>
+
+            <uui-toast-notification-container
+                    id="notificationContainer"
+                    auto-close="3000">
+            </uui-toast-notification-container>
         `
     }
     
@@ -184,6 +272,16 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             flex-direction: column;
             align-items: center;
             justify-content: center;
+        }
+
+        #notificationContainer{
+            display: block;
+            align-items:start;
+            position:absolute;
+            left:0px;
+            bottom: 50px;
+            right:15px;
+            height:auto;
         }
     `
 }

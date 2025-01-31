@@ -3,8 +3,8 @@ import { LitElement, html, css, customElement, query, TemplateResult, state} fro
 import {UUIButtonElement, UUIModalContainerElement, UUIModalDialogElement} from "@umbraco-cms/backoffice/external/uui";
 
 
-export type ExtensionSelection = "nochange" | "webp" | "jpeg" | "png"
-export type SavingMethod = "overwrite" | "new" | "download"
+export type ExtensionSelection = "webp" | "jpeg" | "png" | undefined;
+export type SavingMethod = "overwrite" | "new";
 @customElement('save-image-dialog')
 export class SaveImageDialog extends UmbElementMixin(LitElement) {
 
@@ -15,44 +15,42 @@ export class SaveImageDialog extends UmbElementMixin(LitElement) {
     #saveFunc: (() => void) | undefined;
     #cancelFunc: (() => void) | undefined;
     
-    #selectedSaveMethod: SavingMethod; 
-    #selectedExtension: ExtensionSelection; 
-    
-    constructor() {
-        super();
-        
-        this.#selectedSaveMethod = "overwrite"
-        this.#selectedExtension = "nochange";
+    #selectedSaveMethod: SavingMethod = "overwrite"; 
+    #selectedExtension: ExtensionSelection = undefined;
+
+    //Generic method for dispatching named events
+    #dispatchEvent(eventName: string, detail?: any){
+        const event = new CustomEvent(eventName,{
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true,      // Allows the event to pass through shadow DOM boundaries
+            detail: detail
+        });
+        this.dispatchEvent(event);
     }
 
     #closeDialog(){
+
+        this.#dispatchEvent("dialog-closed");
+        
         const dialog = this.dialog as UUIModalDialogElement;
         dialog.close();
         this.dialogTemplate = html``;
+        
+        
     }
 
-    #okAction(){
+    #handleSaveClick(){
+
+        if(this.#selectedSaveMethod == "new"){
+            this.#dispatchEvent("save-image", this.#selectedExtension);    
+        }
+        else if(this.#selectedSaveMethod == "overwrite"){
+            this.#dispatchEvent("replace-image", this.#selectedExtension);
+        }
 
         this.#closeDialog();
-
-        if(this.#saveFunc){
-            this.#saveFunc(); //Run the job if defined
-        }
     }
 
-    #cancelAction(){
-        this.#closeDialog();
-
-        if(this.#cancelFunc){
-            this.#cancelFunc(); //Run the job if defined
-        }
-    }
-    
-    #handleDownloadClick(){
-        this.#selectedSaveMethod = "download";
-        this.#okAction();
-    }
-    
     #changeSelectedSavingMethod(buttonId: string, value: SavingMethod){
         const buttonGroup = this.shadowRoot?.querySelector("#saveTypeGroup");
         if(!buttonGroup) return;
@@ -94,20 +92,19 @@ export class SaveImageDialog extends UmbElementMixin(LitElement) {
         this.requestUpdate();
     }
 
-    public openDialog(saveFunc?: () => void, cancelFunc?: () => void): void{
-        this.#saveFunc = saveFunc;
-        this.#cancelFunc = cancelFunc;
+    public openDialog(): void{
 
         this.dialogTemplate = html`
         <uui-modal-dialog id="innerDialog">
 
             <uui-dialog-layout id="dialogLayout" headline="How would you like to save your image?">
                 
-                <uui-label style="display: block; margin-bottom: 0.5rem">Replace old image or create new one?</uui-label>
+                <uui-label style="display: block;margin-top: 1rem; margin-bottom: 0.5rem">Replace old image or create new one?</uui-label>
+                
                 <uui-button-group id="saveTypeGroup" style="margin-bottom: 1rem;">
 
                     <uui-button id="overwriteBtn" look="primary" color="default"
-                                @click="${() => this.#changeSelectedSavingMethod("overwriteBtn", "overwrite")}">Overwrite
+                                @click="${() => this.#changeSelectedSavingMethod("overwriteBtn", "overwrite")}">Replace
                     </uui-button>
 
                     <uui-button id="newImgBtn" look="secondary" color="default"
@@ -121,7 +118,7 @@ export class SaveImageDialog extends UmbElementMixin(LitElement) {
                 <uui-button-group id="extensionButtons" style="margin-bottom: 1rem;">
 
                     <uui-button id="noChangeBtn" look="primary" color="default"
-                                @click="${() => this.#changeSelectedExtension("noChangeBtn", "nochange")}">Keep old
+                                @click="${() => this.#changeSelectedExtension("noChangeBtn", undefined)}">Keep old
                     </uui-button>
                     
                     <uui-button id="webpBtn" look="secondary" color="default" 
@@ -139,24 +136,19 @@ export class SaveImageDialog extends UmbElementMixin(LitElement) {
                 </uui-button-group>
 
 
-                <uui-button slot="actions" label="Cancel"
-                            look="primary" color="danger"
-                            @click="${this.#cancelAction}">Cancel
-                </uui-button>
-                
-                <uui-button slot="actions" label="Save"
-                            look="primary" color="default"
-                            @click="${this.#handleDownloadClick}">Download
-                </uui-button>
-                
-                <uui-button slot="actions" label="Save"
-                            look="primary" color="default"
-                            @click="${this.#okAction}">Save
-                </uui-button>
-                
+                <div slot="actions" >
+                    <uui-button label="Cancel"
+                                look="primary" color="danger"
+                                @click="${() => this.#closeDialog()}">Cancel
+                    </uui-button>
+
+                    <uui-button label="Save"
+                                look="primary" color="default"
+                                @click="${() => this.#handleSaveClick()}">Save
+                    </uui-button>
+                </div>
                 
             </uui-dialog-layout>
-
         </uui-modal-dialog>
         `
     }

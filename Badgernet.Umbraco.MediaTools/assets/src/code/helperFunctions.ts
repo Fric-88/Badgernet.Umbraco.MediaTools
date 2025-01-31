@@ -42,3 +42,9 @@ export function bytesToFileSize(bytes: number, si = false, dp = 1) : string{
     } while (Math.round(Math.abs(bytes) * r) / r >= threshold && u < units.length - 1);
     return bytes.toFixed(dp) + ' ' + units[u];
 }
+
+export function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+    

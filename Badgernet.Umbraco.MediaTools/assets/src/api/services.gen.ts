@@ -87,8 +87,6 @@ export const renameMedia = (data: RenameMediaData = {}): CancelablePromise<Renam
 /**
  * @param data The data for the request.
  * @param data.id
- * @param data.width
- * @param data.height
  * @param data.saveAs
  * @param data.formData
  * @returns unknown OK
@@ -99,8 +97,6 @@ export const replaceImage = (data: ReplaceImageData = {}): CancelablePromise<Rep
     url: '/gallery/replace',
     query: {
         id: data.id,
-        width: data.width,
-        height: data.height,
         saveAs: data.saveAs
     },
     formData: data.formData,

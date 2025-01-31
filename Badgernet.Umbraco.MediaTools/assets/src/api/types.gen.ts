@@ -106,12 +106,10 @@ export type RenameMediaResponse = OperationResponse;
 
 export type ReplaceImageData = {
     formData?: {
-        imageData?: (Blob | File);
+        imageFile?: (Blob | File);
     };
-    height?: number;
     id?: number;
     saveAs?: string;
-    width?: number;
 };
 
 export type ReplaceImageResponse = OperationResponse;
