@@ -1,8 +1,8 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
-import "./canvasToolsPanel.element.ts"
+import "./imageEditorToolsPanel.ts"
 import {Canvas} from "./canvas.ts";
-import CanvasToolsPanel, {SliderValues} from "./canvasToolsPanel.element.ts";
+import ImageEditorTools, {SliderValues} from "./imageEditorToolsPanel.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
 import {ReplaceImageData} from "../../api";
 import SaveImageDialog, {SavingMethod} from "./saveImageDialog.element.ts";
@@ -27,7 +27,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: String}) imgId: number = -1;
 
     @query("#canvasEditor") canvasElement!: HTMLCanvasElement;
-    @query("#canvasToolsPanel") toolsElement!: CanvasToolsPanel;
+    @query("#canvasToolsPanel") toolsElement!: ImageEditorTools;
     @query("#saveImageDialog") saveImageDialog!: SaveImageDialog;
     @query("#loadingPopup") loadingPopup!: LoadingPopup;
     
@@ -148,19 +148,25 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                 switch (responseData.status){
                     case "Success":
                         this.#showToastNotification("Success", responseData.message, "", "positive");
+                        const event = new CustomEvent("update-list",{
+                            bubbles: true,       
+                            composed: true,
+                            detail: this.imgId 
+                        });
+                        this.dispatchEvent(event);
+                        
                         break;
                     case "Warning":
-                        this.#showToastNotification("Success", responseData.message, "", "warning");
+                        this.#showToastNotification("Warning", responseData.message, "", "warning");
                         break;
                     case "Error":
-                        this.#showToastNotification("Success", responseData.message, "", "danger");
+                        this.#showToastNotification("Error", responseData.message, "", "danger");
                         break;
                 }
             }
         }
     }
-    
-    
+
     //Send image back to the server
     async #saveImage(e: CustomEvent){
         
@@ -207,7 +213,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             <div id="editorContainer">
                 <canvas id="canvasEditor"></canvas>
                 <div id="toolbar">
-                    <canvas-tools-panel
+                    <editor-tools-panel
                             id="canvasToolsPanel"
                             @enable-cropping="${() => this.#canvas?.enableCropOverlay()}"
                             @disable-cropping="${() => this.#canvas?.disableCropOverlay()}"
@@ -223,7 +229,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                             @redo="${() => this.#canvas?.redoChanges()}"
                             @save-image="${this.#openSaveMenu}"
                             @exit-click="${this.dispatchCloseEditor}">
-                    </canvas-tools-panel>
+                    </editor-tools-panel>
                 </div>
             </div>
             

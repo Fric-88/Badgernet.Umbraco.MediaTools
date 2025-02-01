@@ -8,7 +8,7 @@ import {
     downloadMedia,
     listFolders,
     renameMedia,
-    ReplaceImageData, ReplaceImageResponse, replaceImage
+    ReplaceImageData, ReplaceImageResponse, replaceImage, GetMediaInfoResponse, getMediaInfo, GetMediaInfoData
 } from "../api";
 
 import {
@@ -65,7 +65,10 @@ export class MediaToolsManagementDataSource {
         return await tryExecuteAndNotify(this.#host, renameMedia(requestData));
     }
     async replaceImage(requestData: ReplaceImageData): Promise<UmbDataSourceResponse<ReplaceImageResponse>>{
-        return await tryExecuteAndNotify(this.#host, replaceImage(requestData))
+        return await tryExecuteAndNotify(this.#host, replaceImage(requestData));
+    }
+    async getMediaInfo(requestData: GetMediaInfoData):Promise<UmbDataSourceResponse<GetMediaInfoResponse>>{
+        return await tryExecuteAndNotify(this.#host, getMediaInfo(requestData));
     }
     
 

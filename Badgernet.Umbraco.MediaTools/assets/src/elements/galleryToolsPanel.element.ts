@@ -1,6 +1,6 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, ifDefined, query } from "@umbraco-cms/backoffice/external/lit";
-import { UUIButtonElement, UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
+import { UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
 import AcceptRejectDialog from "./acceptRejectDialog.element.ts";
 import "./acceptRejectDialog.element.ts";

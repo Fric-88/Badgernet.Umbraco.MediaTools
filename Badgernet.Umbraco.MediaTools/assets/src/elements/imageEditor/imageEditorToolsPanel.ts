@@ -11,8 +11,8 @@ export type SliderValues = {
     contrast: number; 
     exposure: number;
 };
-@customElement('canvas-tools-panel')
-export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
+@customElement('editor-tools-panel')
+export class ImageEditorTools extends UmbElementMixin(LitElement) {
 
     @state() menuOpen: boolean = false;
     @query("#adjust-popover") adjustPopover!: UUIPopoverContainerElement;
@@ -437,11 +437,11 @@ export class CanvasToolsPanel extends UmbElementMixin(LitElement) {
     `
 }
 
-export default CanvasToolsPanel;
+export default ImageEditorTools;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'canvas-tools-panel': CanvasToolsPanel
+        'editor-tools-panel': ImageEditorTools
     }
 }
 

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, ListFoldersResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
+import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
 
 /**
  * @param data The data for the request.
@@ -47,6 +47,23 @@ export const getGalleryInfo = (): CancelablePromise<GetGalleryInfoResponse> => {
 export const listFolders = (): CancelablePromise<ListFoldersResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/gallery/list-folders'
+}); };
+
+/**
+ * @param data The data for the request.
+ * @param data.mediaId
+ * @returns unknown OK
+ * @throws ApiError
+ */
+export const getMediaInfo = (data: GetMediaInfoData = {}): CancelablePromise<GetMediaInfoResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/gallery/mediaInfo',
+    query: {
+        mediaId: data.mediaId
+    },
+    errors: {
+        400: 'Bad Request'
+    }
 }); };
 
 /**

@@ -91,6 +91,12 @@ export type GetGalleryInfoResponse = GalleryInfoDto;
 
 export type ListFoldersResponse = Array<(string)>;
 
+export type GetMediaInfoData = {
+    mediaId?: number;
+};
+
+export type GetMediaInfoResponse = ImageMediaDto;
+
 export type ProcessImagesData = {
     requestBody?: ProcessImagesDto;
 };
@@ -173,6 +179,21 @@ export type $OpenApiTs = {
                  * OK
                  */
                 200: Array<(string)>;
+            };
+        };
+    };
+    '/gallery/mediaInfo': {
+        get: {
+            req: GetMediaInfoData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: ImageMediaDto;
+                /**
+                 * Bad Request
+                 */
+                400: ImageMediaDto;
             };
         };
     };

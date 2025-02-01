@@ -13,7 +13,7 @@ import {
     UserSettingsDto,
     RecycleMediaData,
     GalleryInfoDto,
-    RenameMediaData, ReplaceImageData
+    RenameMediaData, ReplaceImageData, GetMediaInfoData
 } from "../api";
 import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
 
@@ -219,6 +219,9 @@ export class MediaToolsContext extends UmbControllerBase {
     
     async replaceImage(requestData: ReplaceImageData ){
         return await this.#repository.replaceImage(requestData);
+    }
+    async getMediaInfo(requestData: GetMediaInfoData){
+        return await this.#repository.getMediaInfo(requestData); 
     }
 }
 

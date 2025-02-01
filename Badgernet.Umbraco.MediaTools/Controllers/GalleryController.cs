@@ -1,10 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using Asp.Versioning;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
@@ -14,13 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Bmp;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Formats.Webp;
 using Size = SixLabors.ImageSharp.Size;
-using SixLabors.ImageSharp.PixelFormats;
+using Badgernet.Umbraco.MediaTools.Helpers;
+
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
 
@@ -58,8 +48,34 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var response = mediaHelper.ListFolders();
         return response.ToArray();
     }
-    
-    
+
+    [HttpGet("mediaInfo")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageMediaDto))]
+    public IActionResult GetMediaInfo(int mediaId)
+    {
+        Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+        Response.Headers.Pragma = "no-cache";
+        Response.Headers.Expires = "0";
+        
+        var media = mediaHelper.GetMediaById(mediaId);
+        
+        if (media == null) return BadRequest("Media not found");
+        
+        var mediaInfo = new ImageMediaDto
+        {
+            Id = media.Id,
+            Name = media.Name ?? "Name missing",
+            Path = mediaHelper.GetRelativePath(media),
+            Width = mediaHelper.GetUmbResolution(media).Width,
+            Height = mediaHelper.GetUmbResolution(media).Height,
+            Extension = mediaHelper.GetUmbExtension(media),
+            Size = ExtensionMethods.ToReadableFileSize(mediaHelper.GetUmbBytes(media))
+        };
+        
+        return Ok(mediaInfo);
+        
+    }
 
 
     [HttpPost("filter")]

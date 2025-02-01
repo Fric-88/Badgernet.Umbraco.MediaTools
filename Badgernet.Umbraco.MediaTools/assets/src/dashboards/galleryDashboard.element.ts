@@ -56,7 +56,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         super.connectedCallback();
     }
 
-    private itemRowClicked(e: Event){
+    private handleRowClicked(e: Event){
         const target = e.target;
 
         if(target instanceof UUITableCellElement){
@@ -81,7 +81,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
-    private changePage(e: Event){
+    private handleChangePage(e: Event){
         const target = e.target;
         if(target instanceof UUIPaginationElement){
             this.currentPage = target.current;
@@ -133,6 +133,34 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             this.requestUpdate();
         }
 
+    }
+    
+    
+    //Fetches and updates one image row -> e.detail must be image-Id
+    private async updateImageRow(e: CustomEvent){
+        const imageId = e.detail as number;
+        
+        if(!imageId && imageId < 0) return;
+        
+        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
+        
+        if(response && !response.error){
+            const updatedIMage = response.data as ImageMediaDto;
+            
+            const selectedImages = this.itemsList.getSelectedItems();
+            
+            if(selectedImages.length > 0 ){
+                for(let i= 0 ; i < selectedImages.length ; i++ ){
+                    if(selectedImages[i].id === updatedIMage.id){
+                        this.itemsList.replace(selectedImages[i], updatedIMage);
+                        this.requestUpdate(); //Redraw list 
+                        break; //Exit after first hit
+                    }
+                }
+            }
+            
+            
+        }
     }
     
     private async renameMedia(e: Event){
@@ -453,14 +481,15 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
             <image-preview id="imagePreviewElement"></image-preview>
             <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
-            <image-editor-dialog id="editImageDialog"></image-editor-dialog>
+            
+            <image-editor-dialog id="editImageDialog"
+                                 @update-list="${this.updateImageRow}">
+            </image-editor-dialog>
 
             <uui-toast-notification-container 
                 id="notificationContainer"
                 auto-close="3000">
             </uui-toast-notification-container>
-            
-            
         `
     }
 
@@ -494,12 +523,10 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
                                 id="${"image-id-" + img.id}"
                                 data-image-row="${this.itemsList.indexOf(img)} "
-                                @click="${this.itemRowClicked}">
+                                @click="${this.handleRowClicked}">
                                 <uui-table-cell>
                                     <div 
                                         class="imagePreview"
-                                        width="45"
-                                        height="45"
                                         style="background: url('${img.path}?width=45&height=45')"
                                         data-img-name="${img.name}"
                                         data-img-path="${img.path}"
@@ -523,7 +550,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                     style="margin-top: 1rem;"  
                     total="${this.itemsList.countPages()}" 
                     current="${this.currentPage}" 
-                    @change="${this.changePage}" >
+                    @change="${this.handleChangePage}" >
                 </uui-pagination>
 
             `
@@ -534,8 +561,6 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             `
         }
     }
-
-
 
 
     static styles = css`
