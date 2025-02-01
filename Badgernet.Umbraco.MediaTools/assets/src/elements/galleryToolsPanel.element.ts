@@ -2,12 +2,12 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, ifDefined, query } from "@umbraco-cms/backoffice/external/lit";
 import { UUIButtonElement, UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
-import AcceptRejectDialog from "./accept_reject_dialog.element";
-import "./accept_reject_dialog.element";
+import AcceptRejectDialog from "./acceptRejectDialog.element.ts";
+import "./acceptRejectDialog.element.ts";
 
 
-@customElement('process-image-panel')
-export class ProcessImagePanel extends UmbElementMixin(LitElement) {
+@customElement('gallery-tools-panel')
+export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
 
     constructor() {
         super();
@@ -315,11 +315,11 @@ export interface ProcessingSettings{
     convertQuality: number;
 }
 
-export default ProcessImagePanel;
+export default GalleryToolsPanel;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'process-image-panel': ProcessImagePanel
+        'gallery-tools-panel': GalleryToolsPanel
     }
 }
 

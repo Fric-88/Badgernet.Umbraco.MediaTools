@@ -11,20 +11,20 @@ import {
 } from "@umbraco-cms/backoffice/external/uui";
 import {FilterGalleryData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
-import "../elements/process_image_panel.element";
-import ProcessImagePanel, { ProcessingSettings } from "../elements/process_image_panel.element";
-import ImagePreview from "../elements/image_preview.element";
-import "../elements/image_preview.element"
-import ImageSearchBar from "../elements/image_search_bar.element";
-import "../elements/image_search_bar.element"
-import RenameMediaDialog from "../elements/rename_media_dialog.element.ts";  
-import "../elements/rename_media_dialog.element"
-import ImageEditorDialog from "../elements/image_editor_dialog.element.ts";
-import "../elements/image_editor_dialog.element"
+import "../elements/galleryToolsPanel.element.ts";
+import ProcessImagePanel, { ProcessingSettings } from "../elements/galleryToolsPanel.element.ts";
+import ImagePreview from "../elements/imagePreview.element.ts";
+import "../elements/imagePreview.element.ts"
+import GallerySearchBar from "../elements/gallerySearchBar.element.ts";
+import "../elements/gallerySearchBar.element.ts"
+import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";  
+import "../elements/renameMediaDialog.element.ts"
+import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
+import "../elements/imageEditorDialog.element.ts"
 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
-export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
+export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -91,7 +91,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
     private async searchGallery(e: CustomEvent){
         let target = e.target;
 
-        if(target instanceof ImageSearchBar){
+        if(target instanceof GallerySearchBar){
 
             target.findButtonState = "waiting"; //Loading button look
 
@@ -309,7 +309,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
                     const trashedIds = responseData.payload as Array<number>;
 
-                    //This is slow
+                    //This is slow - removing trashed images from the list
                     for(let i = 0; i < trashedIds.length; i++)
                     {
                         for(let x = 0; x < selectedImages.length; x ++){
@@ -423,7 +423,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             <div class="dashboard">
                 <uui-box>
 
-                    <image-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></image-search-bar>
+                    <gallery-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></gallery-search-bar>
 
                     <div style="display: flex">
 
@@ -432,7 +432,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                         </div>
                         
                         <span class="rightPanel">
-                            <process-image-panel
+                            <gallery-tools-panel
                                 selectionCount="${this.itemsList.countSelectedItems()}"
                                 width="${this.width}"
                                 height="${this.height}"
@@ -442,8 +442,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                                 @trash-images-click="${this.trashSelectedImages}"
                                 @download-images-click="${this.downloadSelectedMedia}"
                                 @rename-media-click="${this.renameMedia}"
-                                @edit-media-click="${this.editMedia}"></process-image-panel>
-                            </process-image-panel>
+                                @edit-media-click="${this.editMedia}">
+                            </gallery-tools-panel>
                         </span>
 
                     </div>
@@ -660,11 +660,11 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 }
 
 
-export default GalleryWorkerDashboard
+export default GalleryDashboard
 
 declare global {
     interface HtmlElementTagNameMap {
-        'badgernet_umbraco_mediatools-gallery-worker-dash': GalleryWorkerDashboard
+        'badgernet_umbraco_mediatools-gallery-worker-dash': GalleryDashboard
     }
 }
 

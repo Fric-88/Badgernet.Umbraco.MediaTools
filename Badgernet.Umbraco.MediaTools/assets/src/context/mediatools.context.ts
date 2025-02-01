@@ -16,7 +16,7 @@ import {
     RenameMediaData, ReplaceImageData
 } from "../api";
 import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
-0
+
 
 
 export type MediaToolProperties =  keyof UserSettingsDto;

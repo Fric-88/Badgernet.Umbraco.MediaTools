@@ -6,7 +6,7 @@ const dashboards: Array<ManifestDashboard> = [
         name: 'Badgernet.Umbraco.MediaTools',
         alias: 'Badgernet.Umbraco.MediaTools.GalleryWorkerDashboard',
         elementName: 'GalleryWorkerDashboard',
-        js: ()=> import('./gallery_dash.element.js'),
+        js: ()=> import('./galleryDashboard.element.ts'),
         weight: -10,
         meta: {
             label: '🗃️ Gallery',
@@ -24,7 +24,7 @@ const dashboards: Array<ManifestDashboard> = [
         name: 'Badgernet.Umbraco.MediaTools',
         alias: 'Badgernet.Umbraco.MediaTools.UploadWorkerDashboard',
         elementName: 'UploadWorkerDashboard',
-        js: ()=> import('./upload_dash.element.js'),
+        js: ()=> import('./processingDashboard.element.ts'),
         weight: -10,
         meta: {
             label: '♾️ Upload processing',

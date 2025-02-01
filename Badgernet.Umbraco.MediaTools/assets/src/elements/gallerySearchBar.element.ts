@@ -5,8 +5,8 @@ import { FilterGalleryData, SizeFilter } from "../api";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 
 
-@customElement('image-search-bar')
-export class ImageSearchBar extends UmbElementMixin(LitElement) {
+@customElement('gallery-search-bar')
+export class GallerySearchBar extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -230,11 +230,11 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
     `
 }
 
-export default ImageSearchBar;
+export default GallerySearchBar;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'image-search-bar': ImageSearchBar
+        'gallery-search-bar': GallerySearchBar
     }
 }
 

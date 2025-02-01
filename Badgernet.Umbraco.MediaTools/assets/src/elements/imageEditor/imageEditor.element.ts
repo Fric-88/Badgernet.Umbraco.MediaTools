@@ -1,8 +1,8 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
-import "./canvas_tools_panel.element.ts"
+import "./canvasToolsPanel.element.ts"
 import {Canvas} from "./canvas.ts";
-import CanvasToolsPanel, {SliderValues} from "./canvas_tools_panel.element.ts";
+import CanvasToolsPanel, {SliderValues} from "./canvasToolsPanel.element.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
 import {ReplaceImageData} from "../../api";
 import SaveImageDialog, {SavingMethod} from "./saveImageDialog.element.ts";
