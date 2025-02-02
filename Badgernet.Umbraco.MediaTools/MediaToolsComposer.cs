@@ -7,6 +7,7 @@ using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core.Composing;
+using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Notifications;
 
 namespace Badgernet.Umbraco.MediaTools;
@@ -15,8 +16,23 @@ public class MediaToolsComposer : IComposer
 {
     public void Compose(IUmbracoBuilder builder)
     {
+        
+        var umbVersion = builder.Services.BuildServiceProvider().GetRequiredService<IUmbracoVersion>().Version;
+
+        switch (umbVersion.Major)
+        {
+            case 14:
+                builder.Services.AddSingleton<IMediaHelper, MediaHelper>();
+                break;
+            case 15:
+                builder.Services.AddSingleton<IMediaHelper, MediaHelperV15>();
+                break;
+
+            default:
+                throw new Exception("Badgernet.MediaTools -> Unsupported Umbraco Version"); 
+        }
+        
         builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
-        builder.Services.AddSingleton<IMediaHelper, MediaHelper>();
         builder.Services.AddSingleton<IFileManager, FileManager>();
         builder.Services.AddSingleton<IImageProcessor, ImageProcessor>(); 
 

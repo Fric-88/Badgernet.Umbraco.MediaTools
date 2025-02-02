@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Nodes;
+using System.Text.Json.Nodes;
 using Badgernet.Umbraco.MediaTools.Models;
 using SixLabors.ImageSharp;
 using Umbraco.Cms.Core.Models;
@@ -8,34 +8,52 @@ using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Web;
-using Exception = System.Exception;
 
 namespace Badgernet.Umbraco.MediaTools.Helpers;
 
-public class MediaHelper(
+public class MediaHelperV15(
     MediaUrlGeneratorCollection mediaUrlGeneratorCollection, 
-    IUmbracoContextAccessor contextAccessor,
+    IMediaCacheService mediaCacheService,
+    IMediaNavigationQueryService mediaQueryService,
     IMediaService mediaService) : IMediaHelper
 {
-    public IEnumerable<string> ListFolders()
+    private async Task<IEnumerable<IPublishedContent>> GetMediaContent(IEnumerable<Guid> keys)
     {
-        if (contextAccessor .TryGetUmbracoContext(out var context) == false)
-            return [];
-
-        var mediaRoot = context.Media!.GetAtRoot();
-        return mediaRoot.DescendantsOrSelf<IPublishedContent>().OfTypes("Folder").Select(x => x.Name);
+        var medias = new List<IPublishedContent>();
+        foreach (var key in keys)
+        {
+            var content = await mediaCacheService.GetByKeyAsync(key).ConfigureAwait(false);
+            if (content == null) continue;
+            medias.Add(content);
+        }
+        return medias;
     }
 
     public IEnumerable<IPublishedContent> GetAllMedia()
     {
-        if (contextAccessor.TryGetUmbracoContext(out var context) == false)
-            return [];
+        var keys = new List<Guid>();
+        
+        mediaQueryService.TryGetRootKeys(out var rootKeys);
 
-        var mediaRoot = context.Media?.GetAtRoot() ?? [];
-        return mediaRoot.DescendantsOrSelf<IPublishedContent>();
+        if (rootKeys.Any())
+        {
+            keys.AddRange(rootKeys);
+        }
+        
+        foreach (var key in rootKeys)
+        {
+            mediaQueryService.TryGetDescendantsKeys(key, out var descendantKeys);
+            keys.AddRange(descendantKeys);
+        }
+
+        return Task.Run(() => GetMediaContent(keys)).GetAwaiter().GetResult();
     }
     
-
+    public IEnumerable<string> ListFolders()
+    {
+        var allMedia = GetAllMedia();
+        return allMedia.OfTypes("Folder").Select(x => x.Name);
+    }
 
     public IMedia? GetMediaById(int id)
     {
@@ -50,7 +68,6 @@ public class MediaHelper(
         
     public IEnumerable<IPublishedContent> GetMediaByType(string type)
     {
-        
         return GetAllMedia().OfTypes(type);
     }
 
@@ -58,7 +75,6 @@ public class MediaHelper(
     {
         try
         {
-            
             return GetMediaByType("Image")
                 .Select(i => new ImageMediaDto
                 {
@@ -82,11 +98,8 @@ public class MediaHelper(
     public IEnumerable<IPublishedContent> GetMediaByFolderName(string folderName)
     {
         if(string.IsNullOrEmpty(folderName)) return[];
-        if (contextAccessor .TryGetUmbracoContext(out var context) == false) return [];
-        if (context.Content == null) return [];
-
-        var mediaRoot = context.Media!.GetAtRoot();
-        var folder = mediaRoot.DescendantsOrSelf<IPublishedContent>().OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
+        var medias = GetAllMedia();
+        var folder = medias.OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
 
         if(folder == null) return [];        
         var images = folder.Descendants<IPublishedContent>().OfTypes("Image");
@@ -120,7 +133,7 @@ public class MediaHelper(
     /// Parses image size (resolution) from IMedia item
     /// </summary>
     /// <param name="media">IMedia item</param>
-    /// <returns>Returns Size or "Size.Empty if error occurred</returns>
+    /// <returns>Returns Size or Size.Empty if error occurred</returns>
     public Size GetUmbResolution(IMedia media)
     {
         try

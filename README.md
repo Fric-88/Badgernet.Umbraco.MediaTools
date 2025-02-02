@@ -13,14 +13,14 @@
 # Important notes
 
 ### When using uSync
-This package will also process any images imported using the uSync import feature. <br> Be sure to turn off the converter / resizer (via the dashboard) to prevent that. 
+This package will also process any images imported using the uSync import feature. Be sure to turn off the converter / resizer (via the dashboard) to prevent that. 
 
 ### Umbraco Cloud
 This package was not tested in Umbraco Cloud environment, or with any custom FileSystem providers. <br>
 Any testing with those would be very welcome.
 
 ### Older version of Umbraco?
-This package is compatible with Umbraco version 14 and newer. <br>
+This package is compatible with Umbraco version 14 and newer.
 If you are looking for similar functionalities for Umbraco 13, take a look at [this repository](https://github.com/Fric-88/Badgernet.Umbraco.WebPicAuto)  
 
 ---
@@ -42,11 +42,12 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # Changelog
+#### Version 1.0.4
+- Fix: works with Umbraco > 15.1.0 
 
 #### Version 1.0.3 
 - Added simple image editor
 - Minor UI fixes 
-
 
 #### Version 1.0.2
 - Rename image from the dashboard
