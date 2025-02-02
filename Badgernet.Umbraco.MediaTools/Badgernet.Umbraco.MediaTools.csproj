@@ -5,12 +5,12 @@
     <Nullable>enable</Nullable>
     <StaticWebAssetBasePath>/</StaticWebAssetBasePath>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFramework>net9.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms" Version="[14, 16)" />
+    <PackageReference Include="Umbraco.Cms" Version="[14, 15.1.1)" />
   </ItemGroup>
 
 

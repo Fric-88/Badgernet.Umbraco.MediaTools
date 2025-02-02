@@ -62,15 +62,20 @@ export class RenameMediaDialog extends UmbElementMixin(LitElement) {
 
             <uui-dialog-layout headline="Rename media">
                 
-                <uui-input id="nameInput" 
+                <uui-input id="nameInput" lable="Media name" 
                            style="width: 300px"
                            pristine="" 
-                           label="Label" 
                            value="${this.mediaName}"
                            @input="${this.#inputChanged}"></uui-input>
                
-                <uui-button slot="actions" look="primary" color="default" @click="${this.#cancelAction}">Cancel</uui-button>
-                <uui-button slot="actions" look="primary" color="positive" @click="${this.#okAction}">Rename</uui-button>
+                <uui-button slot="actions" label="Cancel"
+                            look="primary" color="default" 
+                            @click="${this.#cancelAction}">Cancel
+                </uui-button>
+                <uui-button slot="actions" label="Rename"
+                            look="primary" color="positive" 
+                            @click="${this.#okAction}">Rename
+                </uui-button>
 
             </uui-dialog-layout>
 

@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using Asp.Versioning;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
@@ -11,7 +7,10 @@ using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
+using Badgernet.Umbraco.MediaTools.Helpers;
+
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
 
@@ -20,9 +19,6 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [Route("gallery")]
 public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor) : ControllerBase
 {
-    private readonly IFileManager _fileManager = fileManager;
-    private readonly IImageProcessor _imageProcessor = imageProcessor;
-    private readonly ILogger<SettingsController> _logger = logger;
 
     [HttpGet("get-info")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GalleryInfoDto))]
@@ -52,8 +48,34 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var response = mediaHelper.ListFolders();
         return response.ToArray();
     }
-    
-    
+
+    [HttpGet("mediaInfo")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageMediaDto))]
+    public IActionResult GetMediaInfo(int mediaId)
+    {
+        Response.Headers.CacheControl = "no-store, no-cache, must-revalidate, max-age=0";
+        Response.Headers.Pragma = "no-cache";
+        Response.Headers.Expires = "0";
+        
+        var media = mediaHelper.GetMediaById(mediaId);
+        
+        if (media == null) return BadRequest("Media not found");
+        
+        var mediaInfo = new ImageMediaDto
+        {
+            Id = media.Id,
+            Name = media.Name ?? "Name missing",
+            Path = mediaHelper.GetRelativePath(media),
+            Width = mediaHelper.GetUmbResolution(media).Width,
+            Height = mediaHelper.GetUmbResolution(media).Height,
+            Extension = mediaHelper.GetUmbExtension(media),
+            Size = ExtensionMethods.ToReadableFileSize(mediaHelper.GetUmbBytes(media))
+        };
+        
+        return Ok(mediaInfo);
+        
+    }
 
 
     [HttpPost("filter")]
@@ -73,7 +95,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         if (!images.Any())
         {
-            _logger.LogWarning("No existing images found");
+            logger.LogWarning("No existing images found");
             return NoContent();
         }
 
@@ -115,7 +137,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     {
        if (string.IsNullOrEmpty(newName))
        {
-           _logger.LogError("New name cannot be empty");
+           logger.LogError("New name cannot be empty");
            return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
        }
        
@@ -123,19 +145,17 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
        if (imageMedia == null)
        {
-           _logger.LogError("Media not found");
+           logger.LogError("Media not found");
            return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
        }
 
        var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
 
-       if (renameOperation == false)
-       {
-           _logger.LogError("Could not rename media.");
-           return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
-       }
-
-       return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
+       if (renameOperation) 
+           return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
+       
+       logger.LogError("Could not rename media.");
+       return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
 
     }
 
@@ -151,7 +171,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
         if(ids.Length == 0)
         {
-            _logger.LogError("No media ids provided.");
+            logger.LogError("No media ids provided.");
 
             response.Message = "No media ids provided";
             response.Status = ResponseStatus.Error;
@@ -160,7 +180,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         if(requestData.Width < 1 || requestData.Width > 7680 || requestData.Height < 1 || requestData.Height > 4320)
         {
-            _logger.LogWarning("Skipping processing, requested resolution is out of bounds.");
+            logger.LogWarning("Skipping processing, requested resolution is out of bounds.");
             response.Message = "Skipping processing, requested resolution is out of bounds.";
             response.Status = ResponseStatus.Error;
             return BadRequest(response);
@@ -184,7 +204,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                 if(imageMedia == null)
                 {
-                    _logger.LogError("Could not find media with id: {id}", id);
+                    logger.LogError("Could not find media with id: {id}", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 }
@@ -192,25 +212,25 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var originalResolution = mediaHelper.GetUmbResolution(imageMedia);
                 if(originalResolution == Size.Empty)
                 {
-                    _logger.LogError("Could not read resolution of media with id: {id}", id);
+                    logger.LogError("Could not read resolution of media with id: {id}", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 } 
                 
                 var preserveAspectRatio = requestData.ResizeMode == ResizeMode.FitInside;
                 var targetResolution = new Size(requestData.Width,requestData.Height);
-                var newResolution =_imageProcessor.CalculateResolution(originalResolution, targetResolution, preserveAspectRatio);
+                var newResolution =imageProcessor.CalculateResolution(originalResolution, targetResolution, preserveAspectRatio);
 
                 var mediaPath = mediaHelper.GetRelativePath(imageMedia);
-                var newMediaPath = _fileManager.GetFreePath(mediaPath);
+                var newMediaPath = fileManager.GetFreePath(mediaPath);
                 var filename = Path.GetFileName(newMediaPath);
 
                 //READ FILE INTO A STREAM THAT NEEDS TO BE MANUALLY DISPOSED
-                var imageStream = _fileManager.ReadFile(mediaPath);
+                var imageStream = fileManager.ReadFile(mediaPath);
 
                 if(imageStream == null)
                 {
-                    _logger.LogError("Image with id: {id} could not be read.", id);
+                    logger.LogError("Image with id: {id} could not be read.", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 }
@@ -220,7 +240,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                 //Resizing part
                 if(requestData.Resize) {
-                    using var resizedImageStream = _imageProcessor.Resize(imageStream,newResolution);
+                    using var resizedImageStream = imageProcessor.Resize(imageStream,newResolution);
                     if(resizedImageStream != null)//If resizing succeeded
                     {
                         //Set properties
@@ -228,7 +248,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                         mediaHelper.SetUmbResolution(imageMedia, newResolution);
 
                         //Delete old image File
-                        _fileManager.DeleteFile(mediaPath);
+                        fileManager.DeleteFile(mediaPath);
 
                         //Reassign path
                         mediaPath = newMediaPath;
@@ -243,7 +263,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     }
                     else
                     {
-                        _logger.LogError("Resizing image with id: {id} failed.", id);
+                        logger.LogError("Resizing image with id: {id} failed.", id);
                         response.Status = ResponseStatus.Warning;
                     }
 
@@ -260,7 +280,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     {
                         newMediaPath = Path.ChangeExtension(newMediaPath, ".webp");
 
-                        using (var convertedImage = _imageProcessor.ConvertToWebp(imageStream, convertMode, convertQuality))
+                        using (var convertedImage = imageProcessor.ConvertToWebp(imageStream, convertMode, convertQuality))
                         {
                             if(convertedImage != null)//If converting succeeded
                             {
@@ -269,7 +289,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                                 mediaHelper.SetUmbBytes(imageMedia, convertedImage.Length);
 
                                 //Delete original image (before extension change)
-                                _fileManager.DeleteFile(mediaPath);
+                                fileManager.DeleteFile(mediaPath);
 
                                 //Reassign image stream
                                 imageStream.ClearAndReassign(convertedImage);
@@ -283,7 +303,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     }
                     else
                     {
-                        _logger.LogInformation("Image with id: {id} already in correct format, skipping converting.", id);
+                        logger.LogInformation("Image with id: {id} already in correct format, skipping converting.", id);
                         response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     }
                 }
@@ -294,12 +314,12 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     var writtenToDisk = false;
                     try{
                         //Write image stream to file system  
-                        _fileManager.WriteFile(finalSavingPath,imageStream);
+                        fileManager.WriteFile(finalSavingPath,imageStream);
                         writtenToDisk = true;
                     }
                     catch
                     {
-                        _logger.LogError("Image with id: {id} could not be saved to file system.", id);
+                        logger.LogError("Image with id: {id} could not be saved to file system.", id);
                     }
 
                     if (writtenToDisk)
@@ -336,7 +356,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error processing image: {Message}", ex.Message);
+                logger.LogError("Error processing image: {Message}", ex.Message);
                 response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
             }
             
@@ -379,7 +399,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             }
             catch (Exception ex)
             {
-                _logger.LogError($"{ex.Message}", ex);
+                logger.LogError($"{ex.Message}", ex);
                 errorCount++;
             }
         }
@@ -427,7 +447,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             {
                 //Read physical file into a stream
                 var relativePath = mediaHelper.GetRelativePath(imageMedia);
-                using var fileStream = _fileManager.ReadFile(relativePath);
+                using var fileStream = fileManager.ReadFile(relativePath);
 
                 //Add it to the zip archive if it was successfully read 
                 if (fileStream == null) continue;
@@ -449,7 +469,66 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return File(zipStream, "application/zip", "download.zip");
     }
 
+    [HttpPost("replace")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
+    [Consumes("multipart/form-data")]
+    public IActionResult ReplaceImage(int id, IFormFile imageFile, string? saveAs)
+    {
+        var response = new OperationResponse();
 
+        if (id < 0)
+        {
+            response.Message = "Image id is not valid";
+            response.Status = ResponseStatus.Error;
+            logger.LogError("Image id is not valid.");
+            return BadRequest(response);
+        }
+        
+        var imageMedia = mediaHelper.GetMediaById(id);
+        
+        if (imageMedia == null)
+        {
+            response.Message = $"Image with id {id}  cannot be found";
+            response.Status = ResponseStatus.Error;
+            logger.LogError("Image with id {id} cannot be found.", id);
+            return BadRequest(response);
+        }
+        
+        var oldFilePath = mediaHelper.GetRelativePath(imageMedia);
+        var newFilePath = fileManager.GetFreePath(oldFilePath, Path.GetExtension(oldFilePath));
+        
+        var checkFileExtensionString = saveAs == null ?  oldFilePath : "dummyName." + saveAs.Replace(".", "");
+
+        var fileExtension = Path.GetExtension(checkFileExtensionString);
+        newFilePath = Path.ChangeExtension(newFilePath, fileExtension);
+        var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
+        
+        
+        using var fileStream = imageFile.OpenReadStream();
+        using var img =Image.Load(fileStream);
+        
+        using var converted = new MemoryStream();
+        
+        img.Save(converted, encoder);
+        converted.Position = 0;
+        
+        var writeSuccess = fileManager.WriteFile(newFilePath, converted);
+
+        if (writeSuccess)
+        {
+            mediaHelper.SetUmbFilename(imageMedia, newFilePath);
+            mediaHelper.SetUmbResolution(imageMedia, new Size(img.Width, img.Height));
+            mediaHelper.SetUmbBytes(imageMedia,converted.Length);
+            mediaHelper.SaveMedia(imageMedia);
+            fileManager.DeleteFile(oldFilePath);
+        }
+
+        response.Message = $"Replaced image with id {id}";
+        response.Status = ResponseStatus.Success;
+        return Ok(response);
+
+    }
 }
 
 

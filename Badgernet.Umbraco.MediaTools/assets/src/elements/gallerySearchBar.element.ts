@@ -5,8 +5,8 @@ import { FilterGalleryData, SizeFilter } from "../api";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 
 
-@customElement('image-search-bar')
-export class ImageSearchBar extends UmbElementMixin(LitElement) {
+@customElement('gallery-search-bar')
+export class GallerySearchBar extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -129,7 +129,8 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
 
                 <div class="settingItem" style="flex: 1 1 120px;">
                     <uui-label class="inputLabel" for="Folder">Folder</uui-label> 
-                    <uui-select 
+                    <uui-select
+                        label="Select folder"
                         placeholder="Select an option"
                         .options="${this.mediaFolders}"
                         @change="${this.folderSelectionChanged}">
@@ -139,6 +140,7 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
                 <div class="settingItem" style="flex: 1 1 120px;">
                     <uui-label class="inputLabel" for="Dimensions">Resolution</uui-label> 
                     <uui-select 
+                        label="Select option"
                         placeholder="Select an option"
                         .options="${this.#resolutionOptions}"
                         @change="${this.resolutionFilterChanged}">
@@ -228,11 +230,11 @@ export class ImageSearchBar extends UmbElementMixin(LitElement) {
     `
 }
 
-export default ImageSearchBar;
+export default GallerySearchBar;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'image-search-bar': ImageSearchBar
+        'gallery-search-bar': GallerySearchBar
     }
 }
 

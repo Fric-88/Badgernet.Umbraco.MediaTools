@@ -67,8 +67,14 @@ export class AcceptRejectDialog extends UmbElementMixin(LitElement) {
 
                 <p class="warningMessage">${this.#warningText}</p>
                 
-                <uui-button slot="actions" look="primary" color="default" @click="${this.#cancelAction}">${this.#cancelButtonText}</uui-button>
-                <uui-button slot="actions" look="primary" color="positive" @click="${this.#okAction}">${this.#okButtonText}</uui-button>
+                <uui-button slot="actions" label="${this.#cancelButtonText}" 
+                            look="primary" color="default" 
+                            @click="${this.#cancelAction}">${this.#cancelButtonText}
+                </uui-button>
+                <uui-button slot="actions" label="${this.#okButtonText}" 
+                            look="primary" color="positive" 
+                            @click="${this.#okAction}">${this.#okButtonText}
+                </uui-button>
 
             </uui-dialog-layout>
 

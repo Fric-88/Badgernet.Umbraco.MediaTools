@@ -217,8 +217,8 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         }
 
                         _mediaHelper.SetUmbExtension(media, ".webp");
+                        _mediaHelper.SetUmbBytes(media, convertedImageStream.Length);
 
-                        media.SetValue("umbracoBytes", convertedImageStream.Length);
 
                         //Reassign where to save the image and the image itself
                         finalSavingPath = alternativeFilepath;

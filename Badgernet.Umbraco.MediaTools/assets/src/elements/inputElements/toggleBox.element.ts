@@ -1,7 +1,7 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state } from "@umbraco-cms/backoffice/external/lit";
 import { UUIToggleElement } from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../code/box.event";
+import { BoxEventDetail } from "../../code/box.event";
 
 
 @customElement('toggle-box')

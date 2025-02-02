@@ -3,7 +3,6 @@ import { LitElement, html, css, customElement, state, query } from "@umbraco-cms
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 import {
     UUICheckboxElement,
-    UUIInputElement,
     UUIPaginationElement,
     UUITableCellElement,
     UUITableRowElement,
@@ -12,17 +11,20 @@ import {
 } from "@umbraco-cms/backoffice/external/uui";
 import {FilterGalleryData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
-import "../elements/process_image_panel.element";
-import ProcessImagePanel, { ProcessingSettings } from "../elements/process_image_panel.element";
-import ImagePreview from "../elements/image_preview.element";
-import "../elements/image_preview.element"
-import ImageSearchBar from "../elements/image_search_bar.element";
-import "../elements/image_search_bar.element"
-import RenameMediaDialog from "../elements/rename_media_dialog.element.ts";  
-import "../elements/rename_media_dialog.element" 
+import "../elements/galleryToolsPanel.element.ts";
+import ProcessImagePanel, { ProcessingSettings } from "../elements/galleryToolsPanel.element.ts";
+import ImagePreview from "../elements/imagePreview.element.ts";
+import "../elements/imagePreview.element.ts"
+import GallerySearchBar from "../elements/gallerySearchBar.element.ts";
+import "../elements/gallerySearchBar.element.ts"
+import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";  
+import "../elements/renameMediaDialog.element.ts"
+import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
+import "../elements/imageEditorDialog.element.ts"
+
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
-export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
+export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -35,6 +37,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
+    @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
+
 
     constructor() {
         super();
@@ -52,7 +56,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
         super.connectedCallback();
     }
 
-    private itemRowClicked(e: Event){
+    private handleRowClicked(e: Event){
         const target = e.target;
 
         if(target instanceof UUITableCellElement){
@@ -77,7 +81,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
-    private changePage(e: Event){
+    private handleChangePage(e: Event){
         const target = e.target;
         if(target instanceof UUIPaginationElement){
             this.currentPage = target.current;
@@ -87,7 +91,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
     private async searchGallery(e: CustomEvent){
         let target = e.target;
 
-        if(target instanceof ImageSearchBar){
+        if(target instanceof GallerySearchBar){
 
             target.findButtonState = "waiting"; //Loading button look
 
@@ -131,6 +135,34 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
     }
     
+    
+    //Fetches and updates one image row -> e.detail must be image-Id
+    private async updateImageRow(e: CustomEvent){
+        const imageId = e.detail as number;
+        
+        if(!imageId && imageId < 0) return;
+        
+        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
+        
+        if(response && !response.error){
+            const updatedIMage = response.data as ImageMediaDto;
+            
+            const selectedImages = this.itemsList.getSelectedItems();
+            
+            if(selectedImages.length > 0 ){
+                for(let i= 0 ; i < selectedImages.length ; i++ ){
+                    if(selectedImages[i].id === updatedIMage.id){
+                        this.itemsList.replace(selectedImages[i], updatedIMage);
+                        this.requestUpdate(); //Redraw list 
+                        break; //Exit after first hit
+                    }
+                }
+            }
+            
+            
+        }
+    }
+    
     private async renameMedia(e: Event){
         
         if(e.target instanceof ProcessImagePanel){
@@ -164,6 +196,24 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                     }    
                 });
             }
+        }
+    }
+    
+    private editMedia(e: Event){
+        if(e.target instanceof ProcessImagePanel){
+
+            //Get selected image  
+            let selectedImage = this.itemsList.getSelectedItems()[0];
+            if(selectedImage == undefined) return;
+            if(this.itemsList.countSelectedItems() !== 1) return;
+            
+            //Find editor element 
+            const editor = this.editImageDialog as ImageEditorDialog;
+            if (editor == undefined) return;
+            
+            //Open editor
+            const imageId = selectedImage.id;
+            editor.openEditor(900, 900, selectedImage.path, imageId);
         }
     }
 
@@ -287,8 +337,8 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
                     const trashedIds = responseData.payload as Array<number>;
 
-                    //This is slow
-                    for(var i = 0; i < trashedIds.length; i++)
+                    //This is slow - removing trashed images from the list
+                    for(let i = 0; i < trashedIds.length; i++)
                     {
                         for(let x = 0; x < selectedImages.length; x ++){
                             if(trashedIds[i] == selectedImages[x].id){
@@ -401,7 +451,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             <div class="dashboard">
                 <uui-box>
 
-                    <image-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></image-search-bar>
+                    <gallery-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></gallery-search-bar>
 
                     <div style="display: flex">
 
@@ -410,7 +460,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                         </div>
                         
                         <span class="rightPanel">
-                            <process-image-panel
+                            <gallery-tools-panel
                                 selectionCount="${this.itemsList.countSelectedItems()}"
                                 width="${this.width}"
                                 height="${this.height}"
@@ -419,8 +469,9 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.trashSelectedImages}"
                                 @download-images-click="${this.downloadSelectedMedia}"
-                                @rename-media-click="${this.renameMedia}"></process-image-panel>
-                            </process-image-panel>
+                                @rename-media-click="${this.renameMedia}"
+                                @edit-media-click="${this.editMedia}">
+                            </gallery-tools-panel>
                         </span>
 
                     </div>
@@ -430,13 +481,15 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
             <image-preview id="imagePreviewElement"></image-preview>
             <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
+            
+            <image-editor-dialog id="editImageDialog"
+                                 @update-list="${this.updateImageRow}">
+            </image-editor-dialog>
 
             <uui-toast-notification-container 
                 id="notificationContainer"
                 auto-close="3000">
             </uui-toast-notification-container>
-            
-            
         `
     }
 
@@ -454,7 +507,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 
                     <uui-table-head>
                         <uui-table-head-cell>
-                            <uui-checkbox name="selectAll" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
+                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
                         </uui-table-head-cell>
                         <uui-table-head-cell>Name</uui-table-head-cell>
                         <uui-table-head-cell>Width</uui-table-head-cell>
@@ -470,12 +523,10 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                                 class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
                                 id="${"image-id-" + img.id}"
                                 data-image-row="${this.itemsList.indexOf(img)} "
-                                @click="${this.itemRowClicked}">
+                                @click="${this.handleRowClicked}">
                                 <uui-table-cell>
                                     <div 
                                         class="imagePreview"
-                                        width="45"
-                                        height="45"
                                         style="background: url('${img.path}?width=45&height=45')"
                                         data-img-name="${img.name}"
                                         data-img-path="${img.path}"
@@ -499,7 +550,7 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
                     style="margin-top: 1rem;"  
                     total="${this.itemsList.countPages()}" 
                     current="${this.currentPage}" 
-                    @change="${this.changePage}" >
+                    @change="${this.handleChangePage}" >
                 </uui-pagination>
 
             `
@@ -510,8 +561,6 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
             `
         }
     }
-
-
 
 
     static styles = css`
@@ -636,11 +685,11 @@ export class GalleryWorkerDashboard extends UmbElementMixin(LitElement) {
 }
 
 
-export default GalleryWorkerDashboard
+export default GalleryDashboard
 
 declare global {
     interface HtmlElementTagNameMap {
-        'badgernet_umbraco_mediatools-gallery-worker-dash': GalleryWorkerDashboard
+        'badgernet_umbraco_mediatools-gallery-worker-dash': GalleryDashboard
     }
 }
 

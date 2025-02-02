@@ -1,7 +1,16 @@
 import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsManagementDataSource } from "./mediatools.datasource";
-import { ProcessImagesData, RecycleMediaData, DownloadMediaData, FilterGalleryData, GetSettingsData, SetSettingsData, RenameMediaData } from "../api";
+import {
+    ProcessImagesData,
+    RecycleMediaData,
+    DownloadMediaData,
+    FilterGalleryData,
+    GetSettingsData,
+    SetSettingsData,
+    RenameMediaData,
+    ReplaceImageData, GetMediaInfoData
+} from "../api";
 
 export class MediaToolsRepository extends UmbControllerBase {
     #datasource : MediaToolsManagementDataSource;
@@ -37,7 +46,10 @@ export class MediaToolsRepository extends UmbControllerBase {
     async renameMedia(requestData: RenameMediaData){
         return this.#datasource.renameMedia(requestData);
     } 
-
-
-
+    async replaceImage(requestData: ReplaceImageData){
+        return this.#datasource.replaceImage(requestData);
+    }
+    async getMediaInfo(requestData: GetMediaInfoData){
+        return this.#datasource.getMediaInfo(requestData);
+    }
 }

@@ -1,4 +1,5 @@
 using Badgernet.Umbraco.MediaTools.Models;
+using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
 
 namespace Badgernet.Umbraco.MediaTools.Helpers;

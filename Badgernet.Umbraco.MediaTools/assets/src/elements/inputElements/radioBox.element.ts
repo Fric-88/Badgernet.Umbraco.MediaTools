@@ -1,12 +1,11 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property } from "@umbraco-cms/backoffice/external/lit";
-import { UUIInputElement} from "@umbraco-cms/backoffice/external/uui";
-import {InputType } from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../code/box.event";
+import { UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
+import { BoxEventDetail } from "../../code/box.event";
 
 
-@customElement('input-box')
-export class InputBox extends UmbElementMixin(LitElement) {
+@customElement('radio-box')
+export class RadioBox extends UmbElementMixin(LitElement) {
 
     constructor() {
         super();
@@ -14,17 +13,15 @@ export class InputBox extends UmbElementMixin(LitElement) {
 
     @property({attribute: true}) name: string = "Name";
     @property({attribute: true}) targetProperty: string = "";
-    @property({attribute: true}) description: string = "";    
-    @property({attribute: true, type: String }) type : InputType = "number";
-    @property({attribute: true, type: Number}) min: number = 0;
-    @property({attribute: true, type: Number}) step: number = 1;
-    @property({attribute: true, type: String}) value: string = "";
+    @property({attribute: true}) description: string = "Description";    
+    @property({type: Array}) options: Array<string> = [];
+    @property({type: String}) selected: string = "";
     @property({attribute: true, type: Boolean}) disabled: boolean = false;
 
-    private handleInput(e: Event){
-        let target = e.target as UUIInputElement;
+    private handleChange(e: Event){
+        let target = e.target as UUIRadioGroupElement;
         
-        const eventDetail: BoxEventDetail  = { targetProperty: this.targetProperty , newValue: target.value };
+        const eventDetail: BoxEventDetail  = { targetProperty: this.targetProperty , newValue: target.value as string };
         const event = new CustomEvent<BoxEventDetail>("change", {detail: eventDetail});
         this.dispatchEvent(event);
     }
@@ -33,19 +30,20 @@ export class InputBox extends UmbElementMixin(LitElement) {
         return html`
             <uui-box>
                 <div id="container">
+
                     <div class="column">
                         <uui-label class="header">${this.name}:</uui-label>
                     </div>
+                    
                     <div class="column">
-                        <uui-input 
-                            type="${this.type}"
-                            min="${this.min}"
-                            step="${this.step}"
-                            value="${this.value}"
-                            .disabled="${this.disabled}"
-                            @input="${this.handleInput}">
-                        </uui-input>
+                        <uui-radio-group name="radioOptions" .value="${this.selected}" .disabled="${this.disabled}" @change="${this.handleChange}">
+                            ${this.options.map(option =>
+                                html`
+                                    <uui-radio style="display: inline-block;" value="${option}">${option}</uui-radio>
+                                `)}
+                        </uui-radio-group>
                     </div>
+                        
                 </div>
                 <uui-label class="muted">${this.description}</uui-label>
             </uui-box>
@@ -57,6 +55,10 @@ export class InputBox extends UmbElementMixin(LitElement) {
         #container{
             display: flex;
             flex-direction: row;
+        }
+
+        uui-radio{
+            margin-right: 0.5rem;
         }
 
         .column{
@@ -79,11 +81,11 @@ export class InputBox extends UmbElementMixin(LitElement) {
     `
 }
 
-export default InputBox;
+export default RadioBox;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'input-box': InputBox
+        'radio-box': RadioBox
     }
 }
 

@@ -2,16 +2,16 @@ import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, query,  ifDefined } from "@umbraco-cms/backoffice/external/lit";
 import { BoxEventDetail } from "../code/box.event";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
-import "../elements/toggle.box.element"
-import "../elements/input.box.element"
-import "../elements/slider.box.element"
-import "../elements/radio.box.element"
+import "../elements/inputElements/toggleBox.element.ts"
+import "../elements/inputElements/inputBox.element.ts"
+import "../elements/inputElements/sliderBox.element.ts"
+import "../elements/inputElements/radioBox.element.ts"
 import { UserSettingsDto, ConvertMode } from "../api";
 import { UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 
 @customElement('badgernet_umbraco_mediatools-upload-worker-dash')
-export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
+export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
     #convertModeOptions: ConvertMode[] = ["lossy","lossless"];
@@ -155,7 +155,7 @@ export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted" >Any images being uploaded that exceed the specified resolution will be sized-down to the desired resolution.</uui-label>
                 </div>
 
-                <uui-toggle slot="header-actions" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
 
                 <input-box
                     class="boxElement"
@@ -200,7 +200,7 @@ export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted">Any images being uploaded will be converted to .webp format, resulting in a smaller file size without losing too much image quality.</uui-label>
                 </div>
 
-                <uui-toggle slot="header-actions" ?checked=${this.converterEnabled} @change="${this.#toggleConverter}"></uui-toggle>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.converterEnabled} @change="${this.#toggleConverter}"></uui-toggle>
 
                     <slider-box
                         class="boxElement"
@@ -326,11 +326,11 @@ export class UploadWorkerDashboard extends UmbElementMixin(LitElement) {
 }
 
 
-export default UploadWorkerDashboard
+export default ProcessingDashboard
 
 declare global {
     interface HtmlElementTagNameMap {
-        'badgernet_umbraco_mediatools-upload-worker-dash': UploadWorkerDashboard
+        'badgernet_umbraco_mediatools-upload-worker-dash': ProcessingDashboard
     }
 }
 

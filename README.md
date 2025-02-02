@@ -1,13 +1,14 @@
 
 # Badgernet.Umbraco.MediaTools
 
-### This package adds additional functionalities to Umbraco media section.
+## This package adds additional functionalities to Umbraco media section.
 
 - Automatic downsizing and converting images into "webp" format when uploading them.
-- Ability to resize, convert or download multiple images from the media section.
+- Search images by their resolution, extension, name, folder,...
+- Resize, convert or download images from the media section in bulk.
+- Simple image editor that provides basic editing functionalities  
 
-
-<br>
+---
 
 # Important notes
 
@@ -41,6 +42,11 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # Changelog
+
+#### Version 1.0.3 
+- Added simple image editor
+- Minor UI fixes 
+
 
 #### Version 1.0.2
 - Rename image from the dashboard

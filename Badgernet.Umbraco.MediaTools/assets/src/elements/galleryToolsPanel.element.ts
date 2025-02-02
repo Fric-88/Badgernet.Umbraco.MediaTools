@@ -1,13 +1,13 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, ifDefined, query } from "@umbraco-cms/backoffice/external/lit";
-import { UUIButtonElement, UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
+import { UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
-import AcceptRejectDialog from "./accept_reject_dialog.element";
-import "./accept_reject_dialog.element";
+import AcceptRejectDialog from "./acceptRejectDialog.element.ts";
+import "./acceptRejectDialog.element.ts";
 
 
-@customElement('process-image-panel')
-export class ProcessImagePanel extends UmbElementMixin(LitElement) {
+@customElement('gallery-tools-panel')
+export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
 
     constructor() {
         super();
@@ -20,7 +20,6 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) width: number = 1;
     @property({attribute : true, type: Number}) height: number = 1;
     
-
     @state() convert: boolean = false;
     @property({attribute: true, type: String}) convertMode: ConvertMode = "lossy";
     @property({attribute: true, type: Number}) convertQuality: number = 85;   
@@ -90,6 +89,17 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
         this.dispatchEvent(event);
     }
 
+    //Dispatch Edit Media event
+    private dispatchEditEvent(){
+        const event = new CustomEvent("edit-media-click",{
+            detail: { message: 'Button clicked!' },
+            bubbles: true,       // Allows the event to bubble up through the DOM
+            composed: true       // Allows the event to pass through shadow DOM boundaries
+        });
+
+        this.dispatchEvent(event);
+    }
+
     //Show modal before downloading
     private confirmDownloading(){
         const dialog = this.popoverDialog;
@@ -113,11 +123,9 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
         this.resize = !this.resize;
     }
     
-
     private toggleConvert(){
         this.convert = !this.convert;
     }
-
 
     private widthChanged(e: Event){
         let target = e.target as UUIInputElement
@@ -143,11 +151,11 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div class="toolbox">
 
-                <uui-toggle label-position="left" name="resize" .checked="${this.resize}" @change="${this.toggleResize}">Resize</uui-toggle>
+                <uui-toggle label-position="left" label="Resize toggle" name="resize" .checked="${this.resize}" @change="${this.toggleResize}">Resize</uui-toggle>
                 
                 <div style="display: flex; gap: 1rem;">  
                     <div class="settingItem">
-                        <uui-label  for="Width">Width</uui-label>
+                        <uui-label for="Width">Width</uui-label>
                         <uui-input 
                             label="Width"
                             name="Width"
@@ -180,7 +188,11 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
 
             <div class="toolbox" style="margin-top: 1rem;">
 
-                <uui-toggle label-position="left" name="convert" .checked="${this.convert}" @change="${this.toggleConvert}">Convert to WebP</uui-toggle>
+                <uui-toggle label="Convert toggle" label-position="left" 
+                            name="convert" 
+                            .checked="${this.convert}" 
+                            @change="${this.toggleConvert}">Convert to WebP
+                </uui-toggle>
 
                 <div class="settingItem">
                     <uui-label for="Convert mode">Convert mode</uui-label>
@@ -206,27 +218,41 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
             </div>
 
             <uui-button
+                    label="Resize convert"
                     class="centered"
+                    state=${ifDefined(this.processButtonState)}
                     look="primary"
-                    color="default"
-                    style="margin-top: 1rem;"
-                    .disabled="${this.selectionCount != 1}"
-                    @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
+                    color="positive"
+                    style="margin-top: 0.5rem; margin-bottom: 1rem;"
+                    .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
+                    popovertarget="areYouSurePopover"
+                    @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
             </uui-button>
             
-            <uui-button 
-                class="centered"
-                state=${ifDefined(this.processButtonState)}
-                look="primary"
-                color="positive" 
-                style="margin-top: 0.5rem;"
-                .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
-                popovertarget="areYouSurePopover"
-                @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
-            </uui-button>
+
+            <div style="display:flex; gap: 0.5rem">
+                <uui-button
+                        label="Rename"
+                        look="primary"
+                        color="default"
+                        style="margin-top: 0.5rem; width: 100%"
+                        .disabled="${this.selectionCount != 1}"
+                        @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
+                </uui-button>
+    
+                <uui-button
+                        label="Edit"
+                        look="primary"
+                        color="default"
+                        style="margin-top: 0.5rem; width: 100%"
+                        .disabled="${this.selectionCount != 1}"
+                        @click="${this.dispatchEditEvent}"> <uui-icon name="wand"></uui-icon> Edit
+                </uui-button>
+            </div>
             
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 
+                    label="Trash"
                     state=${ifDefined(this.trashButtonState)}
                     look="primary"
                     color="warning" 
@@ -237,6 +263,7 @@ export class ProcessImagePanel extends UmbElementMixin(LitElement) {
                 </uui-button>
 
                 <uui-button 
+                    label="Download"
                     state=${ifDefined(this.downloadButtonState)}
                     look="primary"
                     color="default" 
@@ -288,11 +315,11 @@ export interface ProcessingSettings{
     convertQuality: number;
 }
 
-export default ProcessImagePanel;
+export default GalleryToolsPanel;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'process-image-panel': ProcessImagePanel
+        'gallery-tools-panel': GalleryToolsPanel
     }
 }
 

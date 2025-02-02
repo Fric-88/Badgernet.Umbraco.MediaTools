@@ -91,6 +91,12 @@ export type GetGalleryInfoResponse = GalleryInfoDto;
 
 export type ListFoldersResponse = Array<(string)>;
 
+export type GetMediaInfoData = {
+    mediaId?: number;
+};
+
+export type GetMediaInfoResponse = ImageMediaDto;
+
 export type ProcessImagesData = {
     requestBody?: ProcessImagesDto;
 };
@@ -103,6 +109,16 @@ export type RenameMediaData = {
 };
 
 export type RenameMediaResponse = OperationResponse;
+
+export type ReplaceImageData = {
+    formData?: {
+        imageFile?: (Blob | File);
+    };
+    id?: number;
+    saveAs?: string;
+};
+
+export type ReplaceImageResponse = OperationResponse;
 
 export type RecycleMediaData = {
     requestBody?: Array<(number)>;
@@ -166,6 +182,21 @@ export type $OpenApiTs = {
             };
         };
     };
+    '/gallery/mediaInfo': {
+        get: {
+            req: GetMediaInfoData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: ImageMediaDto;
+                /**
+                 * Bad Request
+                 */
+                400: ImageMediaDto;
+            };
+        };
+    };
     '/gallery/process': {
         post: {
             req: ProcessImagesData;
@@ -184,6 +215,21 @@ export type $OpenApiTs = {
     '/gallery/rename': {
         post: {
             req: RenameMediaData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: OperationResponse;
+                /**
+                 * Bad Request
+                 */
+                400: OperationResponse;
+            };
+        };
+    };
+    '/gallery/replace': {
+        post: {
+            req: ReplaceImageData;
             res: {
                 /**
                  * OK

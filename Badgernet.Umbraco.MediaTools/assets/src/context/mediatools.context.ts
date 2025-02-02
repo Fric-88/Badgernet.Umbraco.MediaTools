@@ -13,10 +13,10 @@ import {
     UserSettingsDto,
     RecycleMediaData,
     GalleryInfoDto,
-    RenameMediaData
+    RenameMediaData, ReplaceImageData, GetMediaInfoData
 } from "../api";
 import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
-0
+
 
 
 export type MediaToolProperties =  keyof UserSettingsDto;
@@ -215,6 +215,13 @@ export class MediaToolsContext extends UmbControllerBase {
     
     async renameMedia(requestData: RenameMediaData ){
         return await this.#repository.renameMedia(requestData);
+    }
+    
+    async replaceImage(requestData: ReplaceImageData ){
+        return await this.#repository.replaceImage(requestData);
+    }
+    async getMediaInfo(requestData: GetMediaInfoData){
+        return await this.#repository.getMediaInfo(requestData); 
     }
 }
 
