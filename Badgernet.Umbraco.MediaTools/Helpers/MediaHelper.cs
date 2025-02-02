@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Nodes;
 using Badgernet.Umbraco.MediaTools.Models;
-using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Models.PublishedContent;
@@ -20,22 +19,17 @@ public class MediaHelper(
         if (contextAccessor .TryGetUmbracoContext(out var context) == false)
             return [];
 
-        if (context.Content == null)
-            return [];
-
         var mediaRoot = context.Media!.GetAtRoot();
         return mediaRoot.DescendantsOrSelf<IPublishedContent>().OfTypes("Folder").Select(x => x.Name);
     }
 
     public IEnumerable<IPublishedContent> GetAllMedia()
     {
-        if (contextAccessor .TryGetUmbracoContext(out var context) == false)
-            return [];
-
-        if (context.Content == null)
+        if (contextAccessor.TryGetUmbracoContext(out var context) == false)
             return [];
 
         var mediaRoot = context.Media!.GetAtRoot();
+       
         return mediaRoot.DescendantsOrSelf<IPublishedContent>();
     }
 

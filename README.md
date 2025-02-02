@@ -43,13 +43,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 
 # Changelog
 
-#### Version 8.0.3 / 9.0.3
+#### Version 1.0.3 
 - Added simple image editor
 - Minor UI fixes 
 
-#### Changes in versioning
-- Versions like: 8.xx.xx are targeting .NET 8
-- Versions like: 9.xx.xx are targeting .NET 9
 
 #### Version 1.0.2
 - Rename image from the dashboard

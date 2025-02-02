@@ -115,7 +115,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
     }
 
     //Send image back to the server
-    async #replaceImage(e: CustomEvent){
+    async #saveImageToServer(e: CustomEvent){
       
         const loadingPopup = this.loadingPopup as LoadingPopup;
         loadingPopup.openPopup("Saving image...");
@@ -148,6 +148,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
                 switch (responseData.status){
                     case "Success":
                         this.#showToastNotification("Success", responseData.message, "", "positive");
+                        
+                        //Dispatch event to update the gallery list item
                         const event = new CustomEvent("update-list",{
                             bubbles: true,       
                             composed: true,
@@ -167,20 +169,6 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         }
     }
 
-    //Send image back to the server
-    async #saveImage(e: CustomEvent){
-        
-        if(this.imgId < 0) return; //Image id was not set
-        const image = this.#canvas?.getImageData();
-        if(!image) return; //No image data
-
-        //Convert ImageData to Blob
-        const blob = new Blob([image.data.buffer], { type: 'application/octet-stream' });
-
-        const preferredExtension = e.detail as SavingMethod;
-        
-        //TODO build and make request to server
-    }
 
     #showToastNotification(headline: string , message: string, information: string, color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
         const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
@@ -236,8 +224,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
             <loading-popup id="loadingPopup" ></loading-popup>
             
             <save-image-dialog id="saveImageDialog"
-                               @save-image="${this.#saveImage}"
-                               @replace-image ="${this.#replaceImage}">
+                               @save-image="${this.#saveImageToServer}">
             </save-image-dialog>
 
             <uui-toast-notification-container
