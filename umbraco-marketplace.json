@@ -22,6 +22,14 @@
         {
             "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Gallery.png",
             "Caption": "Gallery"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/ImageEditor_1.png",
+            "Caption": "Cropping"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/ImageEditor_2.png",
+            "Caption": "Contrast, Brightness, Exposure & RGB adjustments"
         }
     ]
 }
