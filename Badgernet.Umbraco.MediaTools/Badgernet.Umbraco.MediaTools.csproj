@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.0.4</Version>
+    <Version>1.0.5</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Image editing</PackageReleaseNotes> 
+    <PackageReleaseNotes>Aspect ratio fix.</PackageReleaseNotes> 
 
   </PropertyGroup>
 
