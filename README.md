@@ -42,6 +42,9 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # Changelog
+#### Version 1.0.5
+- Fix: Corrected Aspect ratio calculation
+
 #### Version 1.0.4
 - Fix: works with Umbraco > 15.1.0 
 
