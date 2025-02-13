@@ -17,6 +17,8 @@ public class MediaHelperV15(
     IMediaNavigationQueryService mediaQueryService,
     IMediaService mediaService) : IMediaHelper
 {
+
+
     private async Task<IEnumerable<IPublishedContent>> GetMediaContent(IEnumerable<Guid> keys)
     {
         var medias = new List<IPublishedContent>();
@@ -31,21 +33,20 @@ public class MediaHelperV15(
 
     public IEnumerable<IPublishedContent> GetAllMedia()
     {
-        var keys = new List<Guid>();
+        if (!mediaQueryService.TryGetRootKeys(out var rootKeys))
+            return [];
         
-        mediaQueryService.TryGetRootKeys(out var rootKeys);
+        var keys = new List<Guid>(rootKeys);
 
-        if (rootKeys.Any())
-        {
-            keys.AddRange(rootKeys);
-        }
-        
         foreach (var key in rootKeys)
         {
-            mediaQueryService.TryGetDescendantsKeys(key, out var descendantKeys);
-            keys.AddRange(descendantKeys);
+            if (mediaQueryService.TryGetDescendantsKeys(key, out var descendantKeys))
+            {
+                keys.AddRange(descendantKeys);
+            }
         }
 
+        //TODO Change IMediaHelper to async in later versions  
         return Task.Run(() => GetMediaContent(keys)).GetAwaiter().GetResult();
     }
     
@@ -100,11 +101,11 @@ public class MediaHelperV15(
         if(string.IsNullOrEmpty(folderName)) return[];
         var medias = GetAllMedia();
         var folder = medias.OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
+        if(folder == null) return [];
 
-        if(folder == null) return [];        
-        var images = folder.Descendants<IPublishedContent>().OfTypes("Image");
-
-        return images;
+        mediaQueryService.TryGetDescendantsKeys(folder.Key, out var descendantKeys);
+        var images = Task.Run(() => GetMediaContent(descendantKeys)).GetAwaiter().GetResult();
+        return images.OfTypes("Image");
     }
 
     public IEnumerable<ImageMediaDto> GetMediaDtoByFolderName(string folderName)

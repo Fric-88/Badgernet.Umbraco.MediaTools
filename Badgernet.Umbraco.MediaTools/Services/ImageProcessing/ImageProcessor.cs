@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Badgernet.Umbraco.MediaTools.Models;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -11,6 +12,7 @@ using SixLabors.ImageSharp.Formats.Qoi;
 using SixLabors.ImageSharp.Formats.Tga;
 using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 
 namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
@@ -54,9 +56,12 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
         try
         {
             using var img = Image.Load(imageStream);
+            img.Mutate(x => x.AutoOrient() );
+            
             var converted = new MemoryStream();
             
             img.Save(converted, encoder);
+
             converted.Position = 0;
 
             return converted;

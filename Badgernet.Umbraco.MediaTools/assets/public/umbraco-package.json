@@ -8,7 +8,7 @@
         {
             "name": "Badgernet.Umbraco.MediaTools.entrypoint",
             "alias": "Badgernet.Umbraco.MediaTools.EntryPoint",
-            "type": "entryPoint",
+            "type": "backofficeEntryPoint",
             "js": "/App_Plugins/Badgernet.Umbraco.MediaTools/assets.js"
         }
     ]

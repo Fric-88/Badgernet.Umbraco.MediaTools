@@ -1,23 +1,25 @@
 
 # Badgernet.Umbraco.MediaTools
 
-## This package adds additional functionalities to Umbraco media section.
+## Enhances your Umbraco media section with additional features!
 
-- Automatic downsizing and converting images into "webp" format when uploading them.
-- Search images by their resolution, extension, name, folder,...
-- Resize, convert or download images from the media section in bulk.
-- Simple image editor that provides basic editing functionalities  
+# ✨ Features
+
+ - 📏 **Automatic Image Optimization:** Automatically downsizes and converts images to the WebP format upon upload for better performance and reduced storage usage.
+
+ - 🔎 **Advanced Search:** Find images quickly by resolution, extension, name, folder, and more.
+
+ - 📦 **Bulk Actions:** Resize, convert, or download multiple images directly from the media section.
+
+ - 🎨 **Simple Image Editor:** Edit images with basic editing functionalities without leaving the Umbraco environment.  
 
 ---
 
-# Important notes
+# 📢 Important notes
 
 ### When using uSync
 This package will also process any images imported using the uSync import feature. Be sure to turn off the converter / resizer (via the dashboard) to prevent that. 
 
-### Umbraco Cloud
-This package was not tested in Umbraco Cloud environment, or with any custom FileSystem providers. <br>
-Any testing with those would be very welcome.
 
 ### Older version of Umbraco?
 This package is compatible with Umbraco version 14 and newer.
@@ -25,15 +27,13 @@ If you are looking for similar functionalities for Umbraco 13, take a look at [t
 
 ---
 
-# Installation
+# 🚀 Installation
 Simply add the package by using dotnet add package to install the latest version:
 ```
 dotnet add package Badgernet.Umbraco.MediaTools
 ```
 
-
-
-# Un-installation
+# 🚫 Un-installation
 ```
 dotnet remove package Badgernet.Umbraco.MediaTools
 ```
@@ -41,7 +41,11 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 
 ---
 
-# Changelog
+# 📈 Changelog
+#### 1.0.6
+- Fix: handling of EXIF Orientation fixed
+- Fix: Image-search fixed
+
 #### Version 1.0.5
 - Fix: Corrected Aspect ratio calculation
 
@@ -66,13 +70,13 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 
 ---
 
-# Settings
+# 🛠️ Settings
 You can change settings by accessing the "Upload processing" dashboard in the Media section in backoffice. 
 This package uses settings on per-user basis, settings files are stored under: "App_Plugins/Badgernet.Umbraco.MediaTools/Settings
 
 ---
 
-# Resolution limiter
+# 📏 Resolution limiter
 
 ## Max width
 Resizer will scale images down to fit max width value
@@ -85,7 +89,7 @@ By default, resizing will maintain image aspect ratio.
 
 ---
 
-# WebP Converter
+# ♾️ WebP Converter
 
 ### Convert mode
 "Lossy" mode will produce smaller file size images. <- this is the preferred / default mode  \
@@ -102,7 +106,7 @@ Any images containing this keyword in its filename will be ignored by this packa
 
 ---
 
-### Credits
+### 📣 Credits
 Big thanks to [Kevin Jump](https://github.com/kevinjump) for providing "EarlyAdopter's Guide Umbraco v14" series on [dev.to](https://dev.to/kevinjump/series) 
 
 
