@@ -13,7 +13,7 @@ import {
     UserSettingsDto,
     RecycleMediaData,
     GalleryInfoDto,
-    RenameMediaData, ReplaceImageData, GetMediaInfoData
+    RenameMediaData, ReplaceImageData, GetMediaInfoData, MetadataRemoverExceptions
 } from "../api";
 import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
 
@@ -53,6 +53,14 @@ export class MediaToolsContext extends UmbControllerBase {
 
     #mediaFolders = new UmbArrayState([{name: "All folders", value: ""}],(element) => element);
     public readonly mediaFolders = this.#mediaFolders.asObservable();
+    
+    #metadataRemoverExceptions = new UmbArrayState([{
+        dateTime: false, 
+        cameraInfo: false,
+        gpsInfo: false,
+        authorCopyright: true
+    }],(element) => element);
+    public readonly metadataRemoverExceptions = this.#metadataRemoverExceptions.asObservable();
 
 
     constructor(host: UmbControllerHost) {
@@ -137,6 +145,14 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#targetHeight.setValue(responseData.targetHeight);
             this.#keepOriginals.setValue(responseData.keepOriginals);
             this.#ignoreKeyword.setValue(responseData.ignoreKeyword);
+            this.#metadataRemoverExceptions.setValue(
+                [{
+                    dateTime: responseData.metadataRemoverExceptions.dateTime,
+                    cameraInfo: responseData.metadataRemoverExceptions.cameraInfo,
+                    gpsInfo: responseData.metadataRemoverExceptions.gpsInfo,
+                    authorCopyright: responseData.metadataRemoverExceptions.authorCopyright
+                }]
+            );
         }
     }
 
@@ -156,6 +172,7 @@ export class MediaToolsContext extends UmbControllerBase {
                 targetHeight: this.#targetHeight.getValue(),
                 keepOriginals: this.#keepOriginals.getValue(),
                 ignoreKeyword: this.#ignoreKeyword.getValue(),
+                metadataRemoverExceptions: this.#metadataRemoverExceptions.getValue()
             }
         }
         

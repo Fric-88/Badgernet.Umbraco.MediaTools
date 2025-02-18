@@ -11,6 +11,8 @@ public class UserSettingsDto
     public int TargetHeight { get; set; } = 1080;
     public bool KeepOriginals { get; set; } = false;
     public string IgnoreKeyword {get;set;} = "ignoreme";
+    
+    public MetadataRemoverExceptions MetadataRemoverExceptions { get; set; } = new MetadataRemoverExceptions();
 
 }
 
@@ -18,4 +20,13 @@ public enum ConvertMode
 {
     lossy,
     lossless
+}
+
+public class MetadataRemoverExceptions
+{
+    public bool DateTime { get; set; } = false;
+    public bool CameraInfo { get; set; } = false;
+    public bool GpsInfo { get; set; } = false;
+    public bool AuthorCopyright { get; set; } = true;
 } 
+

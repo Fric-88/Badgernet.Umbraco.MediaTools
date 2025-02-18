@@ -34,6 +34,13 @@ export type KeyValuePair_2 = {
     value: number;
 };
 
+export type MetadataRemoverExceptions = {
+    dateTime: boolean;
+    cameraInfo: boolean;
+    gpsInfo: boolean;
+    authorCopyright: boolean;
+};
+
 export type NotificationHeaderModel = {
     message: string;
     category: string;
@@ -73,6 +80,7 @@ export type UserSettingsDto = {
     targetHeight: number;
     keepOriginals: boolean;
     ignoreKeyword: string;
+    metadataRemoverExceptions: MetadataRemoverExceptions;
 };
 
 export type DownloadMediaData = {

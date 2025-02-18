@@ -70,10 +70,9 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     connectedCallback(): void {
 
         super.connectedCallback();
-        this.loadSettings().then(() => { 
-            console.log("Fetching settings");
+        this.loadSettings().then(() => {
         }).catch(() => {
-            this.#showToastNotification("Oops", "Something went wrong","danger");
+            this.#showToastNotification("Oops", "Cannot load MediaTools settings.","danger");
         });
     }
 
@@ -118,7 +117,6 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     #toggleConverter(){
         this.#mediaToolsContext?.setProperty("converterEnabled", !this.converterEnabled);
     }
-
 
     #resizerState(): string{
         return this.resizerEnabled ? "Enabled" : "Disabled";
@@ -196,7 +194,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
             <uui-box>
                 <div slot="headline">
-                    <uui-label >🧩 WebP Converter <light>(${this.#converterState()})</light></uui-label>
+                    <uui-label >♾️ WebP Converter <light>(${this.#converterState()})</light></uui-label>
                     <uui-label class="muted">Any images being uploaded will be converted to .webp format, resulting in a smaller file size without losing too much image quality.</uui-label>
                 </div>
 
@@ -224,6 +222,24 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         targetProperty="convertMode"
                         @change="${this.handleBoxEvent}">
                 </radio-box>
+
+            </uui-box> 
+            
+            <uui-box>
+                <div slot="headline">
+                    <uui-label >🤐 Metadata remover <light>(${this.#resizerState()})</light></uui-label>
+                    <uui-label class="muted" >Remove metadata from images that you upload to Umbraco.</uui-label>
+                </div>
+                
+                <uui-box headline="Exclude from removing">
+                    
+                    <uui-checkbox name="indeterminate-child" pristine="" value="date time" label="Date & Time"></uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="Camera Info"></uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="GPS Data"></uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="Copyright & Author"></uui-checkbox>
+                </uui-box>
+
+                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
 
             </uui-box> 
 
