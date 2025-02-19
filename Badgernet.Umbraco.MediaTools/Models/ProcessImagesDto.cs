@@ -8,7 +8,7 @@ public class ProcessImagesDto
     public ResizeMode ResizeMode { get; set; } = ResizeMode.FitInside;
     public int Width { get; set; } = 1920;
     public int Height { get; set; } = 1080;
-    public ConvertMode ConvertMode { get; set; } = ConvertMode.lossy;
+    public ConvertMode ConvertMode { get; set; } = ConvertMode.Lossy;
     public int ConvertQuality { get; set; } = 85;
 }
 

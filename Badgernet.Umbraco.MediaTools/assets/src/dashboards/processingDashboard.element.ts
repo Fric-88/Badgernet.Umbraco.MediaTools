@@ -14,7 +14,7 @@ import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/back
 export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
-    #convertModeOptions: ConvertMode[] = ["lossy","lossless"];
+    #convertModeOptions: ConvertMode[] = ["Lossy","Lossless"];
 
     @property() title: string = 'Badgernet.Umbraco.MediaTools dashboard'
 
@@ -105,17 +105,22 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
     //Handles events dispatched within input boxes
     private handleBoxEvent(e : CustomEvent<BoxEventDetail>){
-        let targetProperty: string  = e.detail.targetProperty;
+        let targetProperty: string  = e.detail.targetProperty as keyof UserSettingsDto;
         let newValue: any = e.detail.newValue;
-        this.#mediaToolsContext?.setProperty(targetProperty as keyof UserSettingsDto, newValue);
+        
+        switch (targetProperty as keyof UserSettingsDto){
+            case 
+        }
     }
 
     #toggleResizer(){
-        this.#mediaToolsContext?.setProperty("resizerEnabled", !this.resizerEnabled);
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.resizerEnabled = !this.resizerEnabled;
     }
 
     #toggleConverter(){
-        this.#mediaToolsContext?.setProperty("converterEnabled", !this.converterEnabled);
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.converterEnabled = !this.converterEnabled;
     }
 
     #resizerState(): string{

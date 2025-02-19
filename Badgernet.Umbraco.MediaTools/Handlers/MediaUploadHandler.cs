@@ -57,15 +57,15 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             var settings = _settingsService.GetUserSettings(userKey);
 
             //Read settings object 
-            var resizingEnabled = settings.ResizerEnabled;
-            var convertingEnabled = settings.ConverterEnabled;
-            var convertQuality = settings.ConvertQuality;
-            var ignoreAspectRatio = settings.IgnoreAspectRatio;
-            var targetWidth = settings.TargetWidth;
-            var targetHeight = settings.TargetHeight;
-            var keepOriginals = settings.KeepOriginals;
-            var convertMode = settings.ConvertMode;
-            var ignoreKeyword = settings.IgnoreKeyword;
+            var resizingEnabled = settings.Resizer.Enabled;
+            var convertingEnabled = settings.Converter.Enabled;
+            var convertQuality = settings.Converter.ConvertQuality;
+            var ignoreAspectRatio = settings.Resizer.IgnoreAspectRatio;
+            var targetWidth = settings.Resizer.TargetWidth;
+            var targetHeight = settings.Resizer.TargetHeight;
+            var keepOriginals = settings.General.KeepOriginals;
+            var convertMode = settings.Converter.ConvertMode;
+            var ignoreKeyword = settings.General.IgnoreKeyword;
 
             //Prevent Options being out of bounds 
             if (targetHeight < 1) targetHeight = 1;

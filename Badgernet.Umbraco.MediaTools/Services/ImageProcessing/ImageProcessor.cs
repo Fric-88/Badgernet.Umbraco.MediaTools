@@ -50,7 +50,7 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
         var encoder = new WebpEncoder
             {
                 Quality = convertQuality,
-                FileFormat = convertMode == ConvertMode.lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
+                FileFormat = convertMode == ConvertMode.Lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
             };
 
         try
