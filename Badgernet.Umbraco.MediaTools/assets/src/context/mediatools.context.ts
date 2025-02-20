@@ -3,14 +3,13 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbArrayState, UmbBooleanState,
-         UmbNumberState, UmbObjectState,
-         UmbStringState } from "@umbraco-cms/backoffice/observable-api";
+         UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
 import { ConvertMode, DownloadMediaData, FilterGalleryData,
          GetSettingsData, ProcessImagesData, SetSettingsData,
          UserSettingsDto, RecycleMediaData, RenameMediaData, 
          ReplaceImageData, GetMediaInfoData } from "../api";
-import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
-import {Observable} from "@umbraco-cms/backoffice/observable-api";
+import { clampNumber } from "../code/helperFunctions";
+import { Observable } from "@umbraco-cms/backoffice/observable-api";
 
 
 export type MediaToolProperties =  keyof UserSettingsDto;
@@ -77,7 +76,7 @@ export class MediaToolsContext extends UmbControllerBase {
     } 
     public set targetHeight(value : number){
         value = clampNumber(value, 1, 10000);
-        this.#targetWidth.setValue(value);
+        this.#targetHeight.setValue(value);
     }
     public get keepOriginals() :Observable<boolean> {
         return this.#keepOriginals.asObservable();

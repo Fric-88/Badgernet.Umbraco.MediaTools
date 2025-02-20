@@ -21,7 +21,7 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
     @property({attribute : true, type: Number}) height: number = 1;
     
     @state() convert: boolean = false;
-    @property({attribute: true, type: String}) convertMode: ConvertMode = "lossy";
+    @property({attribute: true, type: String}) convertMode: ConvertMode = "Lossy";
     @property({attribute: true, type: Number}) convertQuality: number = 85;   
 
     @property({type: String}) processButtonState: UUIButtonState; //Allowing parent element change button state

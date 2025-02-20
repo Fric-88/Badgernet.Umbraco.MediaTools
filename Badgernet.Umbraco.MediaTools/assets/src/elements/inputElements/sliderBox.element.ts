@@ -1,18 +1,17 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property } from "@umbraco-cms/backoffice/external/lit";
 import { UUIInputElement} from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../../code/box.event";
+import {BoxControl} from "./BoxControl.ts";
 
 
 @customElement('slider-box')
-export class SliderBox extends UmbElementMixin(LitElement) {
+export class SliderBox extends BoxControl{
 
     constructor() {
         super();
     }
 
     @property({attribute: true}) name: string = "Name";
-    @property({attribute: true}) targetProperty: string = "";
     @property({attribute: true}) description: string = "Description";    
     @property({attribute: true, type: Number}) min = 0;
     @property({attribute: true, type: Number}) max = 100;
@@ -23,9 +22,13 @@ export class SliderBox extends UmbElementMixin(LitElement) {
 
     private handleInput(e: Event){
         let target = e.target as UUIInputElement;
-        
-        const eventDetail: BoxEventDetail  = { targetProperty: this.targetProperty , newValue: target.value };
-        const event = new CustomEvent<BoxEventDetail>("change", {detail: eventDetail});
+
+        //Dispatch change event
+        const event = new CustomEvent("change",{
+            bubbles: true,
+            composed: true,
+            detail: target.value
+        });
         this.dispatchEvent(event);
     }
 

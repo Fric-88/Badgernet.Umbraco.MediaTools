@@ -1,11 +1,11 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state } from "@umbraco-cms/backoffice/external/lit";
 import { UUIToggleElement } from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../../code/box.event";
+import {BoxControl} from "./BoxControl.ts";
 
 
 @customElement('toggle-box')
-export class ToggleBox extends UmbElementMixin(LitElement) {
+export class ToggleBox extends BoxControl{
 
     constructor() {
         super();
@@ -17,7 +17,6 @@ export class ToggleBox extends UmbElementMixin(LitElement) {
     }
 
     @property({attribute: true}) name: string = "Name";
-    @property({attribute: true}) targetProperty: string = "";
     @property({attribute: true}) description: string = "Description";    
     @property({attribute: true, type: Boolean}) checked: boolean = false;
     @property({attribute: true, type: Boolean}) disabled: boolean = false;
@@ -27,8 +26,12 @@ export class ToggleBox extends UmbElementMixin(LitElement) {
         let target = e.target as UUIToggleElement;
         this.label = target.checked ? "Enabled" : "Disabled";
 
-        const eventDetail: BoxEventDetail  = { targetProperty: this.targetProperty , newValue: target.checked };
-        const event = new CustomEvent<BoxEventDetail>("toggle", {detail: eventDetail});
+        //Dispatch change event
+        const event = new CustomEvent("toggle",{
+            bubbles: true,
+            composed: true,
+            detail: target.value
+        });
         this.dispatchEvent(event);
     }
 

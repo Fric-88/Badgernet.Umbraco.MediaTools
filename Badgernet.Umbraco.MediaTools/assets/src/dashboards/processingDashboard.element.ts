@@ -1,14 +1,14 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, query,  ifDefined } from "@umbraco-cms/backoffice/external/lit";
-import { BoxEventDetail } from "../code/box.event";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 import "../elements/inputElements/toggleBox.element.ts"
 import "../elements/inputElements/inputBox.element.ts"
 import "../elements/inputElements/sliderBox.element.ts"
 import "../elements/inputElements/radioBox.element.ts"
-import { UserSettingsDto, ConvertMode } from "../api";
+import { ConvertMode } from "../api";
 import { UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
+import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 
 @customElement('badgernet_umbraco_mediatools-upload-worker-dash')
 export class ProcessingDashboard extends UmbElementMixin(LitElement) {
@@ -32,6 +32,10 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() bytesSavedResizing?: number;
     @state() bytesSavedConverting?: number;
     @state() currentUser?: UmbCurrentUserModel;
+    @state() removeDateTime?: boolean;
+    @state() removeCameraInfo?: boolean;
+    @state() removeGpsInfo?: boolean;
+    @state() removeAuthorInfo?: boolean;
 
     @query('#notificationsContainer') notificationContainer: UUIToastNotificationContainerElement | undefined
 
@@ -51,7 +55,11 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.targetWidth, (_value) => { this.targetWidth = _value; } ); 
             this.observe(_context.targetHeight, (_value) => { this.targetHeight = _value} ); 
             this.observe(_context.keepOriginals, (_value) => { this.keepOriginals = _value} ); 
-            this.observe(_context.ignoreKeyword, (_value) => { this.ignoreKeyword = _value} ); 
+            this.observe(_context.ignoreKeyword, (_value) => { this.ignoreKeyword = _value} );
+            this.observe(_context.removeDateTime, (_value) => { this.removeDateTime = _value} );
+            this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
+            this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
+            this.observe(_context.removeAuthorInfo, (_value) => { this.removeAuthorInfo = _value} );
         });
 
         
@@ -103,13 +111,42 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
     }
 
-    //Handles events dispatched within input boxes
-    private handleBoxEvent(e : CustomEvent<BoxEventDetail>){
-        let targetProperty: string  = e.detail.targetProperty as keyof UserSettingsDto;
-        let newValue: any = e.detail.newValue;
+    //Handles events dispatched within box controls
+    private handleBoxEvent(e : CustomEvent){
         
-        switch (targetProperty as keyof UserSettingsDto){
-            case 
+        if(!this.#mediaToolsContext) return;
+        
+        const control = e.target;
+        if(e.target instanceof BoxControl){
+            const control = e.target as BoxControl;
+            const controlIdentifier = control.controlIdentifier;
+            const controlValue = e.detail;
+
+            switch (controlIdentifier) {
+                case "targetWidth":
+                    this.#mediaToolsContext.targetWidth = controlValue;
+                    break;
+                case "targetHeight":
+                    this.#mediaToolsContext.targetHeight = controlValue;
+                    break;
+                case "ignoreAspectRatio":
+                    this.#mediaToolsContext.ignoreAspectRatio = controlValue;
+                    break;
+                case "convertQuality":
+                    this.#mediaToolsContext.convertQuality = controlValue;
+                    break;
+                case "convertMode":
+                    this.#mediaToolsContext.convertMode = controlValue;
+                    break;
+                case "keepOriginals":
+                    this.#mediaToolsContext.keepOriginals = controlValue;
+                    break;
+                case "ignoreKeyword":
+                    this.#mediaToolsContext.ignoreKeyword = controlValue;
+                    break;
+                default:
+                    return;
+            }
         }
     }
 
@@ -164,7 +201,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     class="boxElement"
                     name="Max Width"
                     description="Image width in px"
-                    targetProperty="targetWidth"
+                    controlIdentifier="targetWidth"
                     type="number"
                     min="1"
                     step="1"
@@ -177,7 +214,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     class="boxElement"
                     name="Max Height"
                     description="Image height in px"
-                    targetProperty="targetHeight"
+                    controlIdentifier="targetHeight"
                     type="number"
                     min="1"
                     step="1"
@@ -190,7 +227,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     class="boxElement"
                     name="Ignore aspect ratio" 
                     description="If turned on, images may get stretched"
-                    targetProperty="ignoreAspectRatio"
+                    controlIdentifier="ignoreAspectRatio"
                     ?checked="${this.ignoreAspectRatio}"
                     .disabled="${!this.resizerEnabled}"
                     @toggle="${this.handleBoxEvent}">
@@ -211,7 +248,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         description="Higher values produces better image quality but also bigger in size. "
                         min=5 max=100 step=5
                         .hideSteps="${false}"
-                        targetProperty="convertQuality"
+                        controlIdentifier="convertQuality"
                         value="${ifDefined(this.convertQuality)}"
                         .disabled="${!this.converterEnabled}"
                         @change="${this.handleBoxEvent}">
@@ -224,7 +261,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         .options=${this.#convertModeOptions}
                         selected="${ifDefined(this.convertMode)}"
                         .disabled="${!this.converterEnabled}"
-                        targetProperty="convertMode"
+                        controlIdentifier="convertMode"
                         @change="${this.handleBoxEvent}">
                 </radio-box>
 
@@ -236,12 +273,20 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted" >Remove metadata from images that you upload to Umbraco.</uui-label>
                 </div>
                 
-                <uui-box headline="Exclude from removing">
+                <uui-box headline="What data should be deleted?" type="display: flex; flex-direction: flex-row; gap: 1rem;">
                     
-                    <uui-checkbox name="indeterminate-child" pristine="" value="date time" label="Date & Time"></uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="Camera Info"></uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="GPS Data"></uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" label="Copyright & Author"></uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="date time" 
+                                  label="Date & Time" .checked="${this.removeDateTime}"> Date & Time
+                    </uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
+                                  label="Camera Info" .checked="${this.removeCameraInfo}">Camera Info
+                    </uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
+                                  label="GPS Data" .checked="${this.removeGpsInfo}">GPS Info
+                    </uui-checkbox>
+                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
+                                  label="Copyright & Author" .checked="${this.removeAuthorInfo}">Copyright & Author
+                    </uui-checkbox>
                 </uui-box>
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
@@ -254,7 +299,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     class="boxElement"
                     name="Keep original images" 
                     description="If turned on, original images do not get deleted"
-                    targetProperty="keepOriginals"
+                    controlIdentifier="keepOriginals"
                     ?checked="${this.keepOriginals}"
                     @toggle="${this.handleBoxEvent}">
                 </toggle-box>
@@ -263,7 +308,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     class="boxElement"
                     name="Ignore Keyword"
                     description="Images containing this keyword in its name will not get processed"
-                    targetProperty="ignoreKeyword"
+                    controlIdentifier="ignoreKeyword"
                     type="text"
                     value="${ifDefined(this.ignoreKeyword)}"  
                     @change="${this.handleBoxEvent}">
