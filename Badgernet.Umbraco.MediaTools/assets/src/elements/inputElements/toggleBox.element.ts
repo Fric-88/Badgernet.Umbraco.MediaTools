@@ -30,7 +30,7 @@ export class ToggleBox extends BoxControl{
         const event = new CustomEvent("toggle",{
             bubbles: true,
             composed: true,
-            detail: target.value
+            detail: target.checked
         });
         this.dispatchEvent(event);
     }

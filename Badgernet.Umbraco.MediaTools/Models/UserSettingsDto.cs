@@ -34,6 +34,7 @@ public class GeneralSettings
 
 public class MetadataRemoverSettings
 {
+    public bool Enabled { get; init; } = true;
     public bool RemoveDateTime { get; set; } = true;
     public bool RemoveCameraInfo { get; set; } = true;
     public bool RemoveGpsInfo { get; set; } = true;

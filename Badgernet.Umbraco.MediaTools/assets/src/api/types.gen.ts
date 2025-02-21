@@ -46,6 +46,7 @@ export type KeyValuePair_2 = {
 };
 
 export type MetadataRemoverSettings = {
+    enabled: boolean;
     removeDateTime: boolean;
     removeCameraInfo: boolean;
     removeGpsInfo: boolean;

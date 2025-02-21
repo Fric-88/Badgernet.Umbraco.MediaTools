@@ -20,6 +20,7 @@ export class MediaToolsContext extends UmbControllerBase {
 
     #resizerEnabled = new UmbBooleanState(false);
     #converterEnabled = new UmbBooleanState(true);
+    #metaRemoverEnabled = new UmbBooleanState(false);
     #convertQuality = new UmbNumberState(80);
     #convertMode = new UmbStringState("Lossy" as ConvertMode);
     #ignoreAspectRatio = new UmbBooleanState(false);
@@ -44,6 +45,12 @@ export class MediaToolsContext extends UmbControllerBase {
     } 
     public set converterEnabled(value: boolean){
         this.#converterEnabled.setValue(value);
+    }
+    public get metaRemoverEnabled() : Observable<boolean>{
+        return this.#metaRemoverEnabled.asObservable();
+    }
+    public set metaRemoverEnabled(value : boolean){
+        this.#metaRemoverEnabled.setValue(value);
     }
     public get convertQuality() : Observable<number> {
         return this.#convertQuality.asObservable();
@@ -145,6 +152,7 @@ export class MediaToolsContext extends UmbControllerBase {
         if(responseData) {
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
             this.#converterEnabled.setValue(responseData.converter.enabled);
+            
             this.#convertMode.setValue(responseData.converter.convertMode);
             this.#convertQuality.setValue(responseData.converter.convertQuality);
             this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
@@ -152,6 +160,7 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#targetHeight.setValue(responseData.resizer.targetHeight);
             this.#keepOriginals.setValue(responseData.general.keepOriginals);
             this.#ignoreKeyword.setValue(responseData.general.ignoreKeyword);
+            this.#metaRemoverEnabled.setValue(responseData.metadataRemover.enabled);
             this.#removeDateTime.setValue(responseData.metadataRemover.removeDateTime);
             this.#removeCameraInfo.setValue(responseData.metadataRemover.removeCameraInfo);
             this.#removeGpsInfo.setValue(responseData.metadataRemover.removeGpsInfo);
@@ -175,6 +184,7 @@ export class MediaToolsContext extends UmbControllerBase {
                 convertQuality: this.#convertQuality.getValue()
             },
             metadataRemover: {
+                enabled: this.#metaRemoverEnabled.getValue(),
                 removeDateTime: this.#removeDateTime.getValue(),
                 removeGpsInfo: this.#removeGpsInfo.getValue(),
                 removeCameraInfo: this.#removeCameraInfo.getValue(),

@@ -9,6 +9,7 @@ import { ConvertMode } from "../api";
 import { UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
+import {verboseBool} from "../code/helperFunctions.ts";
 
 @customElement('badgernet_umbraco_mediatools-upload-worker-dash')
 export class ProcessingDashboard extends UmbElementMixin(LitElement) {
@@ -17,6 +18,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     #convertModeOptions: ConvertMode[] = ["Lossy","Lossless"];
 
     @property() title: string = 'Badgernet.Umbraco.MediaTools dashboard'
+
 
     @state() resizerEnabled?: boolean;
     @state() converterEnabled?: boolean;
@@ -27,11 +29,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() targetHeight?: number;
     @state() keepOriginals?: boolean;
     @state() ignoreKeyword?: string;
-    @state() resizerCounter?: number;
-    @state() converterCounter?: number;
-    @state() bytesSavedResizing?: number;
-    @state() bytesSavedConverting?: number;
     @state() currentUser?: UmbCurrentUserModel;
+    @state() metaRemoverEnabled?: boolean;
     @state() removeDateTime?: boolean;
     @state() removeCameraInfo?: boolean;
     @state() removeGpsInfo?: boolean;
@@ -60,6 +59,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
             this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
             this.observe(_context.removeAuthorInfo, (_value) => { this.removeAuthorInfo = _value} );
+            this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
         });
 
         
@@ -115,8 +115,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     private handleBoxEvent(e : CustomEvent){
         
         if(!this.#mediaToolsContext) return;
-        
-        const control = e.target;
+
         if(e.target instanceof BoxControl){
             const control = e.target as BoxControl;
             const controlIdentifier = control.controlIdentifier;
@@ -149,6 +148,24 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             }
         }
     }
+    
+    #toggleDateTime(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.removeDateTime = !this.removeDateTime
+    }
+
+    #toggleCameraInfo(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.removeCameraInfo = !this.removeCameraInfo
+    }
+    #toggleGpsInfo(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.removeGpsInfo = !this.removeGpsInfo
+    }
+    #toggleAuthorInfo(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.removeAuthorInfo = !this.removeAuthorInfo
+    }
 
     #toggleResizer(){
         if(!this.#mediaToolsContext) return;
@@ -159,13 +176,10 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         if(!this.#mediaToolsContext) return;
         this.#mediaToolsContext.converterEnabled = !this.converterEnabled;
     }
-
-    #resizerState(): string{
-        return this.resizerEnabled ? "Enabled" : "Disabled";
-    }
-
-    #converterState(): string{
-        return this.converterEnabled ? "Enabled" : "Disabled";
+    
+    #toggleMetaRemover(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.metaRemoverEnabled = !this.metaRemoverEnabled;
     }
 
     #showToastNotification(headline: string , message: string , color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
@@ -191,7 +205,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         <div class="dashboard">
             <uui-box>
                 <div slot="headline">
-                    <uui-label >📏 Resolution limiter <light>(${this.#resizerState()})</light></uui-label>
+                    <uui-label >📏 Resolution limiter <light>(${verboseBool(this.resizerEnabled, "Enabled", "Disabled")})</light></uui-label>
                     <uui-label class="muted" >Any images being uploaded that exceed the specified resolution will be sized-down to the desired resolution.</uui-label>
                 </div>
 
@@ -236,7 +250,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
             <uui-box>
                 <div slot="headline">
-                    <uui-label >♾️ WebP Converter <light>(${this.#converterState()})</light></uui-label>
+                    <uui-label >♾️ WebP Converter <light>(${verboseBool(this.converterEnabled, "Enabled", "Disabled")})</light></uui-label>
                     <uui-label class="muted">Any images being uploaded will be converted to .webp format, resulting in a smaller file size without losing too much image quality.</uui-label>
                 </div>
 
@@ -269,27 +283,48 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             
             <uui-box>
                 <div slot="headline">
-                    <uui-label >🤐 Metadata remover <light>(${this.#resizerState()})</light></uui-label>
+                    <uui-label >🧹 Metadata remover <light>(${verboseBool(this.metaRemoverEnabled, "Enabled", "Disabled")})</light></uui-label>
                     <uui-label class="muted" >Remove metadata from images that you upload to Umbraco.</uui-label>
                 </div>
-                
-                <uui-box headline="What data should be deleted?" type="display: flex; flex-direction: flex-row; gap: 1rem;">
-                    
-                    <uui-checkbox name="indeterminate-child" pristine="" value="date time" 
-                                  label="Date & Time" .checked="${this.removeDateTime}"> Date & Time
-                    </uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
-                                  label="Camera Info" .checked="${this.removeCameraInfo}">Camera Info
-                    </uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
-                                  label="GPS Data" .checked="${this.removeGpsInfo}">GPS Info
-                    </uui-checkbox>
-                    <uui-checkbox name="indeterminate-child" pristine="" value="camera data" 
-                                  label="Copyright & Author" .checked="${this.removeAuthorInfo}">Copyright & Author
-                    </uui-checkbox>
-                </uui-box>
 
-                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
+                <p>Select which data should automatically be removed:</p>
+                
+                
+                <uui-button-group id="extensionButtons" style="margin-bottom: 1rem;">
+
+                    <uui-button look="${this.removeDateTime ? "primary" : "secondary"}" color="default"
+                                .disabled="${!this.metaRemoverEnabled}"
+                                @click="${this.#toggleDateTime}">
+                        
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeDateTime ? "check" : "remove"}"></uui-icon>
+                        Date & Time
+                    </uui-button>
+
+                    <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
+                                .disabled="${!this.metaRemoverEnabled}"
+                                @click="${this.#toggleCameraInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
+                        Camera info
+                    </uui-button>
+
+                    <uui-button look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
+                                .disabled="${!this.metaRemoverEnabled}"
+                                @click="${this.#toggleGpsInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeGpsInfo ? "check" : "remove"}"></uui-icon>
+                        GPS Info
+                    </uui-button>
+
+                    <uui-button look="${this.removeAuthorInfo ? "primary" : "secondary"}" color="default"
+                                .disabled="${!this.metaRemoverEnabled}"
+                                @click="${this.#toggleAuthorInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeAuthorInfo ? "check" : "remove"}"></uui-icon>
+                        Author & Copyright
+                    </uui-button>
+
+                </uui-button-group>
+                
+
+                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
 
             </uui-box> 
 
@@ -345,6 +380,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             font-size: 0.8rem;
             font-weight: lighter;
         }
+        
+
 
         .boxElement{
             display: inline-block;

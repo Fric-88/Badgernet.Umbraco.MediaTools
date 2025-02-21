@@ -7,6 +7,8 @@
 
  - 📏 **Automatic Image Optimization:** Automatically downsizes and converts images to the WebP format upon upload for better performance and reduced storage usage.
 
+ - 🧹 **Automatic Metadata remover:** Automatically removes Metadata from image files upon uploading then. 
+
  - 🔎 **Advanced Search:** Find images quickly by resolution, extension, name, folder, and more.
 
  - 📦 **Bulk Actions:** Resize, convert, or download multiple images directly from the media section.
