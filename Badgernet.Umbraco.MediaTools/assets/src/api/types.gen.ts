@@ -40,6 +40,10 @@ export type ImageMediaDto = {
     size: string;
 };
 
+export type ImageMetadataDto = {
+    exif: Array<(Tuple_2)>;
+};
+
 export type KeyValuePair_2 = {
     key?: string | null;
     value: number;
@@ -89,6 +93,11 @@ export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';
 
 export type SizeFilter = 'AllSizes' | 'BiggerThan' | 'SmallerThan';
 
+export type Tuple_2 = {
+    item1?: string | null;
+    item2?: string | null;
+};
+
 export type UserSettingsDto = {
     resizer: ResizerSettings;
     converter: ConverterSettings;
@@ -109,6 +118,12 @@ export type FilterGalleryData = {
 export type FilterGalleryResponse = Array<(ImageMediaDto)>;
 
 export type GetGalleryInfoResponse = GalleryInfoDto;
+
+export type GetMetadataData = {
+    id?: number;
+};
+
+export type GetMetadataResponse = ImageMetadataDto;
 
 export type ListFoldersResponse = Array<(string)>;
 
@@ -190,6 +205,17 @@ export type $OpenApiTs = {
                  * OK
                  */
                 200: GalleryInfoDto;
+            };
+        };
+    };
+    '/gallery/getMetadata': {
+        get: {
+            req: GetMetadataData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: ImageMetadataDto;
             };
         };
     };

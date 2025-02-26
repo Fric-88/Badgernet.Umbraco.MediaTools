@@ -10,6 +10,11 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
 using Badgernet.Umbraco.MediaTools.Helpers;
+using SixLabors.ImageSharp.Metadata;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using SixLabors.ImageSharp.Metadata.Profiles.Icc;
+using SixLabors.ImageSharp.Metadata.Profiles.Iptc;
+using SixLabors.ImageSharp.Metadata.Profiles.Xmp;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -76,8 +81,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(mediaInfo);
         
     }
-
-
+    
     [HttpPost("filter")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
     public IActionResult FilterGallery(FilterImagesDto requestData)
@@ -505,12 +509,30 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
         
         
+        using var oldImageStream =  fileManager.ReadFile(oldFilePath);
+        if (oldImageStream == null)
+        {
+            response.Message = $"Image with id {id}  cannot be read";
+            response.Status = ResponseStatus.Error;
+            logger.LogError("Image with id {id} cannot be read.", id);
+            return BadRequest(response);
+        }
+        
+        using var oldImage = Image.Load(oldImageStream);
         using var fileStream = imageFile.OpenReadStream();
-        using var img =Image.Load(fileStream);
+        using var newImage =Image.Load(fileStream);
+        
+        //Copy metadata from old image and change resolution values
+        imageProcessor.CopyMetadata(oldImage, newImage);
+        newImage.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, newImage.Width);
+        newImage.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, newImage.Height );
+        newImage.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, newImage.Width);
+        newImage.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, newImage.Height);
+        
         
         using var converted = new MemoryStream();
         
-        img.Save(converted, encoder);
+        newImage.Save(converted, encoder);
         converted.Position = 0;
         
         var writeSuccess = fileManager.WriteFile(newFilePath, converted);
@@ -518,7 +540,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         if (writeSuccess)
         {
             mediaHelper.SetUmbFilename(imageMedia, newFilePath);
-            mediaHelper.SetUmbResolution(imageMedia, new Size(img.Width, img.Height));
+            mediaHelper.SetUmbResolution(imageMedia, new Size(newImage.Width, newImage.Height));
             mediaHelper.SetUmbBytes(imageMedia,converted.Length);
             mediaHelper.SaveMedia(imageMedia);
             fileManager.DeleteFile(oldFilePath);
@@ -529,6 +551,55 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
 
     }
+
+    [HttpGet("getMetadata")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
+    public IActionResult GetMetadata(int id)
+    {
+        var imageMedia = mediaHelper.GetMediaById(id);
+        if (imageMedia == null)
+        {
+            logger.LogError("Image with id {id} cannot be found.", id);
+            return BadRequest();
+        }
+
+        try
+        {
+            var filepath = mediaHelper.GetRelativePath(imageMedia);
+            using var imageStream = fileManager.ReadFile(filepath);
+
+            if (imageStream == null)
+            {
+                logger.LogError("Could not read image with id {id}.", id);
+                return BadRequest();
+            }
+
+            var metadata = imageProcessor.ReadMetadata(imageStream);
+
+            var exifProfile = metadata.ExifProfile;
+            var cicpProfile = metadata.CicpProfile;
+            var iccProfile = metadata.IccProfile;
+            var xmpProfile = metadata.XmpProfile;
+            var iptcProfile = metadata.IptcProfile;
+
+            var metadataDto = new ImageMetadataDto();
+            if (exifProfile == null) return Ok(metadataDto);
+            
+            foreach (var value in exifProfile.Values)   
+            {
+                metadataDto.Exif.Add(new Tuple<string, string>(value.Tag.ToString(),value.GetValue()?.ToString() ?? ""));
+            }
+
+
+            return Ok(metadataDto);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message, ex);
+            return BadRequest(ex.Message);
+        }
+    }
+    
 }
 
 

@@ -8,7 +8,13 @@ import {
     downloadMedia,
     listFolders,
     renameMedia,
-    ReplaceImageData, ReplaceImageResponse, replaceImage, GetMediaInfoResponse, getMediaInfo, GetMediaInfoData
+    ReplaceImageData,
+    ReplaceImageResponse,
+    replaceImage,
+    GetMediaInfoResponse,
+    getMediaInfo,
+    GetMediaInfoData,
+    GetMetadataData, GetMetadataResponse, getMetadata
 } from "../api";
 
 import {
@@ -70,7 +76,9 @@ export class MediaToolsManagementDataSource {
     async getMediaInfo(requestData: GetMediaInfoData):Promise<UmbDataSourceResponse<GetMediaInfoResponse>>{
         return await tryExecuteAndNotify(this.#host, getMediaInfo(requestData));
     }
-    
+    async getMediaMetadata(requestData: GetMetadataData ): Promise<UmbDataSourceResponse<GetMetadataResponse>>{
+        return await tryExecuteAndNotify(this.#host, getMetadata(requestData));
+    }
 
     
 }

@@ -4,15 +4,15 @@ import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import { UmbArrayState, UmbBooleanState,
          UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
-import { ConvertMode, DownloadMediaData, FilterGalleryData,
-         GetSettingsData, ProcessImagesData, SetSettingsData,
-         UserSettingsDto, RecycleMediaData, RenameMediaData, 
-         ReplaceImageData, GetMediaInfoData } from "../api";
+import {
+    ConvertMode, DownloadMediaData, FilterGalleryData,
+    GetSettingsData, ProcessImagesData, SetSettingsData,
+    UserSettingsDto, RecycleMediaData, RenameMediaData,
+    ReplaceImageData, GetMediaInfoData, GetMetadataData
+} from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
 
-
-export type MediaToolProperties =  keyof UserSettingsDto;
 export type MediaFolder = {name: string, value: string};
 export class MediaToolsContext extends UmbControllerBase {
 
@@ -265,6 +265,10 @@ export class MediaToolsContext extends UmbControllerBase {
     }
     async getMediaInfo(requestData: GetMediaInfoData){
         return await this.#repository.getMediaInfo(requestData); 
+    }
+    
+    async getMediaMetadata(requestData: GetMetadataData){
+        return await this.#repository.getMediaMetadata(requestData);
     }
 }
 

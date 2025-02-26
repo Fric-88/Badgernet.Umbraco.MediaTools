@@ -9,7 +9,7 @@ import {
     GetSettingsData,
     SetSettingsData,
     RenameMediaData,
-    ReplaceImageData, GetMediaInfoData
+    ReplaceImageData, GetMediaInfoData, GetMetadataData
 } from "../api";
 
 export class MediaToolsRepository extends UmbControllerBase {
@@ -51,5 +51,8 @@ export class MediaToolsRepository extends UmbControllerBase {
     }
     async getMediaInfo(requestData: GetMediaInfoData){
         return this.#datasource.getMediaInfo(requestData);
+    }
+    async getMediaMetadata(requestData: GetMetadataData){
+        return this.#datasource.getMediaMetadata(requestData);
     }
 }

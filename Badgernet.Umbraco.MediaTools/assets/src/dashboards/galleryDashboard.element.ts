@@ -301,7 +301,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
-    private showImagePreview(e: Event){
+    private async showImagePreview(e: Event){
         const previewElement = this.previewModal as ImagePreview;
 
         if(previewElement){
@@ -310,8 +310,9 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
                 let imgPath = target.dataset.imgPath ?? "";
                 let imgName = target.dataset.imgName ?? "";
+                let imgId = Number(target.dataset.imgId ?? "0");
 
-                previewElement.showPreview(imgName, imgPath);
+                await previewElement.showPreview(imgName, imgPath, imgId);
             
         }
     }
@@ -530,6 +531,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                         style="background: url('${img.path}?width=45&height=45')"
                                         data-img-name="${img.name}"
                                         data-img-path="${img.path}"
+                                        data-img-id="${img.id}"
                                         @click="${this.showImagePreview}">
                                     </div>
                                 </uui-table-cell>

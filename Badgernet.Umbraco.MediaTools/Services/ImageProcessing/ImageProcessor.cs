@@ -12,8 +12,11 @@ using SixLabors.ImageSharp.Formats.Qoi;
 using SixLabors.ImageSharp.Formats.Tga;
 using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Webp;
+using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Web;
+using ImageMetadata = SixLabors.ImageSharp.Metadata.ImageMetadata;
 
 namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 
@@ -32,7 +35,15 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
                 x.AutoOrient();
                 x.Resize(targetResolution.Width, targetResolution.Height);
             });
-
+            
+            img.Metadata.HorizontalResolution = img.Width;
+            img.Metadata.VerticalResolution = img.Height;
+            img.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, img.Width);
+            img.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, img.Height );
+            img.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, img.Width);
+            img.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, img.Height);
+            
+            
             var resizedStream = new MemoryStream();
             img.Save(resizedStream, format);
             resizedStream.Position = 0;
@@ -57,6 +68,7 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
         {
             using var img = Image.Load(imageStream);
             img.Mutate(x => x.AutoOrient() );
+
             
             var converted = new MemoryStream();
             
@@ -73,9 +85,6 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
         }
 
     }
-
-
-
     public Size CalculateResolution(Size originalResolution, Size targetResolution, bool preserveAspectRatio = true)
         {
             if (!preserveAspectRatio)
@@ -95,7 +104,12 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
             return new Size(newWidth, newHeight);
         }
-
+    public ImageMetadata ReadMetadata(MemoryStream imageStream)
+    {
+        using var img = Image.Load(imageStream);
+        var data = img.Metadata;
+        return data;
+    }
     public ImageEncoder GetEncoder(string filePath)
     {
         var extension = Path.GetExtension(filePath).ToLower();
@@ -114,5 +128,14 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             _ => new WebpEncoder()
         };
         ;
+    }
+    public void CopyMetadata(Image sourceImage, Image destinationImage)
+    {
+        destinationImage.Metadata.ExifProfile = sourceImage.Metadata.ExifProfile?.DeepClone();
+        destinationImage.Metadata.CicpProfile = sourceImage.Metadata.CicpProfile?.DeepClone();
+        destinationImage.Metadata.IccProfile = sourceImage.Metadata.IccProfile?.DeepClone();
+        destinationImage.Metadata.IptcProfile = sourceImage.Metadata.IptcProfile?.DeepClone();
+        destinationImage.Metadata.HorizontalResolution = destinationImage.Width;
+        destinationImage.Metadata.VerticalResolution = destinationImage.Height;
     }
 }

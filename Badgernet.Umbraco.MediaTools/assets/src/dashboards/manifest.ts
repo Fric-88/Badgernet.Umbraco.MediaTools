@@ -9,7 +9,7 @@ const dashboards: Array<ManifestDashboard> = [
         js: ()=> import('./galleryDashboard.element.ts'),
         weight: -10,
         meta: {
-            label: '🗃️ Gallery',
+            label: '🔍️ My Media',
             pathname: 'mediatools-gallery'
         },
         conditions: [

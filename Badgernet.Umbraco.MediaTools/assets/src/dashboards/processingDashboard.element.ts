@@ -183,7 +183,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     }
 
     #showToastNotification(headline: string , message: string , color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
-        const con = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
+        const tainer = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
         const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
         toast.color = color;
         const toastLayout = document.createElement('uui-toast-notification-layout');
@@ -194,8 +194,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         messageEl.innerHTML = message;
         toastLayout.appendChild(messageEl);
 
-        if (con) {
-            con.appendChild(toast);
+        if (tainer) {
+            tainer.appendChild(toast);
         }
     }
 
@@ -324,7 +324,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                 </uui-button-group>
                 
 
-                <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
 
             </uui-box> 
 

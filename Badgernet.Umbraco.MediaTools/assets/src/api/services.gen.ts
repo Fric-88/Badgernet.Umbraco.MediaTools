@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
+import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, GetMetadataData, GetMetadataResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
 
 /**
  * @param data The data for the request.
@@ -38,6 +38,20 @@ export const filterGallery = (data: FilterGalleryData = {}): CancelablePromise<F
 export const getGalleryInfo = (): CancelablePromise<GetGalleryInfoResponse> => { return __request(OpenAPI, {
     method: 'GET',
     url: '/gallery/get-info'
+}); };
+
+/**
+ * @param data The data for the request.
+ * @param data.id
+ * @returns unknown OK
+ * @throws ApiError
+ */
+export const getMetadata = (data: GetMetadataData = {}): CancelablePromise<GetMetadataResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/gallery/getMetadata',
+    query: {
+        id: data.id
+    }
 }); };
 
 /**

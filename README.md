@@ -11,7 +11,7 @@
 
  - 🔎 **Advanced Search:** Find images quickly by resolution, extension, name, folder, and more.
 
- - 📦 **Bulk Actions:** Resize, convert, or download multiple images directly from the media section.
+ - 📦 **Bulk Actions:** Resize, convert, change metadata or download multiple images directly from the media section.
 
  - 🎨 **Simple Image Editor:** Edit images with basic editing functionalities without leaving the Umbraco environment.  
 
@@ -44,6 +44,12 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+
+#### 1.0.7
+- Image Metadata viewer/editor
+- Automatic Metadata remover (upon uploading)
+- Metadata adjustments when resizing and editing
+
 #### 1.0.6
 - Fix: handling of EXIF Orientation fixed
 - Fix: Image-search fixed
