@@ -41,7 +41,11 @@ export type ImageMediaDto = {
 };
 
 export type ImageMetadataDto = {
-    exif: Array<(Tuple_2)>;
+    verticalResolution: number;
+    horizontalResolution: number;
+    decodedImageFormat: string;
+    resolutionUnits: string;
+    exifValues: Array<(Tuple_2)>;
 };
 
 export type KeyValuePair_2 = {

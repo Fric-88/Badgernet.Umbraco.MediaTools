@@ -8,5 +8,9 @@ namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class ImageMetadataDto
 {
-    public List<Tuple<string, string>> Exif { get; set; } = new();
+    public double VerticalResolution { get; set; } = 0;
+    public double HorizontalResolution { get; set; } = 0;
+    public string DecodedImageFormat { get; set; } = string.Empty;
+    public string ResolutionUnits { get; set; } = string.Empty;
+    public List<Tuple<string, string>> ExifValues { get; set; } = [];
 }

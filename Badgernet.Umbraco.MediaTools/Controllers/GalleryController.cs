@@ -583,12 +583,25 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             var iptcProfile = metadata.IptcProfile;
 
             var metadataDto = new ImageMetadataDto();
-            if (exifProfile == null) return Ok(metadataDto);
+
+            metadataDto.VerticalResolution = metadata.VerticalResolution;
+            metadataDto.HorizontalResolution = metadata.HorizontalResolution;
+            metadataDto.DecodedImageFormat = metadata.DecodedImageFormat?.ToString() ?? string.Empty;
+            metadataDto.ResolutionUnits = metadata.ResolutionUnits.ToString();
             
-            foreach (var value in exifProfile.Values)   
+            if (exifProfile != null)
             {
-                metadataDto.Exif.Add(new Tuple<string, string>(value.Tag.ToString(),value.GetValue()?.ToString() ?? ""));
+                foreach (var value in exifProfile.Values)   
+                {
+                    if (value.IsArray)
+                    {
+                        
+                    }
+                    metadataDto.ExifValues.Add(new Tuple<string, string>(value.Tag.ToString(),value.GetValue()?.ToString() ?? ""));
+                }                
             }
+            
+
 
 
             return Ok(metadataDto);

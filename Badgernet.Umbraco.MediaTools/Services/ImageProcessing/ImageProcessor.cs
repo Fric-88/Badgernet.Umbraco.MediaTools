@@ -43,6 +43,7 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
             img.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, img.Width);
             img.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, img.Height);
             
+        
             
             var resizedStream = new MemoryStream();
             img.Save(resizedStream, format);

@@ -21,6 +21,7 @@ import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";
 import "../elements/renameMediaDialog.element.ts"
 import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
 import "../elements/imageEditorDialog.element.ts"
+import AcceptRejectDialog from "../elements/acceptRejectDialog.element.ts";
 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
@@ -38,7 +39,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
     @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
-
+    @query("#acceptRejectDialog") acceptRejectDialog!: AcceptRejectDialog;
 
     constructor() {
         super();
@@ -56,6 +57,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         super.connectedCallback();
     }
 
+    //Toggling row selection
     private handleRowClicked(e: Event){
         const target = e.target;
 
@@ -81,6 +83,52 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
+    //Selects all rows
+    private toggleSelectAll(e: Event){
+        let target = e.target;
+
+        if(target instanceof UUICheckboxElement){
+            let isSelected = this.itemsList.count() == this.itemsList.countSelectedItems();
+
+            if(isSelected){
+                this.itemsList.unselectAll();
+                this.allSelected = false;
+            }
+            else{
+                this.itemsList.selectAll();
+                this.allSelected = true;
+            }
+            this.requestUpdate();
+        }
+
+    }
+
+    //Fetches and updates one image row -> e.detail must be image-Id
+    private async updateImageRow(e: CustomEvent){
+        const imageId = e.detail as number;
+
+        if(!imageId && imageId < 0) return;
+
+        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
+
+        if(response && !response.error){
+            const updatedIMage = response.data as ImageMediaDto;
+
+            const selectedImages = this.itemsList.getSelectedItems();
+
+            if(selectedImages.length > 0 ){
+                for(let i= 0 ; i < selectedImages.length ; i++ ){
+                    if(selectedImages[i].id === updatedIMage.id){
+                        this.itemsList.replace(selectedImages[i], updatedIMage);
+                        this.requestUpdate(); //Redraw list 
+                        break; //Exit after first hit
+                    }
+                }
+            }
+        }
+    }
+
+    //Changes pages (pagination) 
     private handleChangePage(e: Event){
         const target = e.target;
         if(target instanceof UUIPaginationElement){
@@ -88,6 +136,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
+    //Searches media section 
     private async searchGallery(e: CustomEvent){
         let target = e.target;
 
@@ -116,107 +165,62 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
-    private toggleSelectAll(e: Event){
-        let target = e.target;
+    //Opens popup to rename media
+    private async renameMedia(e: Event){
 
-        if(target instanceof UUICheckboxElement){
-            let isSelected = this.itemsList.count() == this.itemsList.countSelectedItems();
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(!imgRow) return;
+        
+        const imgIndex = Number(imgRow.dataset.imageRow ?? -1);
+        if(imgIndex < 0)return;
+        
+        const image = this.itemsList.itemAt(imgIndex);
+        if(!image) return;
 
-            if(isSelected){
-                this.itemsList.unselectAll();
-                this.allSelected = false;
+
+        const dialog = this.renameMediaDialog as RenameMediaDialog;
+        if(!dialog) return;
+        
+        dialog.showModal(image.name, async () => {
+
+            const requestData: RenameMediaData = {
+                mediaId: image.id,
+                newName: dialog.mediaName
             }
-            else{
-                this.itemsList.selectAll();
-                this.allSelected = true;
-            }
-            this.requestUpdate();
-        }
 
-    }
-    
-    
-    //Fetches and updates one image row -> e.detail must be image-Id
-    private async updateImageRow(e: CustomEvent){
-        const imageId = e.detail as number;
-        
-        if(!imageId && imageId < 0) return;
-        
-        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
-        
-        if(response && !response.error){
-            const updatedIMage = response.data as ImageMediaDto;
-            
-            const selectedImages = this.itemsList.getSelectedItems();
-            
-            if(selectedImages.length > 0 ){
-                for(let i= 0 ; i < selectedImages.length ; i++ ){
-                    if(selectedImages[i].id === updatedIMage.id){
-                        this.itemsList.replace(selectedImages[i], updatedIMage);
-                        this.requestUpdate(); //Redraw list 
-                        break; //Exit after first hit
+            const response = await this.#mediaToolsContext?.renameMedia(requestData);
+            if(response){
+                const operationResponse = response.data as OperationResponse;
+                if(operationResponse){
+                    if(operationResponse.status === "Success"){
+                        this.#showToastNotification("Done",operationResponse.message, "","positive");
+                        image.name = dialog.mediaName;
+                        this.requestUpdate();
                     }
                 }
             }
-            
-            
-        }
+        });
     }
     
-    private async renameMedia(e: Event){
-        
-        if(e.target instanceof ProcessImagePanel){
-            const dialog = this.renameMediaDialog as RenameMediaDialog;
-            
-            //Exactly one element has to be selected
-            if(this.itemsList.countSelectedItems() !== 1) return;
-            
-            let selectedImage = this.itemsList.getSelectedItems()[0];
-            
-            if(selectedImage == undefined) return;
-            
-            if(dialog){
-                dialog.showModal(selectedImage.name, async () => {
-                    
-                    const requestData: RenameMediaData = {
-                        mediaId: selectedImage.id,
-                        newName: dialog.mediaName
-                    }
-                    
-                    const response = await this.#mediaToolsContext?.renameMedia(requestData);
-                    if(response){
-                        const operationResponse = response.data as OperationResponse;
-                        if(operationResponse){
-                            if(operationResponse.status === "Success"){
-                                this.#showToastNotification("Done",operationResponse.message, "","positive");
-                                selectedImage.name = dialog.mediaName;
-                                this.requestUpdate();
-                            }
-                        }
-                    }    
-                });
-            }
-        }
-    }
-    
+    //Opens popup image editor
     private editMedia(e: Event){
-        if(e.target instanceof ProcessImagePanel){
-
-            //Get selected image  
-            let selectedImage = this.itemsList.getSelectedItems()[0];
-            if(selectedImage == undefined) return;
-            if(this.itemsList.countSelectedItems() !== 1) return;
-            
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
             //Find editor element 
             const editor = this.editImageDialog as ImageEditorDialog;
             if (editor == undefined) return;
+
+            const filePath = imgRow.dataset.imagePath;
+            const imageId = Number(imgRow.dataset.imageId ?? -1);
+            
+            if(!filePath || imageId < 0) return;
             
             //Open editor
-            const imageId = selectedImage.id;
-            editor.openEditor(900, 900, selectedImage.path, imageId);
+            editor.openEditor(900, 900, filePath, imageId);
         }
     }
-
+    
+    //Lets selected images get resized and/or converted
     private async processSelectedImages(e: CustomEvent<ProcessingSettings>){
         let target = e.target;
         
@@ -300,78 +304,110 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
         }
     }
-
+    
+    //Opens image preview popup
     private async showImagePreview(e: Event){
-        const previewElement = this.previewModal as ImagePreview;
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
+            const previewElement = this.previewModal as ImagePreview;
+            if(previewElement) {
 
-        if(previewElement){
+                let imgId = Number(imgRow.dataset.imageId ?? -1);
+                if (imgId < 0) return;
 
-            const target = e.target as HTMLDivElement;
-
-                let imgPath = target.dataset.imgPath ?? "";
-                let imgName = target.dataset.imgName ?? "";
-                let imgId = Number(target.dataset.imgId ?? "0");
-
-                await previewElement.showPreview(imgName, imgPath, imgId);
-            
+                await previewElement.showPreview(imgId);
+            }
         }
     }
+    
+    //Moves single image to trash
+    private async recycleSingleImage(e: Event){
+        if(!this.#mediaToolsContext)return; 
+        
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(!imgRow) return;
+        let imgId = Number(imgRow.dataset.imageId ?? -1);
+        if(imgId < 0) return;
+        
+        const dialog = this.acceptRejectDialog;
+        if(! dialog) return;
+        dialog.showModal("Are you sure?", "Do you want to recycle media?", "Yes", "No","", async () => {
+            
+            const response = await this.#mediaToolsContext?.trashMedia({requestBody: [imgId]});
 
-    private async trashSelectedImages(e: Event){
+            if(response) {
+                let responseData = response.data as OperationResponse;
+                if (responseData) {
+                    const trashedIds = responseData.payload as Array<number>;
+
+                    //There should only be one id 
+                    if (trashedIds.length === 1) {
+                        let allItems = this.itemsList.getItems();
+                        for (let x = 0; x < allItems.length; x++) {
+                            if (trashedIds[0] == allItems[x].id) {
+                                this.itemsList.remove(allItems[x]);
+                            }
+                        }
+                    }
+
+                    this.#showOperationNotification(responseData)
+                    this.requestUpdate();
+                }
+            }
+        });
+    }
+
+    //Moves selected media to trash
+    private async recycleSelectedImages(e: Event){
         let target = e.target;
 
         if(target instanceof ProcessImagePanel){
 
             const selectedImages = this.itemsList.getSelectedItems();
+            
+            const acceptDialog = this.acceptRejectDialog;
+            if(!acceptDialog) return;
 
-            //Set buttons states and visibility
-            target.trashButtonState = "waiting";
-            target.processButtonEnabled = false;
-            target.downloadButtonEnabled = false;
+            acceptDialog.showModal("Are you sure?", "Do you want to recycle " + selectedImages.length +" media?", "Yes", "No","", async () => {
 
+                //Set buttons states and visibility
+                target.trashButtonState = "waiting";
+                target.processButtonEnabled = false;
+                target.downloadButtonEnabled = false;
 
-            const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
+                const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
 
-            if(response){
-                let responseData = response.data;
-                if(responseData){
+                if(response){
+                    let responseData = response.data;
+                    if(responseData){
 
-                    const trashedIds = responseData.payload as Array<number>;
+                        const trashedIds = responseData.payload as Array<number>;
 
-                    //This is slow - removing trashed images from the list
-                    for(let i = 0; i < trashedIds.length; i++)
-                    {
-                        for(let x = 0; x < selectedImages.length; x ++){
-                            if(trashedIds[i] == selectedImages[x].id){
-                                this.itemsList.remove(selectedImages[x]);
+                        //This is slow - removing trashed images from the list
+                        for(let i = 0; i < trashedIds.length; i++)
+                        {
+                            for(let x = 0; x < selectedImages.length; x ++){
+                                if(trashedIds[i] == selectedImages[x].id){
+                                    this.itemsList.remove(selectedImages[x]);
+                                }
                             }
-                        } 
-                    }
-                    
-                    switch (responseData.status){
-                        case "Success":
-                            this.#showToastNotification("Success", responseData.message, "", "positive");
-                            break;
-                        case "Warning":
-                            this.#showToastNotification("Success", responseData.message, "", "warning");
-                            break;
-                        case "Error":
-                            this.#showToastNotification("Success", responseData.message, "", "danger");
-                            break;
+                        }
+
+                        this.#showOperationNotification(responseData);
+                        
+                        //Reset buttons state and visibility
+                        target.trashButtonState = undefined;
+                        target.processButtonEnabled = true;
+                        target.downloadButtonEnabled = true;
+
+                        this.requestUpdate();
                     }
                 }
-            }
-
-            //Reset buttons state and visibility
-            target.trashButtonState = undefined;
-            target.processButtonEnabled = true;
-            target.downloadButtonEnabled = true;
-
-            this.requestUpdate();
+            });
         }
-
     }
-
+    
+    //Download selected media
     private async downloadSelectedMedia(e: Event){
 
         let target = e.target;
@@ -419,6 +455,19 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
     }
 
+    #showOperationNotification(operationResponse:OperationResponse){
+        switch (operationResponse.status){
+            case "Success":
+                this.#showToastNotification("Success", operationResponse.message, "", "positive");
+                break;
+            case "Warning":
+                this.#showToastNotification("Warning", operationResponse.message, "", "warning");
+                break;
+            case "Error":
+                this.#showToastNotification("Error", operationResponse.message, "", "danger");
+                break;
+        }
+    }
     #showToastNotification(headline: string , message: string, information: string, color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
         const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
         const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
@@ -448,16 +497,13 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     render() {
 
         return html`
-
             <div class="dashboard">
                 <uui-box>
-
                     <gallery-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></gallery-search-bar>
 
                     <div style="display: flex">
-
                         <div class="leftPanel">
-                            ${this.renderFilterResults()}
+                            ${this.renderImagesTable()}
                         </div>
                         
                         <span class="rightPanel">
@@ -468,18 +514,15 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 convertMode="lossy"
                                 convertQuality="85"
                                 @process-images-click="${this.processSelectedImages}"
-                                @trash-images-click="${this.trashSelectedImages}"
-                                @download-images-click="${this.downloadSelectedMedia}"
-                                @rename-media-click="${this.renameMedia}"
-                                @edit-media-click="${this.editMedia}">
+                                @trash-images-click="${this.recycleSelectedImages}"
+                                @download-images-click="${this.downloadSelectedMedia}">
                             </gallery-tools-panel>
                         </span>
-
                     </div>
-                    
                 </uui-box>
             </div>
 
+            <accept-reject-dialog id="acceptRejectDialog"></accept-reject-dialog>
             <image-preview id="imagePreviewElement"></image-preview>
             <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
             
@@ -494,53 +537,75 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         `
     }
 
-    renderFilterResults(){
+    renderImagesTable(){
         if(this.itemsList.count() > 0){
             return html`
                 <uui-table aria-label="Filter results">
-
+ 
                     <uui-table-column style="width: 50px;"></uui-table-column>
-                    <uui-table-column style="width: 30%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
+                    <uui-table-column style="width: 1rem;"></uui-table-column>
+                    <uui-table-column style="width: auto;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
 
                     <uui-table-head>
                         <uui-table-head-cell>
-                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
+                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}">All</uui-checkbox>
                         </uui-table-head-cell>
+                        <uui-table-head-cell></uui-table-head-cell>
                         <uui-table-head-cell>Name</uui-table-head-cell>
                         <uui-table-head-cell>Width</uui-table-head-cell>
                         <uui-table-head-cell>Height</uui-table-head-cell>
                         <uui-table-head-cell>Type</uui-table-head-cell>
                         <uui-table-head-cell>Size</uui-table-head-cell>
+                        <uui-table-head-cell></uui-table-head-cell>
                     </uui-table-head>
 
                     ${this.itemsList.getPage(this.currentPage).map(img =>
 
                         html`
-                            <uui-table-row 
-                                class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
-                                id="${"image-id-" + img.id}"
-                                data-image-row="${this.itemsList.indexOf(img)} "
-                                @click="${this.handleRowClicked}">
+                            <uui-table-row class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
+                                           data-image-id="${img.id}"
+                                           data-image-row="${this.itemsList.indexOf(img)}"
+                                           data-image-path="${img.path}"
+                                           @click="${this.handleRowClicked}">
                                 <uui-table-cell>
                                     <div 
                                         class="imagePreview"
                                         style="background: url('${img.path}?width=45&height=45')"
-                                        data-img-name="${img.name}"
-                                        data-img-path="${img.path}"
-                                        data-img-id="${img.id}"
                                         @click="${this.showImagePreview}">
                                     </div>
                                 </uui-table-cell>
 
+                                <uui-table-cell style="padding-left: 1rem">
+                                    <uui-action-bar>
+                                        <uui-button title="Rename media" label="rename" pristine="" look="secondary"
+                                                    @click="${this.renameMedia}">
+                                            <uui-icon name="edit"></uui-icon>
+                                        </uui-button>
+                                    </uui-action-bar>
+                                </uui-table-cell>
                                 <uui-table-cell>${img.name}</uui-table-cell>
+
                                 <uui-table-cell>${img.width}px</uui-table-cell>
                                 <uui-table-cell>${img.height}px</uui-table-cell>
                                 <uui-table-cell>${img.extension}</uui-table-cell>
                                 <uui-table-cell>${img.size}</uui-table-cell>
+                                <uui-table-cell>
+                                    <uui-action-bar>
+                                        <uui-button title="Edit image" label="edit" pristine="" look="primary"
+                                                    @click="${this.editMedia}">
+                                            <uui-icon name="wand"></uui-icon>
+                                        </uui-button>
+                                        <uui-button title="Move to trash" label="delete" pristine="" look="primary"
+                                                    @click="${this.recycleSingleImage}">
+                                            <uui-icon name="delete"></uui-icon>
+                                        </uui-button>
+                                    </uui-action-bar>
+                                </uui-table-cell>
 
                             </uui-table-row>
                         `
@@ -576,6 +641,10 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         .dashboard{
             padding: 1rem;
             height: 100%;
+        }
+        
+        uui-table-cell{
+            padding: 0.5rem;
         }
 
         uui-box{
@@ -647,7 +716,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             transition: background-color 0.2s ease-in-out;
         }
             .selectableRow:hover {
-                opacity:0.5;
+                -webkit-box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
+                box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
             }
 
         .selectedRow{

@@ -130,5 +130,10 @@ export class SelectablePagedList<T>{
         return this.#arr.filter(item => this.isSelected(item));
     }
 
+    //Returns selected items
+    public getItems():Array<T>{
+        return this.#arr;
+    }
+
 
 }

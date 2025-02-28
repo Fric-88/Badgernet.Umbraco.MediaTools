@@ -33,14 +33,6 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
 
     @query("accept-reject-dialog") popoverDialog! : AcceptRejectDialog;  
 
-    //Show modal dialog before recycling
-    private confirmRecycling(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to move selected items to recycle bin?", "Yes", "No","", this.dispatchRecycleEvent); 
-        }
-    } 
-
     //Dispatches "Trash" button click event
     private dispatchRecycleEvent(){
         const event = new CustomEvent("trash-images-click",{
@@ -76,28 +68,6 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                 this.dispatchEvent(event);
             }); 
         }
-    }
-    
-    //Dispatch Rename Media event
-    private dispatchRenameEvent(){
-        const event = new CustomEvent("rename-media-click",{
-            detail: { message: 'Button clicked!' },
-            bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
-        });
-
-        this.dispatchEvent(event);
-    }
-
-    //Dispatch Edit Media event
-    private dispatchEditEvent(){
-        const event = new CustomEvent("edit-media-click",{
-            detail: { message: 'Button clicked!' },
-            bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
-        });
-
-        this.dispatchEvent(event);
     }
 
     //Show modal before downloading
@@ -229,27 +199,6 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
             </uui-button>
             
-
-            <div style="display:flex; gap: 0.5rem">
-                <uui-button
-                        label="Rename"
-                        look="primary"
-                        color="default"
-                        style="margin-top: 0.5rem; width: 100%"
-                        .disabled="${this.selectionCount != 1}"
-                        @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
-                </uui-button>
-    
-                <uui-button
-                        label="Edit"
-                        look="primary"
-                        color="default"
-                        style="margin-top: 0.5rem; width: 100%"
-                        .disabled="${this.selectionCount != 1}"
-                        @click="${this.dispatchEditEvent}"> <uui-icon name="wand"></uui-icon> Edit
-                </uui-button>
-            </div>
-            
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 
                     label="Trash"
@@ -259,7 +208,7 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     style="margin-top: 0.5rem; width: 100%"
                     popovertarget="areYouSurePopover"
                     .disabled="${this.selectionCount < 1 || !this.trashButtonEnabled}"
-                    @click="${this.confirmRecycling}"><uui-icon name="delete"></uui-icon> Trash (${this.selectionCount})
+                    @click="${this.dispatchRecycleEvent}"><uui-icon name="delete"></uui-icon> Trash (${this.selectionCount})
                 </uui-button>
 
                 <uui-button 
