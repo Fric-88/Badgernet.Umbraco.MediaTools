@@ -1,23 +1,36 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, query, TemplateResult, state} from "@umbraco-cms/backoffice/external/lit";
+import {
+    LitElement,
+    html,
+    css,
+    customElement,
+    query,
+    TemplateResult,
+    state,
+    property, ifDefined
+} from "@umbraco-cms/backoffice/external/lit";
 import { UUIModalContainerElement, UUIModalDialogElement } from "@umbraco-cms/backoffice/external/uui";
+import {PropertyPart} from "lit";
 
 
 @customElement('accept-reject-dialog')
 export class AcceptRejectDialog extends UmbElementMixin(LitElement) {
 
+    private resolve!: (value: boolean) => void;
+
+    #headline: string = "Headline";
+    #message: string = "Message";
+    #acceptBtnText: string = "Ok";
+    #rejectBtnText: string = "Cancel";
+    #warningText: string = "";
+    @state() dialogTemplate!: TemplateResult;
+
+    @query("#dialogContainer") container!: UUIModalContainerElement;
+    @query("#innerDialog") dialog!: UUIModalDialogElement;
+
     constructor() {
         super();
     }
-    @state() dialogTemplate!: TemplateResult;  
-    @query("#dialogContainer") container!: UUIModalContainerElement;
-    @query("#innerDialog") dialog!: UUIModalDialogElement; 
-
-    #okButtonText: string = "Ok";
-    #cancelButtonText: string = "Cancel";
-    #warningText: string = "";
-    #okFunction: (() => void) | undefined;
-    #cancelFunction: (() => void) | undefined;
 
     #closeDialog(){
         const dialog = this.dialog as UUIModalDialogElement;
@@ -25,61 +38,48 @@ export class AcceptRejectDialog extends UmbElementMixin(LitElement) {
         this.dialogTemplate = html``;
     }
 
-    #okAction(){
-
+    #accept(){
+        this.resolve(true);
         this.#closeDialog();
-
-        if(this.#okFunction){
-            this.#okFunction(); //Run the job if defined
-        }
     }
 
-    #cancelAction(){
+    #reject(){
+        this.resolve(false);
         this.#closeDialog();
-
-        if(this.#cancelFunction){
-            this.#cancelFunction(); //Run the job if defined
-        }
     }
-
-    public showModal(headline: string, message: string, okButtonText?: string, cancelButtonText?: string, warningText?:string, okFunc?: () => void, cancelFunc?: () => void): void{
-        this.#okFunction = okFunc;
-        this.#cancelFunction = cancelFunc;
-
-        if(warningText !== undefined){
-            this.#warningText = warningText;
-        }
-
-        if(okButtonText !== undefined){
-            this.#okButtonText = okButtonText;
-        }
-
-        if(cancelButtonText !== undefined){
-            this.#cancelButtonText = cancelButtonText;
-        }
+    public build(headline: string, message: string, warning?: string, acceptBtnText?: string, rejectBtnText?: string):void {
+        this.#headline = headline;
+        this.#message = message;
+        if(warning != null) this.#warningText = warning;
+        if(acceptBtnText != null) this.#acceptBtnText = acceptBtnText;
+        if(rejectBtnText != null) this.#rejectBtnText = rejectBtnText;
+    }
+    public async show(): Promise<boolean>{
         
         this.dialogTemplate = html`
         <uui-modal-dialog id="innerDialog">
 
-            <uui-dialog-layout headline="${headline}">
+            <uui-dialog-layout headline="${this.#headline}">
                 
-                <p>${message}</p>
-
+                <p>${this.#message}</p>
                 <p class="warningMessage">${this.#warningText}</p>
                 
-                <uui-button slot="actions" label="${this.#cancelButtonText}" 
+                <uui-button slot="actions" label="${this.#rejectBtnText}" 
                             look="primary" color="default" 
-                            @click="${this.#cancelAction}">${this.#cancelButtonText}
+                            @click="${this.#reject}">${this.#rejectBtnText}
                 </uui-button>
-                <uui-button slot="actions" label="${this.#okButtonText}" 
+                <uui-button slot="actions" label="${this.#acceptBtnText}" 
                             look="primary" color="positive" 
-                            @click="${this.#okAction}">${this.#okButtonText}
+                            @click="${this.#accept}">${this.#acceptBtnText}
                 </uui-button>
-
             </uui-dialog-layout>
 
         </uui-modal-dialog>
         `
+        
+        return new Promise((resolve) => {
+            this.resolve = resolve;
+        })
     }
 
     render() {
@@ -101,7 +101,6 @@ export class AcceptRejectDialog extends UmbElementMixin(LitElement) {
         min-width: 6rem;
         float: right;
     }
-
     `
 }
 

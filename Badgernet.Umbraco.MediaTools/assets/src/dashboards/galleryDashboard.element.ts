@@ -22,6 +22,7 @@ import "../elements/renameMediaDialog.element.ts"
 import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
 import "../elements/imageEditorDialog.element.ts"
 import AcceptRejectDialog from "../elements/acceptRejectDialog.element.ts";
+import "../elements/acceptRejectDialog.element.ts"
 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
@@ -221,87 +222,94 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     }
     
     //Lets selected images get resized and/or converted
-    private async processSelectedImages(e: CustomEvent<ProcessingSettings>){
-        let target = e.target;
-        
-        if(target instanceof ProcessImagePanel){
-            let settings = e.detail as ProcessingSettings;
+    private async processSelectedImages(e: CustomEvent) {
+        let target = e.composedPath()[0];
+        if (target instanceof ProcessImagePanel) {
 
-            if(this.itemsList.countSelectedItems() < 1){
-                this.#showToastNotification("Oops!", "You need to select some images first.", "", "warning");
-                return;
-            }
+            const acceptDialog = this.acceptRejectDialog;
+            if (acceptDialog) {
+                acceptDialog.build("Are you sure?", "Do you want to resize and/or convert selected items?", "", "Yes", "No");
+                const accepted = await acceptDialog.show();
 
-            //Set buttons styles 
-            target.processButtonState = "waiting";
-            target.trashButtonEnabled = false;
-            target.downloadButtonEnabled = false;
-            
-            const selectedItems = this.itemsList.getSelectedItems();
+                if (accepted) {
 
-            let requestData: ProcessImagesData = {
-                requestBody: {
-                    ids: selectedItems.map((item) => item.id),
-                    resize: settings.resize,
-                    resizeMode: settings.resizeMode,
-                    width: settings.width,
-                    height: settings.height,
-                    convert: settings.convert,
-                    convertMode: settings.convertMode,
-                    convertQuality: settings.convertQuality
-                }
-            }
+                    let settings = e.detail as ProcessingSettings;
 
-            try{
-                const response = await this.#mediaToolsContext?.processImage(requestData);
+                    if (this.itemsList.countSelectedItems() < 1) {
+                        this.#showToastNotification("Oops!", "You need to select some images first.", "", "warning");
+                        return;
+                    }
 
-                if(response){
-                    const operationResponse = response.data;
-                    
-                    if(operationResponse){
-                        if(operationResponse.status === "Warning"){
-                            this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
-                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
-                            
-                            for( let i = 0; i < processedImages.length; i++){
-                                for(let x = 0; x < selectedItems.length; x++){
-                                    if(processedImages[i].id === selectedItems[x].id){
-                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else if(operationResponse.status === "Success") {
-                            this.#showToastNotification("Done",operationResponse.message, "", "positive");
-                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
-                            
-                            for( let i = 0; i < processedImages.length; i++){
-                                for(let x = 0; x < selectedItems.length; x++){
-                                    if(processedImages[i].id === selectedItems[x].id){
-                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else{
-                            this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.","danger");
+                    //Set buttons styles 
+                    target.processButtonState = "waiting";
+                    target.trashButtonEnabled = false;
+                    target.downloadButtonEnabled = false;
+
+                    const selectedItems = this.itemsList.getSelectedItems();
+
+                    let requestData: ProcessImagesData = {
+                        requestBody: {
+                            ids: selectedItems.map((item) => item.id),
+                            resize: settings.resize,
+                            resizeMode: settings.resizeMode,
+                            width: settings.width,
+                            height: settings.height,
+                            convert: settings.convert,
+                            convertMode: settings.convertMode,
+                            convertQuality: settings.convertQuality
                         }
                     }
+
+                    try {
+                        const response = await this.#mediaToolsContext?.processImage(requestData);
+
+                        if (response) {
+                            const operationResponse = response.data;
+
+                            if (operationResponse) {
+                                if (operationResponse.status === "Warning") {
+                                    this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
+                                    const processedImages = operationResponse.payload as Array<ImageMediaDto>
+
+                                    for (let i = 0; i < processedImages.length; i++) {
+                                        for (let x = 0; x < selectedItems.length; x++) {
+                                            if (processedImages[i].id === selectedItems[x].id) {
+                                                this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                            }
+                                        }
+                                    }
+
+                                } else if (operationResponse.status === "Success") {
+                                    this.#showToastNotification("Done", operationResponse.message, "", "positive");
+                                    const processedImages = operationResponse.payload as Array<ImageMediaDto>
+
+                                    for (let i = 0; i < processedImages.length; i++) {
+                                        for (let x = 0; x < selectedItems.length; x++) {
+                                            if (processedImages[i].id === selectedItems[x].id) {
+                                                this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                            }
+                                        }
+                                    }
+
+                                } else {
+                                    this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.", "danger");
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.", "danger");
+                    }
+
+                    this.requestUpdate();
+
+                    //Reset normal buttons state
+                    target.processButtonState = undefined;
+                    target.trashButtonEnabled = true;
+                    target.downloadButtonEnabled = true;
+
+
                 }
             }
-            catch(err){
-                this.#showToastNotification("Oops","Something went wrong", "Check logs for more information.", "danger");
-            }
-
-            this.requestUpdate();
-
-            //Reset normal buttons state
-            target.processButtonState = undefined;
-            target.trashButtonEnabled = true;
-            target.downloadButtonEnabled = true;
-
         }
     }
     
@@ -329,9 +337,12 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         let imgId = Number(imgRow.dataset.imageId ?? -1);
         if(imgId < 0) return;
         
-        const dialog = this.acceptRejectDialog;
-        if(! dialog) return;
-        dialog.showModal("Are you sure?", "Do you want to recycle media?", "Yes", "No","", async () => {
+        const dialog = this.acceptRejectDialog as AcceptRejectDialog;
+        if(dialog == null) return;
+        
+        dialog.build("Are you sure?","Do you want to move this image to trash?", "", "Yes", "Cancel");
+        const accepted = await dialog.show();
+        if(accepted){
             
             const response = await this.#mediaToolsContext?.trashMedia({requestBody: [imgId]});
 
@@ -354,13 +365,13 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                     this.requestUpdate();
                 }
             }
-        });
+            
+        }
     }
 
     //Moves selected media to trash
     private async recycleSelectedImages(e: Event){
-        let target = e.target;
-
+        let target = e.composedPath()[0];
         if(target instanceof ProcessImagePanel){
 
             const selectedImages = this.itemsList.getSelectedItems();
@@ -368,8 +379,11 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             const acceptDialog = this.acceptRejectDialog;
             if(!acceptDialog) return;
 
-            acceptDialog.showModal("Are you sure?", "Do you want to recycle " + selectedImages.length +" media?", "Yes", "No","", async () => {
-
+            acceptDialog.build("Are you sure?", "Do you want to recycle " + selectedImages.length +" media?","","Yes", "No");
+            const accepted = await acceptDialog.show();
+            
+            if(accepted)
+            {
                 //Set buttons states and visibility
                 target.trashButtonState = "waiting";
                 target.processButtonEnabled = false;
@@ -403,56 +417,65 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                         this.requestUpdate();
                     }
                 }
-            });
+            }
         }
     }
     
     //Download selected media
     private async downloadSelectedMedia(e: Event){
 
-        let target = e.target;
-
+        let target = e.composedPath()[0];
         if(target instanceof ProcessImagePanel){
-            const selectedImages = this.itemsList.getSelectedItems();
+                
+            const acceptDialog = this.acceptRejectDialog;
+            if(acceptDialog){
+                
+                acceptDialog.build("Are you sure?", "Do you want to download selected items?","If the archive exceeds 300Mb any further images will be skipped.", "Yes", "No");
+                const accepted = await acceptDialog.show();
+                if(accepted){
+                    
+                    const selectedImages = this.itemsList.getSelectedItems();
 
-            //Set buttons states
-            target.downloadButtonState = "waiting";
-            target.processButtonEnabled = false;
-            target.trashButtonEnabled = false; 
+                    //Set buttons states
+                    target.downloadButtonState = "waiting";
+                    target.processButtonEnabled = false;
+                    target.trashButtonEnabled = false;
 
-            const response = await this.#mediaToolsContext?.downloadMedia({requestBody: selectedImages.map(item => item.id)});
+                    const response = await this.#mediaToolsContext?.downloadMedia({requestBody: selectedImages.map(item => item.id)});
+    
+                    if(response){
 
-            if(response){
+                        try{
+                            const blob = response.data as Blob;
+                            // Create a download link for the Blob
+                            const downloadUrl: string = window.URL.createObjectURL(blob);
+                            const a: HTMLAnchorElement = document.createElement('a');
+                            a.href = downloadUrl;
+                            a.download = 'download.zip'; // Filename for the downloaded file
+                            document.body.appendChild(a);
+                            a.click(); // Trigger the download
+                            a.remove(); // Clean up the DOM
 
-                try{
-                    const blob = response.data as Blob;
-                    // Create a download link for the Blob
-                    const downloadUrl: string = window.URL.createObjectURL(blob);
-                    const a: HTMLAnchorElement = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = 'download.zip'; // Filename for the downloaded file
-                    document.body.appendChild(a);
-                    a.click(); // Trigger the download
-                    a.remove(); // Clean up the DOM
-
-                    //Free up memory
-                    setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 100);
-                }
-                catch (error: unknown) {
-                    if (error instanceof Error) {
-                        console.error('There was an error downloading the file:', error.message);
-                    } else {
-                        console.error('An unknown error occurred during the file download.');
+                            //Free up memory
+                            setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 100);
+                        }
+                        catch (error: unknown) {
+                            if (error instanceof Error) {
+                                console.error('There was an error downloading the file:', error.message);
+                            } else {
+                                console.error('An unknown error occurred during the file download.');
+                            }
+                        }
                     }
+    
+                    //Reset buttons states and visibility
+                    target.downloadButtonState = undefined;
+                    target.processButtonEnabled = false;
+                    target.trashButtonEnabled = false;
+                    
                 }
             }
-
-            //Reset buttons states and visibility
-            target.downloadButtonState = undefined;
-            target.processButtonEnabled = false;
-            target.trashButtonEnabled = false; 
         }
-
     }
 
     #showOperationNotification(operationResponse:OperationResponse){
@@ -596,11 +619,15 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 <uui-table-cell>${img.size}</uui-table-cell>
                                 <uui-table-cell>
                                     <uui-action-bar>
-                                        <uui-button title="Edit image" label="edit" pristine="" look="primary"
+                                        <uui-button title="Edit image" 
+                                                    label="edit" pristine=""
+                                                    look="secondary" 
                                                     @click="${this.editMedia}">
                                             <uui-icon name="wand"></uui-icon>
                                         </uui-button>
-                                        <uui-button title="Move to trash" label="delete" pristine="" look="primary"
+                                        <uui-button title="Move to trash" 
+                                                    label="delete" pristine="" 
+                                                    look="secondary" color="danger"
                                                     @click="${this.recycleSingleImage}">
                                             <uui-icon name="delete"></uui-icon>
                                         </uui-button>

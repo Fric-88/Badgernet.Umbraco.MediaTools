@@ -1,9 +1,8 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, property, state, ifDefined, query } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, html, css, customElement, property, state, ifDefined} from "@umbraco-cms/backoffice/external/lit";
 import { UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
-import AcceptRejectDialog from "./acceptRejectDialog.element.ts";
-import "./acceptRejectDialog.element.ts";
+
 
 
 @customElement('gallery-tools-panel')
@@ -31,8 +30,6 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
     @property({type: String}) downloadButtonState: UUIButtonState;  //Allowing parent element change button state
     @property({type: Boolean}) downloadButtonEnabled: boolean = true; 
 
-    @query("accept-reject-dialog") popoverDialog! : AcceptRejectDialog;  
-
     //Dispatches "Trash" button click event
     private dispatchRecycleEvent(){
         const event = new CustomEvent("trash-images-click",{
@@ -45,39 +42,26 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
 
     //Asks before dispatching "Process" button click event
     private dispatchProcessEvent(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to resize and/or convert selected items?", "Yes", "No","", () => {
+        
+        const eventDetail: ProcessingSettings= { 
+            resize: this.resize, 
+            convert: this.convert,
+            resizeMode: this.resizeMode,
+            width: this.width,
+            height: this.height,
+            convertMode: this.convertMode,
+            convertQuality: this.convertQuality
+        };
 
-                const eventDetail: ProcessingSettings= { 
-                    resize: this.resize, 
-                    convert: this.convert,
-                    resizeMode: this.resizeMode,
-                    width: this.width,
-                    height: this.height,
-                    convertMode: this.convertMode,
-                    convertQuality: this.convertQuality
-                };
-        
-                const event = new CustomEvent<ProcessingSettings>("process-images-click", {
-                    detail: eventDetail,
-                    bubbles: true,
-                    composed: true
-                });
-        
-                this.dispatchEvent(event);
-            }); 
-        }
+        const event = new CustomEvent("process-images-click", {
+            detail: eventDetail,
+            bubbles: true,
+            composed: true
+        });
+
+        this.dispatchEvent(event);
     }
 
-    //Show modal before downloading
-    private confirmDownloading(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to download selected items?","Yes", "No","If zip archive exceeds 300Mb any further items will be skipped.", this.dispatchDownloadEvent); 
-        }
-    }
-    
     //Dispatch "Download" button click event
     private dispatchDownloadEvent(){
         const event = new CustomEvent("download-images-click",{
@@ -193,7 +177,7 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     state=${ifDefined(this.processButtonState)}
                     look="primary"
                     color="positive"
-                    style="margin-top: 0.5rem; margin-bottom: 1rem;"
+                    style="margin-top: 0.5rem;"
                     .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
                     popovertarget="areYouSurePopover"
                     @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
@@ -218,11 +202,9 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     color="default" 
                     style="margin-top: 0.5rem; width: 100%"
                     .disabled="${this.selectionCount < 1 || !this.downloadButtonEnabled}"
-                    @click="${this.confirmDownloading}"><uui-icon name="download"></uui-icon> Download (${this.selectionCount})
+                    @click="${this.dispatchDownloadEvent}"><uui-icon name="download"></uui-icon> Download (${this.selectionCount})
                 </uui-button>
             </div>
-
-            <accept-reject-dialog></accept-reject-dialog>
         `
     }
 
