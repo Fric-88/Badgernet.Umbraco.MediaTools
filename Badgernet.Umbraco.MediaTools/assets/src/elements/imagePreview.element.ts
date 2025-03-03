@@ -18,17 +18,17 @@ import {GetMetadataData, GetMetadataResponse, ImageMediaDto} from "../api";
 export class ImagePreview extends UmbElementMixin(LitElement) {
 
     #context?: MediatoolsContext;
-    @property({attribute: true, type: Number }) maxImageWidth: number = 450;
-    @property({attribute: true, type: Number }) maxImageHeight: number = 450;
+    @property({attribute: true, type: Number }) maxWidth: number = 800;
+    @property({attribute: true, type: Number }) maxHeight: number = 700;
     @state() imageMetaData? : GetMetadataResponse;
     @state() imageInfo?: ImageMediaDto;
     
-    @state() imageRenderWidth? : number = this.maxImageWidth;
-    @state() imageRenderHeight? : number = this.maxImageHeight;
+    @state() renderWidth? : number = this.maxWidth;
+    @state() renderHeight? : number = this.maxHeight;
 
     @state() dialogTemplate!: TemplateResult;
     @query("#previewContainer") container!: UUIModalContainerElement;
-    @query("#innerDialog") dialog!: UUIModalDialogElement;
+    @query("#dialogElement") dialog!: UUIModalDialogElement;
     
     constructor() {
         super();
@@ -37,15 +37,15 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         });
     }
 
-    public async showPreview(imageId: number){
+    public async showPreview(imageId: number, showMetadataFirst: boolean = false){
         if(!this.#context) return;
         
         const imgInfoResponse = await this.#context.getMediaInfo({mediaId: imageId});
         if(!imgInfoResponse.data) return;
         this.imageInfo = imgInfoResponse.data;
 
-        const scaleWidth = this.maxImageWidth / this.imageInfo.width;
-        const scaleHeight = this.maxImageHeight / this.imageInfo.height;
+        const scaleWidth = this.maxWidth / this.imageInfo.width;
+        const scaleHeight = this.maxHeight / this.imageInfo.height;
         let scale: number = 0;
 
         if (scaleWidth < scaleHeight)
@@ -53,11 +53,15 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         else
             scale = scaleHeight;
 
-        this.imageRenderWidth = (this.imageInfo.width * scale);
-        this.imageRenderHeight = (this.imageInfo.height * scale);
+        this.renderWidth = (this.imageInfo.width * scale);
+        this.renderHeight = (this.imageInfo.height * scale);
        
         await this.#loadMetadata(imageId).catch((e) => {console.log(e)});
-        this.#renderTemplate();
+        
+        if(showMetadataFirst)
+            this.#renderMetadataPreview();
+        else
+            this.#renderPreviewTemplate();
     }
     
     #closePreview(){
@@ -75,14 +79,45 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         }
     }
     
-    #renderTemplate(){
+    #renderPreviewTemplate(){
         this.dialogTemplate = html`
-        <uui-modal-dialog id="innerDialog">
-            
-            <uui-dialog-layout class="layout"">
-                <div class="container">
+            <uui-modal-dialog id="dialogElement">
+                <uui-dialog-layout class="layout" headline="Preview">
+                    
+                    <img src="${this.imageInfo?.path}?width=${this.renderWidth?.toFixed(0)}&height=${this.renderHeight?.toFixed(0)}" 
+                         alt="${this.imageInfo?.name}">
+                    
+                    <uui-box>
+                        <uui-label style="display: block">Path: <strong>${this.imageInfo?.path}</strong></uui-label>
+                        <uui-label style="display: block">Name: <strong>${this.imageInfo?.name}</strong></uui-label>
+                        <uui-label style="display: block">Resolution: <strong>${this.imageInfo?.width} x ${this.imageInfo?.height}</strong></uui-label>
+                        <uui-label style="display: block">Disk size: <strong>${ this.imageInfo?.size}</strong></uui-label>
+                        <uui-label style="display: block">Format: <strong>${this.imageInfo?.extension}</strong></uui-label>
+                    </uui-box>
+    
+                    
+                    <div class="buttonsBar">
+                        <uui-button slot="actions" label="Metadata"
+                                    look="primary" color="default"
+                                    @click="${this.#renderMetadataPreview}">Metadata
+                        </uui-button>
+    
+                        <uui-button slot="actions" label="Close"
+                                    look="primary" color="default"
+                                    @click="${this.#closePreview}">Close
+                        </uui-button>
+                    </div>
+                    
+                </uui-dialog-layout>
+            </uui-modal-dialog>
+        `
+    }
+    
+    #renderMetadataPreview(){
+        this.dialogTemplate = html`
+            <uui-modal-dialog id="dialogElement">
+                <div class="layout">
                     <div class="metadataContainer">
-                        
                         <div style="display: flex;">
                             <uui-tab-group style="">
                                 <uui-tab label="exif" active="">EXIF</uui-tab>
@@ -90,7 +125,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                                 <uui-tab label="xmp">XMP</uui-tab>
                             </uui-tab-group>
                         </div>
-                        
+
                         <div class="metadataList">
                             <ul>
                                 ${this.imageMetaData?.exifValues?.length ?
@@ -100,23 +135,23 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                                 }
                             </ul>
                         </div>
-
                     </div>
-                    
-                    <div class="imageContainer" style="min-width: ${this.maxImageWidth}px; min-height: ${this.maxImageHeight}px;">
-                        <img src="${this.imageInfo?.path}?width=${this.imageRenderWidth?.toPrecision(1)}&height=${this.imageRenderHeight?.toPrecision(1)}" 
-                             alt="${this.imageInfo?.name}">
 
-                    </div>
+                    <uui-button slot="actions" label="Metadata"
+                                look="primary" color="default"
+                                @click="${this.#renderPreviewTemplate}">Preview
+                    </uui-button>
+
+                    <uui-button slot="actions" label="Close"
+                                look="primary" color="default"
+                                @click="${this.#closePreview}">Close
+                    </uui-button>
+
                 </div>
 
-                <uui-button slot="actions" label="Close"
-                            look="primary" color="default"
-                            @click="${this.#closePreview}">Close
-                </uui-button>
-            </uui-dialog-layout>
-        </uui-modal-dialog>
+            </uui-modal-dialog>
         `
+        
     }
 
     render() {
@@ -132,34 +167,20 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         .layout{
             display: flex;
             flex-direction: column;
+            gap: 0.5rem
         }
         
-        .container {
-            display: flex;
-            flex-direction: row;
-            max-height: 800px;
-            gap: 0.5rem;
-        }
         .imageContainer {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            margin-top: 3rem;
         }
         
         .imageContainer img{
             -webkit-box-shadow: 0 0 10px 4px rgba(0,0,0,0.15);
             box-shadow: 0 0 10px 4px rgba(0,0,0,0.15);
         }
-        
-        .metadataContainer {
-            width: 350px;
-        }
-        
-        .metadataList {
-            overflow-y: auto;
-            height: 750px;
-        }
+
     `
 }
 

@@ -326,6 +326,21 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             }
         }
     }
+
+    //Opens metadata preview popup
+    private async showMetadataPreview(e: Event){
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
+            const previewElement = this.previewModal as ImagePreview;
+            if(previewElement) {
+
+                let imgId = Number(imgRow.dataset.imageId ?? -1);
+                if (imgId < 0) return;
+
+                await previewElement.showPreview(imgId, true);
+            }
+        }
+    }
     
     //Moves single image to trash
     private async recycleSingleImage(e: Event){
@@ -563,7 +578,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         if(this.itemsList.count() > 0){
             return html`
                 <uui-table aria-label="Filter results">
- 
+
                     <uui-table-column style="width: 50px;"></uui-table-column>
                     <uui-table-column style="width: 1rem;"></uui-table-column>
                     <uui-table-column style="width: auto;"></uui-table-column>
@@ -594,6 +609,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                            data-image-row="${this.itemsList.indexOf(img)}"
                                            data-image-path="${img.path}"
                                            @click="${this.handleRowClicked}">
+
+                              
                                 <uui-table-cell>
                                     <div 
                                         class="imagePreview"
@@ -624,6 +641,12 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                                     @click="${this.editMedia}">
                                             <uui-icon name="wand"></uui-icon>
                                         </uui-button>
+
+                                        <uui-button title="Metadata" label="metadata" pristine="" look="secondary"
+                                                    @click="${this.showMetadataPreview}">
+                                            <uui-icon name="code"></uui-icon>
+                                        </uui-button>
+                                        
                                         <uui-button title="Move to trash" 
                                                     label="delete" pristine="" 
                                                     look="secondary" color="danger"
