@@ -113,14 +113,13 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
 
         if(response && !response.error){
-            const updatedIMage = response.data as ImageMediaDto;
-
-            const selectedImages = this.itemsList.getSelectedItems();
-
-            if(selectedImages.length > 0 ){
-                for(let i= 0 ; i < selectedImages.length ; i++ ){
-                    if(selectedImages[i].id === updatedIMage.id){
-                        this.itemsList.replace(selectedImages[i], updatedIMage);
+            const updatedImage = response.data as ImageMediaDto;
+            
+            const images = this.itemsList.getPage(this.currentPage);
+            if(images.length > 0 ){
+                for(let i= 0 ; i < images.length ; i++ ){
+                    if(images[i].id === updatedImage.id){
+                        this.itemsList.replace(images[i], updatedImage);
                         this.requestUpdate(); //Redraw list 
                         break; //Exit after first hit
                     }

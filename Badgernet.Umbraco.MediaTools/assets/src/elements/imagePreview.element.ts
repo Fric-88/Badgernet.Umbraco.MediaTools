@@ -104,7 +104,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                     </div>
                     
                     <div class="imageContainer" style="min-width: ${this.maxImageWidth}px; min-height: ${this.maxImageHeight}px;">
-                        <img src="${this.imageInfo?.path}?width=${this.imageRenderWidth}&height=${this.imageRenderHeight}" 
+                        <img src="${this.imageInfo?.path}?width=${this.imageRenderWidth?.toPrecision(1)}&height=${this.imageRenderHeight?.toPrecision(1)}" 
                              alt="${this.imageInfo?.name}">
 
                     </div>
