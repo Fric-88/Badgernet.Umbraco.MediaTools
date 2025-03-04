@@ -628,7 +628,6 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                     </uui-action-bar>
                                 </uui-table-cell>
                                 <uui-table-cell>${img.name}</uui-table-cell>
-
                                 <uui-table-cell>${img.width}px</uui-table-cell>
                                 <uui-table-cell>${img.height}px</uui-table-cell>
                                 <uui-table-cell>${img.extension}</uui-table-cell>

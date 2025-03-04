@@ -116,39 +116,55 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
     #renderMetadataPreview(){
         this.dialogTemplate = html`
             <uui-modal-dialog id="dialogElement">
-                <div class="layout">
-                    <div class="metadataContainer">
-                        <div style="display: flex;">
-                            <uui-tab-group style="">
-                                <uui-tab label="exif" active="">EXIF</uui-tab>
-                                <uui-tab label="iptc">IPTC</uui-tab>
-                                <uui-tab label="xmp">XMP</uui-tab>
-                            </uui-tab-group>
-                        </div>
+                <uui-dialog-layout class="layout" headline="Metadata">
 
-                        <div class="metadataList">
-                            <ul>
-                                ${this.imageMetaData?.exifValues?.length ?
-                                        this.imageMetaData.exifValues.map((e) =>
-                                                html`<li><strong>${e.item1}: </strong> ${e.item2}</li>`):
-                                        html`<p>No metadata available</p>`
-                                }
-                            </ul>
-                        </div>
+
+                    <div style="display: flex;">
+                        <uui-tab-group style="">
+                            <uui-tab label="exif" active="">EXIF</uui-tab>
+                            <uui-tab label="iptc">IPTC</uui-tab>
+                            <uui-tab label="xmp">XMP</uui-tab>
+                        </uui-tab-group>
                     </div>
 
-                    <uui-button slot="actions" label="Metadata"
-                                look="primary" color="default"
-                                @click="${this.#renderPreviewTemplate}">Preview
-                    </uui-button>
+                    <div class="metadataList" style="width: ${this.maxWidth}px; height: ${this.maxHeight}px;">
+                        <uui-table style="padding: 2px; width: 99%;">
+                            
+                            <uui-table-column style="width: 48%;"></uui-table-column>
+                            <uui-table-column style="width: 48%;"></uui-table-column>
+    
+                            <uui-table-head>
+                                <uui-table-head-cell>EXIF Tag</uui-table-head-cell>
+                                <uui-table-head-cell>Value</uui-table-head-cell>
+                            </uui-table-head>
 
-                    <uui-button slot="actions" label="Close"
-                                look="primary" color="default"
-                                @click="${this.#closePreview}">Close
-                    </uui-button>
+                            
+                            ${this.imageMetaData?.exifValues?.length ?
+                                    this.imageMetaData.exifValues.map((e) =>
+                                            html`
+                                                <uui-table-row>
+                                                    <uui-table-cell>${e.item1}</uui-table-cell>
+                                                    <uui-table-cell>${e.item2}</uui-table-cell>
+                                                </uui-table-row>
+                                            `):
+                                    html`<p>No metadata available</p>`
+                            }
+                        </uui-table>
+                    </div>
+                    
 
-                </div>
-
+                    <div class="buttonsBar">
+                        <uui-button slot="actions" label="Metadata"
+                                    look="primary" color="default"
+                                    @click="${this.#renderPreviewTemplate}">Preview
+                        </uui-button>
+    
+                        <uui-button slot="actions" label="Close"
+                                    look="primary" color="default"
+                                    @click="${this.#closePreview}">Close
+                        </uui-button>
+                    </div>
+                </uui-dialog-layout>
             </uui-modal-dialog>
         `
         
@@ -176,11 +192,29 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             gap: 0.5rem;
         }
         
+        .metadataList {
+            overflow-y: scroll;
+        }
+        
         .imageContainer img{
             -webkit-box-shadow: 0 0 10px 4px rgba(0,0,0,0.15);
             box-shadow: 0 0 10px 4px rgba(0,0,0,0.15);
         }
 
+        uui-table{
+            border:1px #D8D7D9 solid;
+            margin-bottom:1rem;
+        }
+
+        uui-table-head{
+            background-color: #F4F3F5;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        uui-table-cell{
+            padding: 0.3rem;
+        }
     `
 }
 

@@ -595,7 +595,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 {
                     if (value.IsArray)
                     {
-                        
+                        if(value.Tag )
+                        Console.WriteLine(value.ToString());
                     }
                     metadataDto.ExifValues.Add(new Tuple<string, string>(value.Tag.ToString(),value.GetValue()?.ToString() ?? ""));
                 }                
