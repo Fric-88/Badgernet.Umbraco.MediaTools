@@ -1,4 +1,5 @@
 
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Metadata.Profiles.Icc;
 using SixLabors.ImageSharp.Metadata.Profiles.Iptc;
@@ -12,5 +13,5 @@ public class ImageMetadataDto
     public double HorizontalResolution { get; set; } = 0;
     public string DecodedImageFormat { get; set; } = string.Empty;
     public string ResolutionUnits { get; set; } = string.Empty;
-    public List<Tuple<string, string>> ExifValues { get; set; } = [];
+    public List<ParsedExifTag> ExifValues { get; set; } = [];
 }

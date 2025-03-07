@@ -45,7 +45,7 @@ export type ImageMetadataDto = {
     horizontalResolution: number;
     decodedImageFormat: string;
     resolutionUnits: string;
-    exifValues: Array<(Tuple_2)>;
+    exifValues: Array<(ParsedExifTag)>;
 };
 
 export type KeyValuePair_2 = {
@@ -73,6 +73,11 @@ export type OperationResponse = {
     payload?: unknown;
 };
 
+export type ParsedExifTag = {
+    tag: string;
+    value: string;
+};
+
 export type ProcessImagesDto = {
     ids: Array<(number)>;
     resize: boolean;
@@ -96,11 +101,6 @@ export type ResizerSettings = {
 export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';
 
 export type SizeFilter = 'AllSizes' | 'BiggerThan' | 'SmallerThan';
-
-export type Tuple_2 = {
-    item1?: string | null;
-    item2?: string | null;
-};
 
 export type UserSettingsDto = {
     resizer: ResizerSettings;

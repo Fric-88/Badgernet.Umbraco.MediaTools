@@ -1,4 +1,6 @@
+using System.Collections;
 using System.IO.Compression;
+using System.Text.Json;
 using Asp.Versioning;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
 using Badgernet.Umbraco.MediaTools.Helpers;
+using Json.More;
 using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Metadata.Profiles.Icc;
@@ -582,28 +585,21 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             var xmpProfile = metadata.XmpProfile;
             var iptcProfile = metadata.IptcProfile;
 
-            var metadataDto = new ImageMetadataDto();
+            var metadataDto = new ImageMetadataDto
+            {
+                VerticalResolution = metadata.VerticalResolution,
+                HorizontalResolution = metadata.HorizontalResolution,
+                DecodedImageFormat = metadata.DecodedImageFormat?.ToString() ?? string.Empty,
+                ResolutionUnits = metadata.ResolutionUnits.ToString()
+            };
 
-            metadataDto.VerticalResolution = metadata.VerticalResolution;
-            metadataDto.HorizontalResolution = metadata.HorizontalResolution;
-            metadataDto.DecodedImageFormat = metadata.DecodedImageFormat?.ToString() ?? string.Empty;
-            metadataDto.ResolutionUnits = metadata.ResolutionUnits.ToString();
-            
             if (exifProfile != null)
             {
-                foreach (var value in exifProfile.Values)   
+                foreach (var exifValue in exifProfile.Values)   
                 {
-                    if (value.IsArray)
-                    {
-                        if(value.Tag )
-                        Console.WriteLine(value.ToString());
-                    }
-                    metadataDto.ExifValues.Add(new Tuple<string, string>(value.Tag.ToString(),value.GetValue()?.ToString() ?? ""));
+                    metadataDto.ExifValues.Add(MetadataParser.ParseIExifValue(exifValue));    
                 }                
             }
-            
-
-
 
             return Ok(metadataDto);
         }
