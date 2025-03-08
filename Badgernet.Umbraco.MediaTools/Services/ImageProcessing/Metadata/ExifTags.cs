@@ -1,36 +1,8 @@
-using System.Collections;
-using Polly.Caching;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-
-namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
-
-public static class MetadataParser
-{
-    public static ParsedExifTag ParseIExifValue(IExifValue exifValue)
-    {
-        var tagName = exifValue.Tag.ToString();
-        var tagValue = exifValue.GetValue() ?? string.Empty;
-
-        if (exifValue.IsArray)
-        {
-            return tagName switch
-            {
-                ExifTags.ISOSpeedRatings => exifValue.TryParseIsoSpeedRatings(),
-                ExifTags.ExifVersion => exifValue.TryParseExifVersion(),
-                _ => new ParsedExifTag(tagName, "Array value")
-            };
-        }
-
-        return new ParsedExifTag(tagName, tagValue.ToString() ?? "");
-
-    }
-}
-
-public record ParsedExifTag(string Tag, string Value);
+namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 
 public static class ExifTags
 {
-     //IFD TAGS
+         //IFD TAGS
     public const string SubfileType = "SubfileType";
     public const string OldSubfileType = "OldSubfileType";
     public const string ImageWidth = "ImageWidth";
@@ -287,5 +259,4 @@ public static class ExifTags
     public const string Unknown = "Unknown";
     public const string SubIFDOffset = "SubIFDOffset";
     public const string GPSIFDOffset = "GPSIFDOffset";
-
 }

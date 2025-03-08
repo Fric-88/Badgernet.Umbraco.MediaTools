@@ -1,23 +1,16 @@
-using System.Collections;
 using System.IO.Compression;
-using System.Text.Json;
 using Asp.Versioning;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
 using Badgernet.Umbraco.MediaTools.Services.FileManager;
 using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
-using Badgernet.Umbraco.MediaTools.Helpers;
-using Json.More;
-using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
-using SixLabors.ImageSharp.Metadata.Profiles.Icc;
-using SixLabors.ImageSharp.Metadata.Profiles.Iptc;
-using SixLabors.ImageSharp.Metadata.Profiles.Xmp;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;

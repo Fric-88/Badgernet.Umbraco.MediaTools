@@ -45,7 +45,7 @@ export type ImageMetadataDto = {
     horizontalResolution: number;
     decodedImageFormat: string;
     resolutionUnits: string;
-    exifValues: Array<(ParsedExifTag)>;
+    exifValues: Array<(ParsedTag)>;
 };
 
 export type KeyValuePair_2 = {
@@ -73,7 +73,7 @@ export type OperationResponse = {
     payload?: unknown;
 };
 
-export type ParsedExifTag = {
+export type ParsedTag = {
     tag: string;
     value: string;
 };
