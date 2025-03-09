@@ -7,7 +7,6 @@ namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 
 public static class ExifArrayParsers
 {
-    
     public static ParsedTag TryParseUshortArray(this IExifValue exifValue, string separator = " ")
     {
         var tagName = exifValue.Tag.ToString();
@@ -24,7 +23,6 @@ public static class ExifArrayParsers
             return new ParsedTag(tagName, "Unable to parse");
         }
     }
-    
     public static ParsedTag TryParseUndefinedArray(this IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
@@ -41,28 +39,6 @@ public static class ExifArrayParsers
             return new ParsedTag(tagName, "Unable to parse");
         }
     }
-
-    public static ParsedTag TryParseGpsCoordinate(this IExifValue exifValue)
-    {
-        var tagName = exifValue.Tag.ToString();
-        if(exifValue.GetValue() is not Rational[] tagArr)
-            return new ParsedTag(tagName, "");
-
-        try
-        {
-            var degrees = tagArr[0].Numerator / tagArr[0].Denominator;
-            var minutes = tagArr[1].Numerator / tagArr[1].Denominator;
-            var seconds = tagArr[2].Numerator / tagArr[2].Denominator;
-                
-            return new ParsedTag(tagName, string.Join(" ", degrees, "\u00b0", minutes,"'", seconds,"\""));
-            
-        }
-        catch
-        {
-            return new ParsedTag(tagName, "Unable to parse");
-        }
-    }
-    
     public static ParsedTag TryParseLensSpecification(this IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
@@ -92,5 +68,44 @@ public static class ExifArrayParsers
             return new ParsedTag(tagName, "Error Parsing");
         }
     }
+    public static ParsedTag TryParseGpsCoordinate(this IExifValue exifValue)
+    {
+        var tagName = exifValue.Tag.ToString();
+        if(exifValue.GetValue() is not Rational[] tagArr)
+            return new ParsedTag(tagName, "");
 
+        try
+        {
+            var degrees = tagArr[0].Numerator / tagArr[0].Denominator;
+            var minutes = tagArr[1].Numerator / tagArr[1].Denominator;
+            var seconds = tagArr[2].Numerator / tagArr[2].Denominator;
+                
+            return new ParsedTag(tagName, string.Join(" ", degrees, "\u00b0", minutes,"'", seconds,"\""));
+            
+        }
+        catch
+        {
+            return new ParsedTag(tagName, "Unable to parse");
+        }
+    }
+    public static ParsedTag TryParseGpsTimestamp(this IExifValue exifValue)
+    {
+        var tagName = exifValue.Tag.ToString();
+        if(exifValue.GetValue() is not Rational[] tagArr)
+            return new ParsedTag(tagName, "");
+
+        try 
+        {
+            var hour = (tagArr[0].Numerator / tagArr[0].Denominator).ToString("D2");
+            var minute = (tagArr[1].Numerator / tagArr[1].Denominator).ToString("D2");
+            var second = (tagArr[2].Numerator / tagArr[2].Denominator).ToString("D2");
+            
+            return new ParsedTag(tagName, string.Join(hour, ":", minute,":", second));
+            
+        }
+        catch
+        {
+            return new ParsedTag(tagName, "00:00:00");
+        }
+    }
 }

@@ -596,7 +596,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                         <uui-table-head-cell>Name</uui-table-head-cell>
                         <uui-table-head-cell>Width</uui-table-head-cell>
                         <uui-table-head-cell>Height</uui-table-head-cell>
-                        <uui-table-head-cell>Type</uui-table-head-cell>
+                        <uui-table-head-cell>Format</uui-table-head-cell>
                         <uui-table-head-cell>Size</uui-table-head-cell>
                         <uui-table-head-cell></uui-table-head-cell>
                     </uui-table-head>

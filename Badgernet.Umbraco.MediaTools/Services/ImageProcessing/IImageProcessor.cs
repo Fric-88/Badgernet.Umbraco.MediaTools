@@ -11,10 +11,5 @@ public interface IImageProcessor
     MemoryStream? Resize(MemoryStream imageStream, Size targetTResolution);
     MemoryStream? ConvertToWebp(MemoryStream imageStream, ConvertMode convertMode, int convertQuality);
     Size CalculateResolution(Size originalResolution, Size targetResolution, bool preserveAspectRatio = true);
-    ImageMetadata ReadMetadata(MemoryStream imageStream);
     ImageEncoder GetEncoder(string filePath);
-    void CopyMetadata(Image sourceImage, Image destinationImage);
-    
-    
-
 }

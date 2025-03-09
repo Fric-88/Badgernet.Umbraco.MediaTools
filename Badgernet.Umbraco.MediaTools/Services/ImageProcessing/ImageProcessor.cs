@@ -105,12 +105,6 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
             return new Size(newWidth, newHeight);
         }
-    public ImageMetadata ReadMetadata(MemoryStream imageStream)
-    {
-        using var img = Image.Load(imageStream);
-        var data = img.Metadata;
-        return data;
-    }
     public ImageEncoder GetEncoder(string filePath)
     {
         var extension = Path.GetExtension(filePath).ToLower();
@@ -130,13 +124,5 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
         };
         ;
     }
-    public void CopyMetadata(Image sourceImage, Image destinationImage)
-    {
-        destinationImage.Metadata.ExifProfile = sourceImage.Metadata.ExifProfile?.DeepClone();
-        destinationImage.Metadata.CicpProfile = sourceImage.Metadata.CicpProfile?.DeepClone();
-        destinationImage.Metadata.IccProfile = sourceImage.Metadata.IccProfile?.DeepClone();
-        destinationImage.Metadata.IptcProfile = sourceImage.Metadata.IptcProfile?.DeepClone();
-        destinationImage.Metadata.HorizontalResolution = destinationImage.Width;
-        destinationImage.Metadata.VerticalResolution = destinationImage.Height;
-    }
+
 }

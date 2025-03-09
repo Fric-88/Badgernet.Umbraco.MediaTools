@@ -297,14 +297,14 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                                 @click="${this.#toggleDateTime}">
                         
                         <uui-icon style="margin-bottom: 2px" name="${this.removeDateTime ? "check" : "remove"}"></uui-icon>
-                        Date & Time
+                        Date & Timestamps
                     </uui-button>
 
                     <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleCameraInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
-                        Camera info
+                        Device info
                     </uui-button>
 
                     <uui-button look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
@@ -322,6 +322,9 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     </uui-button>
 
                 </uui-button-group>
+
+                <p>Specify further metadata tags that should be removed:</p>
+                <uui-input></uui-input>
                 
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>

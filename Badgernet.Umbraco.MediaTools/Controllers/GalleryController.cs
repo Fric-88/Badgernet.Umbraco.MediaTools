@@ -18,7 +18,7 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "mediatools")]
 [Route("gallery")]
-public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor) : ControllerBase
+public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor) : ControllerBase
 {
 
     [HttpGet("get-info")]
@@ -519,12 +519,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         using var newImage =Image.Load(fileStream);
         
         //Copy metadata from old image and change resolution values
-        imageProcessor.CopyMetadata(oldImage, newImage);
-        newImage.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, newImage.Width);
-        newImage.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, newImage.Height );
-        newImage.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, newImage.Width);
-        newImage.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, newImage.Height);
-        
+        metadataProcessor.CopyMetadata(oldImage, newImage);
+        metadataProcessor.SetResolutionTags(newImage, newImage.Width, newImage.Height);
         
         using var converted = new MemoryStream();
         
@@ -570,7 +566,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 return BadRequest();
             }
 
-            var metadata = imageProcessor.ReadMetadata(imageStream);
+            var metadata = metadataProcessor.ReadMetadata(imageStream);
 
             var exifProfile = metadata.ExifProfile;
             var cicpProfile = metadata.CicpProfile;
@@ -590,7 +586,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             {
                 foreach (var exifValue in exifProfile.Values)   
                 {
-                    metadataDto.ExifValues.Add(MetadataParser.ParseIExifValue(exifValue));    
+                    metadataDto.ExifValues.Add(metadataProcessor.ParseIExifValue(exifValue));    
                 }                
             }
 
