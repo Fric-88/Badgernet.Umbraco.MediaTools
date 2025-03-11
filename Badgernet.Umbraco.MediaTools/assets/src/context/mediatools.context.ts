@@ -33,6 +33,7 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
     #removeAuthorInfo = new UmbBooleanState(false);
+    #metaTagsToRemove = new UmbArrayState<string>([], (item) => { return item });
     
     public get resizerEnabled() : Observable<boolean>{
         return this.#resizerEnabled.asObservable();  
@@ -127,6 +128,17 @@ export class MediaToolsContext extends UmbControllerBase {
     public set removeAuthorInfo(value: boolean) {
         this.#removeAuthorInfo.setValue(value);
     }
+    
+    public get metaTagsToRemove(): Observable<string[]> {
+        return this.#metaTagsToRemove.asObservable();
+    }
+    public set metaTagsToRemove(value: string[]) {
+        this.#metaTagsToRemove.setValue(value);
+    }
+    
+    public addMetaTagsToRemove(value: string) {
+        this.#metaTagsToRemove.appendOne(value);
+    } 
 
     constructor(host: UmbControllerHost) {
         super(host);

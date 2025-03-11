@@ -10,6 +10,7 @@ import { UUIToastNotificationContainerElement, UUIToastNotificationElement } fro
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
+import {exifTagOptions} from "../code/metadataTags.ts";
 
 @customElement('badgernet_umbraco_mediatools-upload-worker-dash')
 export class ProcessingDashboard extends UmbElementMixin(LitElement) {
@@ -35,6 +36,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() removeCameraInfo?: boolean;
     @state() removeGpsInfo?: boolean;
     @state() removeAuthorInfo?: boolean;
+    @state() tagsToRemove?: string[];
+    @state() filteredTagsToRemove?: string[];
 
     @query('#notificationsContainer') notificationContainer: UUIToastNotificationContainerElement | undefined
 
@@ -60,6 +63,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
             this.observe(_context.removeAuthorInfo, (_value) => { this.removeAuthorInfo = _value} );
             this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
+            this.observe(_context.metaTagsToRemove, (_value) => { this.tagsToRemove = _value; } );
         });
 
         
@@ -324,7 +328,15 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                 </uui-button-group>
 
                 <p>Specify further metadata tags that should be removed:</p>
-                <uui-input></uui-input>
+                <uui-combobox pristine="" search="" value="">
+                    <uui-combobox-list @input="" @change="">
+                        ${exifTagOptions.map(tag => 
+                            html`
+                                <uui-combobox-list-option value="${tag}">${tag}</uui-combobox-list-option>
+                            `
+                        )}
+                    </uui-combobox-list>
+                </uui-combobox>
                 
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>

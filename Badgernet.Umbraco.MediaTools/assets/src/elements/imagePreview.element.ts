@@ -140,14 +140,14 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
                             
                             ${this.imageMetaData?.exifValues?.length ?
-                                    this.imageMetaData.exifValues.map((e) =>
-                                            html`
-                                                <uui-table-row>
-                                                    <uui-table-cell>${e.tag}</uui-table-cell>
-                                                    <uui-table-cell>${e.value}</uui-table-cell>
-                                                </uui-table-row>
-                                            `):
-                                    html`<p>No metadata available</p>`
+                                this.imageMetaData.exifValues.map((e) =>
+                                        html`
+                                            <uui-table-row>
+                                                <uui-table-cell>${e.tag}</uui-table-cell>
+                                                <uui-table-cell>${e.value}</uui-table-cell>
+                                            </uui-table-row>
+                                        `):
+                                html`<p>No metadata available</p>`
                             }
                         </uui-table>
                     </div>
