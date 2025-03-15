@@ -548,7 +548,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 selectionCount="${this.itemsList.countSelectedItems()}"
                                 width="${this.width}"
                                 height="${this.height}"
-                                convertMode="lossy"
+                                convertMode="Lossy"
                                 convertQuality="85"
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.recycleSelectedImages}"

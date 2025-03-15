@@ -122,10 +122,10 @@ export class MediaToolsContext extends UmbControllerBase {
     public set removeGpsInfo(value: boolean) {
         this.#removeGpsInfo.setValue(value);
     }
-    public get removeAuthorInfo() :Observable<boolean>{
+    public get removeShootingSituationInfo() :Observable<boolean>{
         return this.#removeAuthorInfo.asObservable();
     } 
-    public set removeAuthorInfo(value: boolean) {
+    public set removeShootingSituationInfo(value: boolean) {
         this.#removeAuthorInfo.setValue(value);
     }
     

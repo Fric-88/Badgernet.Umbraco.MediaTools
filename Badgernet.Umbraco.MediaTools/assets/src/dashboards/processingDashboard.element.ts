@@ -35,7 +35,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() removeDateTime?: boolean;
     @state() removeCameraInfo?: boolean;
     @state() removeGpsInfo?: boolean;
-    @state() removeShootinSituationInfo?: boolean;
+    @state() removeShootingSituationInfo?: boolean;
     
     @state() selectedTags: string[] = [];
     @state() filteredTagsToRemove: string[] = exifTagOptions;
@@ -62,7 +62,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeDateTime, (_value) => { this.removeDateTime = _value} );
             this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
             this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
-            this.observe(_context.removeAuthorInfo, (_value) => { this.removeShootinSituationInfo = _value} );
+            this.observe(_context.removeShootingSituationInfo, (_value) => { this.removeShootingSituationInfo = _value} );
             this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
             this.observe(_context.metaTagsToRemove, (_value) => { this.selectedTags = _value; } );
         });
@@ -184,9 +184,9 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         if(!this.#mediaToolsContext) return;
         this.#mediaToolsContext.removeGpsInfo = !this.removeGpsInfo
     }
-    #toogleShootingSituationInfo(){
+    #toggleShootingSituationInfo(){
         if(!this.#mediaToolsContext) return;
-        this.#mediaToolsContext.removeAuthorInfo = !this.removeShootinSituationInfo
+        this.#mediaToolsContext.removeShootingSituationInfo = !this.removeShootingSituationInfo
     }
     
     
@@ -228,7 +228,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     
 
     #showToastNotification(headline: string , message: string , color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
-        const tainer = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
+        const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
         const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
         toast.color = color;
         const toastLayout = document.createElement('uui-toast-notification-layout');
@@ -239,8 +239,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         messageEl.innerHTML = message;
         toastLayout.appendChild(messageEl);
 
-        if (tainer) {
-            tainer.appendChild(toast);
+        if (container) {
+            container.appendChild(toast);
         }
     }
 
@@ -357,10 +357,10 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         Camera & Lens Info
                     </uui-button>
 
-                    <uui-button look="${this.removeShootinSituationInfo ? "primary" : "secondary"}" color="default"
+                    <uui-button look="${this.removeShootingSituationInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
-                                @click="${this.#toogleShootingSituationInfo}">
-                        <uui-icon style="margin-bottom: 2px" name="${this.removeShootinSituationInfo ? "check" : "remove"}"></uui-icon>
+                                @click="${this.#toggleShootingSituationInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeShootingSituationInfo ? "check" : "remove"}"></uui-icon>
                         Shooting situation Info
                     </uui-button>
 
