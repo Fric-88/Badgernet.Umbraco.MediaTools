@@ -58,7 +58,8 @@ export type MetadataRemoverSettings = {
     removeDateTime: boolean;
     removeCameraInfo: boolean;
     removeGpsInfo: boolean;
-    removeAuthorCopyright: boolean;
+    removeShootingSituationInfo: boolean;
+    metadataTagsToRemove: Array<(string)>;
 };
 
 export type NotificationHeaderModel = {

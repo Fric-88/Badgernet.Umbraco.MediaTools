@@ -6,7 +6,7 @@ import "../elements/inputElements/inputBox.element.ts"
 import "../elements/inputElements/sliderBox.element.ts"
 import "../elements/inputElements/radioBox.element.ts"
 import { ConvertMode } from "../api";
-import { UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
+import {UUIComboboxElement, UUIIconElement, UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
@@ -35,9 +35,10 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() removeDateTime?: boolean;
     @state() removeCameraInfo?: boolean;
     @state() removeGpsInfo?: boolean;
-    @state() removeAuthorInfo?: boolean;
-    @state() tagsToRemove?: string[];
-    @state() filteredTagsToRemove?: string[];
+    @state() removeShootinSituationInfo?: boolean;
+    
+    @state() selectedTags: string[] = [];
+    @state() filteredTagsToRemove: string[] = exifTagOptions;
 
     @query('#notificationsContainer') notificationContainer: UUIToastNotificationContainerElement | undefined
 
@@ -61,9 +62,9 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeDateTime, (_value) => { this.removeDateTime = _value} );
             this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
             this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
-            this.observe(_context.removeAuthorInfo, (_value) => { this.removeAuthorInfo = _value} );
+            this.observe(_context.removeAuthorInfo, (_value) => { this.removeShootinSituationInfo = _value} );
             this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
-            this.observe(_context.metaTagsToRemove, (_value) => { this.tagsToRemove = _value; } );
+            this.observe(_context.metaTagsToRemove, (_value) => { this.selectedTags = _value; } );
         });
 
         
@@ -152,12 +153,29 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             }
         }
     }
-    
+
+    //Resizer ON/OFF
+    #toggleResizer(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.resizerEnabled = !this.resizerEnabled;
+    }
+
+    //Converter ON/OFF
+    #toggleConverter(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.converterEnabled = !this.converterEnabled;
+    }
+
+    //Metadata remover ON/OFF
+    #toggleMetaRemover(){
+        if(!this.#mediaToolsContext) return;
+        this.#mediaToolsContext.metaRemoverEnabled = !this.metaRemoverEnabled;
+    }
+
     #toggleDateTime(){
         if(!this.#mediaToolsContext) return;
         this.#mediaToolsContext.removeDateTime = !this.removeDateTime
     }
-
     #toggleCameraInfo(){
         if(!this.#mediaToolsContext) return;
         this.#mediaToolsContext.removeCameraInfo = !this.removeCameraInfo
@@ -166,25 +184,48 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
         if(!this.#mediaToolsContext) return;
         this.#mediaToolsContext.removeGpsInfo = !this.removeGpsInfo
     }
-    #toggleAuthorInfo(){
+    #toogleShootingSituationInfo(){
         if(!this.#mediaToolsContext) return;
-        this.#mediaToolsContext.removeAuthorInfo = !this.removeAuthorInfo
-    }
-
-    #toggleResizer(){
-        if(!this.#mediaToolsContext) return;
-        this.#mediaToolsContext.resizerEnabled = !this.resizerEnabled;
-    }
-
-    #toggleConverter(){
-        if(!this.#mediaToolsContext) return;
-        this.#mediaToolsContext.converterEnabled = !this.converterEnabled;
+        this.#mediaToolsContext.removeAuthorInfo = !this.removeShootinSituationInfo
     }
     
-    #toggleMetaRemover(){
-        if(!this.#mediaToolsContext) return;
-        this.#mediaToolsContext.metaRemoverEnabled = !this.metaRemoverEnabled;
+    
+    #filterTagsOnInput(e: Event){
+        
+        if(e.target instanceof UUIComboboxElement){
+            const target = e.target as UUIComboboxElement;
+            const searchTerm = target.search.toLowerCase();
+            if(searchTerm === ""){
+                this.filteredTagsToRemove = exifTagOptions; //Show all options
+            }
+            else{
+                this.filteredTagsToRemove = exifTagOptions.filter(tag =>
+                    tag.toLowerCase().includes(searchTerm))
+            }
+        }
     }
+    
+    #selectMetaTag(e: Event){
+        let target = e.target;
+        if(target instanceof UUIComboboxElement){
+            
+            const tagName = target.value.toString();
+            if(tagName && tagName !== ""){
+                this.#mediaToolsContext?.addMetaTagsToRemove(tagName);
+            }
+        }
+    }
+    #removeMetaTag(e: Event){
+        let target = e.target;
+        if(target instanceof UUIIconElement){
+
+            const tagName = target.dataset.tagName;
+            if(tagName && tagName !== ""){
+                this.#mediaToolsContext?.removeMetaTagsToRemove(tagName);
+            }
+        }
+    }
+    
 
     #showToastNotification(headline: string , message: string , color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
         const tainer = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
@@ -291,10 +332,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted" >Remove metadata from images that you upload to Umbraco.</uui-label>
                 </div>
 
-                <p>Select which data should automatically be removed:</p>
-                
-                
-                <uui-button-group id="extensionButtons" style="margin-bottom: 1rem;">
+                <p>Select which EXIF metadata Tags to remove:</p>
+                <uui-button-group id="tagGroupsButtons" style="margin-bottom: 1rem;">
 
                     <uui-button look="${this.removeDateTime ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
@@ -304,33 +343,39 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         Date & Timestamps
                     </uui-button>
 
-                    <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
-                                .disabled="${!this.metaRemoverEnabled}"
-                                @click="${this.#toggleCameraInfo}">
-                        <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
-                        Device info
-                    </uui-button>
-
                     <uui-button look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleGpsInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeGpsInfo ? "check" : "remove"}"></uui-icon>
                         GPS Info
                     </uui-button>
-
-                    <uui-button look="${this.removeAuthorInfo ? "primary" : "secondary"}" color="default"
+                    
+                    <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
-                                @click="${this.#toggleAuthorInfo}">
-                        <uui-icon style="margin-bottom: 2px" name="${this.removeAuthorInfo ? "check" : "remove"}"></uui-icon>
-                        Author & Copyright
+                                @click="${this.#toggleCameraInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
+                        Camera & Lens Info
                     </uui-button>
 
+                    <uui-button look="${this.removeShootinSituationInfo ? "primary" : "secondary"}" color="default"
+                                .disabled="${!this.metaRemoverEnabled}"
+                                @click="${this.#toogleShootingSituationInfo}">
+                        <uui-icon style="margin-bottom: 2px" name="${this.removeShootinSituationInfo ? "check" : "remove"}"></uui-icon>
+                        Shooting situation Info
+                    </uui-button>
+
+                    
                 </uui-button-group>
 
-                <p>Specify further metadata tags that should be removed:</p>
-                <uui-combobox pristine="" search="" value="">
-                    <uui-combobox-list @input="" @change="">
-                        ${exifTagOptions.map(tag => 
+                
+                <p>Other tags that should also be removed:</p>
+                <uui-combobox pristine="" value=""
+                              style="--uui-combobox-popover-max-height: 300px;"
+                              .disabled="${!this.metaRemoverEnabled}"
+                              @search="${this.#filterTagsOnInput}"
+                              @change="${this.#selectMetaTag}">
+                    <uui-combobox-list>
+                        ${this.filteredTagsToRemove.map(tag => 
                             html`
                                 <uui-combobox-list-option value="${tag}">${tag}</uui-combobox-list-option>
                             `
@@ -338,6 +383,20 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     </uui-combobox-list>
                 </uui-combobox>
                 
+                <div class="metaTagsContainer">
+                    ${this.selectedTags?.map(tag =>
+                        html`
+                            <div class="metaTag">
+                                <uui-label>${tag}</uui-label>
+                                <uui-icon name="remove" 
+                                          style="margin-top: 3px; cursor: pointer" 
+                                          data-tag-name="${tag}"
+                                          @click="${this.#removeMetaTag}">
+                                </uui-icon>
+                            </div>
+                        `
+                    )}
+                </div> 
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
 
@@ -383,27 +442,26 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     static styles = css`
 
 
-        .dashboard{
+        .dashboard {
             padding: 1rem;
             height: 100%;
         }
-        uui-box{
+
+        uui-box {
             margin-bottom: 0.8rem;
         }
 
-        light{
+        light {
             font-size: 0.8rem;
             font-weight: lighter;
         }
-        
 
-
-        .boxElement{
+        .boxElement {
             display: inline-block;
-            margin:0.2rem;
+            margin: 0.2rem;
         }
 
-        .muted{
+        .muted {
             display: block;
             font-size: 0.8rem;
             font-style: italic;
@@ -411,34 +469,54 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             text-align: center;
         }
 
-        .flex{
+        .flex {
             display: flex;
             flex-direction: row;
             justify-content: center;
         }
 
-        .stat{
-            text-align:center;
+        .stat {
+            text-align: center;
             font-weight: 300;
             margin-left: 1rem;
             margin-right: 1rem;
         }
 
-        .separator{
+        .separator {
             background-color: lightgray;
-            width:1px;
-            height:100%
+            width: 1px;
+            height: 100%
         }
 
-        #notificationContainer{
+        #notificationContainer {
             display: block;
-            align-items:start;
-            position:absolute;
-            left:0px;
+            align-items: start;
+            position: absolute;
+            left: 0px;
             bottom: 50px;
-            right:15px;
-            height:auto;
+            right: 15px;
+            height: auto;
         }
+
+        .metaTagsContainer {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1rem;
+            
+        }
+
+        .metaTag {
+            display: flex;
+            flex-direction: row;
+            padding: 5px;
+            gap: 10px;
+            background-color: #d0d0cb;
+            border-radius: 15px;
+        }
+
+
 
     `
 }

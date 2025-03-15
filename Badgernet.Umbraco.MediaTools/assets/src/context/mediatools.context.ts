@@ -33,7 +33,7 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
     #removeAuthorInfo = new UmbBooleanState(false);
-    #metaTagsToRemove = new UmbArrayState<string>([], (item) => { return item });
+    #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
     
     public get resizerEnabled() : Observable<boolean>{
         return this.#resizerEnabled.asObservable();  
@@ -132,13 +132,18 @@ export class MediaToolsContext extends UmbControllerBase {
     public get metaTagsToRemove(): Observable<string[]> {
         return this.#metaTagsToRemove.asObservable();
     }
-    public set metaTagsToRemove(value: string[]) {
-        this.#metaTagsToRemove.setValue(value);
-    }
     
     public addMetaTagsToRemove(value: string) {
-        this.#metaTagsToRemove.appendOne(value);
+        if(!this.#metaTagsToRemove.getValue().includes(value)) {
+            this.#metaTagsToRemove.appendOne(value);
+        }
     } 
+    
+    public removeMetaTagsToRemove(value: string) {
+        if(this.#metaTagsToRemove.getValue().includes(value)) {
+           this.#metaTagsToRemove.remove([value]); 
+        }
+    }
 
     constructor(host: UmbControllerHost) {
         super(host);
@@ -148,7 +153,6 @@ export class MediaToolsContext extends UmbControllerBase {
 
     async getGalleryInfo() {
         const responseData = await this.#repository.getGalleryInfo();
-
         if(responseData)
             return responseData.data;
     }
@@ -176,7 +180,8 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#removeDateTime.setValue(responseData.metadataRemover.removeDateTime);
             this.#removeCameraInfo.setValue(responseData.metadataRemover.removeCameraInfo);
             this.#removeGpsInfo.setValue(responseData.metadataRemover.removeGpsInfo);
-            this.#removeAuthorInfo.setValue(responseData.metadataRemover.removeAuthorCopyright);
+            this.#removeAuthorInfo.setValue(responseData.metadataRemover.removeShootingSituationInfo);
+            this.#metaTagsToRemove.setValue(responseData.metadataRemover.metadataTagsToRemove);
         }
     }
 
@@ -200,7 +205,8 @@ export class MediaToolsContext extends UmbControllerBase {
                 removeDateTime: this.#removeDateTime.getValue(),
                 removeGpsInfo: this.#removeGpsInfo.getValue(),
                 removeCameraInfo: this.#removeCameraInfo.getValue(),
-                removeAuthorCopyright: this.#removeAuthorInfo.getValue()
+                removeShootingSituationInfo: this.#removeAuthorInfo.getValue(),
+                metadataTagsToRemove: this.#metaTagsToRemove.getValue()
             },
             general: {
                 ignoreKeyword: this.#ignoreKeyword.getValue(),

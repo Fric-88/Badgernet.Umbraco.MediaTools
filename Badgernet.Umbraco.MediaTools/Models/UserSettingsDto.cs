@@ -38,7 +38,8 @@ public class MetadataRemoverSettings
     public bool RemoveDateTime { get; set; } = true;
     public bool RemoveCameraInfo { get; set; } = true;
     public bool RemoveGpsInfo { get; set; } = true;
-    public bool RemoveAuthorCopyright { get; set; } = false;
+    public bool RemoveShootingSituationInfo { get; set; } = false;
+    public HashSet<string> MetadataTagsToRemove { get; init; } = new();
 } 
 
 public enum ConvertMode

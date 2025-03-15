@@ -259,4 +259,6 @@ public static class ExifTags
     public const string Unknown = "Unknown";
     public const string SubIFDOffset = "SubIFDOffset";
     public const string GPSIFDOffset = "GPSIFDOffset";
+    
+
 }

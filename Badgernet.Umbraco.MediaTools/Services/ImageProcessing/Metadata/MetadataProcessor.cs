@@ -6,12 +6,15 @@ namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 
 public class MetadataProcessor: IMetadataProcessor
 {
+    //Reads metadata profiles from image stream
     public ImageMetadata ReadMetadata(MemoryStream imageStream)
     {
         using var img = Image.Load(imageStream);
         var data = img.Metadata;
         return data;
     }
+    
+    //Copies complete all metadata between two images
     public void CopyMetadata(Image sourceImage, Image destinationImage)
     {
         destinationImage.Metadata.ExifProfile = sourceImage.Metadata.ExifProfile?.DeepClone();
@@ -48,6 +51,7 @@ public class MetadataProcessor: IMetadataProcessor
 
     }
 
+    //Adjusts Resolution related tags based on actual image resolution
     public void SetResolutionTags(Image image, int width, int height)
     {
         image.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, width);
@@ -55,5 +59,110 @@ public class MetadataProcessor: IMetadataProcessor
         image.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, width);
         image.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, height);
     }
-    
+
+    //Removes specific exif metadata tag from the image
+    public bool RemoveExifTags(Image image, ExifTag exifTag)
+    {
+        if(image.Metadata.ExifProfile == null ) return false;
+        return image.Metadata.ExifProfile.RemoveValue(exifTag);
+    }
+
+    //Removes exif tags related to Date and Time 
+    public int RemoveExifDateTimeTags(Image image)
+    {
+        if(image.Metadata.ExifProfile == null ) return 0;
+
+        var deletedCount = 0; 
+        
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DateTime)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DateTimeOriginal)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DateTimeDigitized)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OffsetTime)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OffsetTimeOriginal)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OffsetTimeDigitized)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubsecTime)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubsecTimeOriginal)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubsecTimeDigitized)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSTimestamp)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDateStamp)) deletedCount++;
+
+        return deletedCount;
+    }
+
+    //Removes exif tags related to GPS information
+    public int RemoveExifGpsTags(Image image)
+    {
+        if(image.Metadata.ExifProfile == null ) return 0;
+
+        var deletedCount = 0; 
+        
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSVersionID)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSLatitudeRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSLatitude)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSLongitudeRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSLongitude)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSAltitudeRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSAltitude)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSTimestamp)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSSatellites)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSStatus)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSMeasureMode)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDOP)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSSpeedRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSSpeed)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSTrackRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSTrack)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSImgDirectionRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSImgDirection)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSMapDatum)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestLatitudeRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestLatitude)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestLongitudeRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestLongitude)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestBearingRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestBearing)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestDistanceRef)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDestDistance)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSProcessingMethod)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSAreaInformation)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDateStamp)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDifferential)) deletedCount++;
+
+        return deletedCount;
+    }
+
+    //Removes exif tags related to camera/phone/lens
+    public int RemoveExifDeviceTags(Image image)
+    {
+        if(image.Metadata.ExifProfile == null ) return 0;
+
+        var deletedCount = 0; 
+        
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ImageUniqueID)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OwnerName)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SerialNumber)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensSpecification)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensMake)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensModel)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensSerialNumber)) deletedCount++;
+
+        return deletedCount;
+    }
+
+    //Removes exif tags related to shooting setting
+    public int RemoveExifSettingTags(Image image)
+    {
+        if(image.Metadata.ExifProfile == null ) return 0;
+
+        var deletedCount = 0; 
+        
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.AmbientTemperature)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Humidity)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Pressure)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.WaterDepth)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Acceleration)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.CameraElevationAngle)) deletedCount++;
+
+        return deletedCount;
+    }
 }

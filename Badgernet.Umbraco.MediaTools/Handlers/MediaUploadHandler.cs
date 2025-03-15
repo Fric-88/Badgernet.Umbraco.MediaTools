@@ -3,8 +3,10 @@ using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
 using Badgernet.Umbraco.MediaTools.Services.FileManager;
 using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Scoping;
@@ -19,6 +21,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
         private readonly ISettingsService _settingsService;
         private readonly IMediaHelper _mediaHelper;
         private readonly IImageProcessor _imageProcessor;
+        private readonly IMetadataProcessor _metadataProcessor;
         private readonly IFileManager _fileManager;
         private readonly ICoreScopeProvider _scopeProvider;
         private readonly ILogger<MediaToolsUploadHandler> _logger;
@@ -29,6 +32,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             ISettingsService settingsService,
             IMediaHelper mediaHelper,
             IImageProcessor imageProcessor,
+            IMetadataProcessor metadataProcessor,
             IFileManager fileManager,
             ICoreScopeProvider scopeProvider,
             ILogger<MediaToolsUploadHandler> logger, 
@@ -37,13 +41,12 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             _settingsService = settingsService;
             _mediaHelper = mediaHelper;
             _imageProcessor = imageProcessor;
+            _metadataProcessor = metadataProcessor;
             _fileManager = fileManager;
             _scopeProvider = scopeProvider;
             _logger = logger;
             _backOfficeSecurity = backOfficeSecurity ?? throw new ArgumentNullException(nameof(backOfficeSecurity));
         }
-
-
 
         public void Handle(MediaSavingNotification notification)
         {
@@ -94,25 +97,6 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 //Skip if image name contains "ignoreKeyword"
                 if (Path.GetFileNameWithoutExtension(originalFilepath).Contains(ignoreKeyword,StringComparison.CurrentCultureIgnoreCase)) 
                 {
-                    // alternativeFilepath = originalFilepath.Replace(ignoreKeyword, string.Empty);
-                    // File.Move(originalFilepath, alternativeFilepath, true);
-
-                    // var jsonString = media.GetValue<string>("umbracoFile");
-
-                    // if (jsonString == null) continue;
-
-                    // var propNode = JsonNode.Parse((string)jsonString);
-                    // string? path = propNode!["src"]!.GetValue<string>();
-                    // path = path.Replace(ignoreKeyword, string.Empty);
-
-                    // propNode["src"] = path;
-
-                    // media.SetValue("umbracoFile", propNode.ToJsonString());
-                    // if(media.Name != null)
-                    // {
-                    //     media.Name = media.Name.Replace(ignoreKeyword, string.Empty,StringComparison.CurrentCultureIgnoreCase);
-                    // }
-
                     continue;
                 }
                 
@@ -130,7 +114,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     continue; //Skip if resolution cannot be parsed 
                 }
 
-                //Override appsettings targetSize if provided in image filename
+                //Override user settings targetSize if provided in image filename
                 var parsedTargetSize = ParseSizeFromFilename(Path.GetFileNameWithoutExtension(originalFilepath));
                 if(parsedTargetSize != null)
                 {
@@ -230,6 +214,31 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         wasConvertedFlag = true;
                     }
                     
+                }
+                
+                //Metadata remover part
+                if (settings.MetadataRemover.Enabled)
+                {
+                    using var img = Image.Load(imageStream);
+
+                    if (settings.MetadataRemover.RemoveCameraInfo)
+                        _metadataProcessor.RemoveExifDeviceTags(img);
+                    if (settings.MetadataRemover.RemoveDateTime)
+                        _metadataProcessor.RemoveExifDateTimeTags(img);
+                    if (settings.MetadataRemover.RemoveGpsInfo)
+                        _metadataProcessor.RemoveExifDeviceTags(img);
+                    if (settings.MetadataRemover.RemoveShootingSituationInfo)
+                        _metadataProcessor.RemoveExifSettingTags(img);
+
+                    //TODO Remove custom tags
+                    //TODO Handle non exif profiles
+
+                    var encoder = _imageProcessor.GetEncoder(finalSavingPath);
+                    
+                    imageStream.Position = 0;
+                    imageStream.SetLength(0);
+                    img.Save(imageStream,encoder);
+                    imageStream.Position = 0;
                 }
 
                 //Finally writing modified image back to file
