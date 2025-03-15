@@ -7,7 +7,8 @@ import {
     query,
     TemplateResult,
     state,
-    property
+    property,
+    ifDefined
 } from "@umbraco-cms/backoffice/external/lit";
 import { UUIModalContainerElement, UUIModalDialogElement } from "@umbraco-cms/backoffice/external/uui";
 import MediatoolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../context/mediatools.context.ts";
@@ -55,7 +56,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
         this.renderWidth = (this.imageInfo.width * scale);
         this.renderHeight = (this.imageInfo.height * scale);
-       
+
         await this.#loadMetadata(imageId).catch((e) => {console.log(e)});
         
         if(showMetadataFirst)
@@ -85,7 +86,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                 <uui-dialog-layout class="layout" headline="Preview">
                     
                     <img src="${this.imageInfo?.path}?width=${this.renderWidth?.toFixed(0)}&height=${this.renderHeight?.toFixed(0)}" 
-                         alt="${this.imageInfo?.name}">
+                         alt="${ifDefined(this.imageInfo?.name)}">
                     
                     <uui-box>
                         <uui-label style="display: block">Path: <strong>${this.imageInfo?.path}</strong></uui-label>
@@ -107,11 +108,15 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                                     @click="${this.#closePreview}">Close
                         </uui-button>
                     </div>
+
+                    
                     
                 </uui-dialog-layout>
             </uui-modal-dialog>
         `
     }
+
+
     
     #renderMetadataPreview(){
         this.dialogTemplate = html`
@@ -150,6 +155,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                                 html`<p>No metadata available</p>`
                             }
                         </uui-table>
+
+                        ${this.imageMetaData.}
                     </div>
                     
 

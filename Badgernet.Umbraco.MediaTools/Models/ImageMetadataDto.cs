@@ -9,4 +9,6 @@ public class ImageMetadataDto
     public string DecodedImageFormat { get; set; } = string.Empty;
     public string ResolutionUnits { get; set; } = string.Empty;
     public List<ParsedTag> ExifValues { get; set; } = [];
+    public string XmpProfile {get; set; } = string.Empty;
+     
 }

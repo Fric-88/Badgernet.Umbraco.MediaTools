@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using System.Security.Permissions;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -135,27 +136,27 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult RenameMedia(int mediaId, string newName)
     {
-       if (string.IsNullOrEmpty(newName))
-       {
-           logger.LogError("New name cannot be empty");
-           return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
-       }
-       
-       var imageMedia = mediaHelper.GetMediaById(mediaId);
+        if (string.IsNullOrEmpty(newName))
+        {
+            logger.LogError("New name cannot be empty");
+            return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
+        }
+        
+        var imageMedia = mediaHelper.GetMediaById(mediaId);
 
-       if (imageMedia == null)
-       {
-           logger.LogError("Media not found");
-           return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
-       }
+        if (imageMedia == null)
+        {
+            logger.LogError("Media not found");
+            return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
+        }
 
-       var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
+        var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
 
-       if (renameOperation) 
-           return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
-       
-       logger.LogError("Could not rename media.");
-       return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
+        if (renameOperation) 
+            return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
+        
+        logger.LogError("Could not rename media.");
+        return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
 
     }
 
@@ -187,8 +188,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         }
 
         //Clamp convertQuality to 1 -> 100
-        if(requestData.ConvertQuality > 100) requestData.ConvertQuality = 100;
-        if(requestData.ConvertQuality < 1) requestData.ConvertQuality = 1; 
+        Math.Clamp(requestData.ConvertQuality, 1, 100);
 
 
         var converterCounter = 0;
@@ -589,6 +589,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     metadataDto.ExifValues.Add(metadataProcessor.ParseIExifValue(exifValue));    
                 }                
             }
+
+            var xmpDoc = xmpProfile?.GetDocument()?.ToString() ?? "XMP profile not present.";
 
             return Ok(metadataDto);
         }
