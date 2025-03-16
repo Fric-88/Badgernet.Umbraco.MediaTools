@@ -6,7 +6,13 @@ import "../elements/inputElements/inputBox.element.ts"
 import "../elements/inputElements/sliderBox.element.ts"
 import "../elements/inputElements/radioBox.element.ts"
 import { ConvertMode } from "../api";
-import {UUIComboboxElement, UUIIconElement, UUIToastNotificationContainerElement, UUIToastNotificationElement } from "@umbraco-cms/backoffice/external/uui";
+import {
+    UUICheckboxElement,
+    UUIComboboxElement,
+    UUIIconElement,
+    UUIToastNotificationContainerElement,
+    UUIToastNotificationElement
+} from "@umbraco-cms/backoffice/external/uui";
 import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
@@ -35,12 +41,15 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
     @state() removeDateTime?: boolean;
     @state() removeCameraInfo?: boolean;
     @state() removeGpsInfo?: boolean;
+    @state() removeXmpProfile?: boolean;
+    @state() removeIptcProfile?: boolean;
     @state() removeShootingSituationInfo?: boolean;
     
     @state() selectedTags: string[] = [];
     @state() filteredTagsToRemove: string[] = exifTagOptions;
 
     @query('#notificationsContainer') notificationContainer: UUIToastNotificationContainerElement | undefined
+    
 
 
     constructor() {
@@ -65,6 +74,8 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeShootingSituationInfo, (_value) => { this.removeShootingSituationInfo = _value} );
             this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
             this.observe(_context.metaTagsToRemove, (_value) => { this.selectedTags = _value; } );
+            this.observe(_context.removeXmpProfile, (_value) => { this.removeXmpProfile = _value; } );
+            this.observe(_context.removeIptcProfile, (_value) => { this.removeIptcProfile = _value; } );
         });
 
         
@@ -334,6 +345,21 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
 
+                <div style="display: flex; flex-direction: column; gap:0.5rem; margin-bottom: 1rem;">
+                    <uui-checkbox id="removeXmpCheckBox" label="Remove IPTC Profile" labelPosition="right"
+                                  .checked="${this.removeIptcProfile}"
+                                  .disabled="${!this.metaRemoverEnabled}"
+                                  @change="${ () => this.#mediaToolsContext!.removeIptcProfile = !this.removeIptcProfile}">
+                        Remove IPTC Profile <light><small> - ( Might contain data about Author and Copyright! )</small></light>
+                    </uui-checkbox>
+                    <uui-checkbox id="removeIptcCheckBox" label="Remove XMP Profile" labelPosition="right"
+                                  .checked="${this.removeXmpProfile}"
+                                  .disabled="${!this.metaRemoverEnabled}"
+                                  @change="${ () => this.#mediaToolsContext!.removeXmpProfile = !this.removeXmpProfile}">
+                        Remove XMP Profile <light><small> - ( Might contain data from editing software like Photoshop or GIMP )</small></light>
+                    </uui-checkbox>
+                </div>
+
                 <p>EXIF Tag-groups to remove:</p>
                 <uui-button-group id="tagGroupsButtons" style="margin-bottom: 1rem;">
 
@@ -366,11 +392,6 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         Shooting situation Info
                     </uui-button>
                 </uui-button-group>
-
-                <div>
-                    <uui-checkbox label="Remove IPTC Profile" labelPosition="right"></uui-checkbox>
-                    <uui-checkbox label="Remove XMP Profile" labelPosition="right"></uui-checkbox>
-                </div> 
 
 
                 <p>Other tags to remove:</p>

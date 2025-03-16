@@ -148,12 +148,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         imageStream.Dispose();
                         continue;
                     }
-
-                    //Calculate file size difference
-                    var bytesSaved = _fileManager.CompareFileSize(originalFilepath, alternativeFilepath);
-                    // settings.BytesSavedResizing += bytesSaved;
-                    // settings.ResizerCounter++;
-
+                    
                     //Adjust media properties
                     var newFilename = Path.GetFileName(alternativeFilepath);
                     _mediaHelper.SetUmbFilename(media, newFilename);
@@ -220,6 +215,11 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 if (settings.MetadataRemover.Enabled)
                 {
                     using var img = Image.Load(imageStream);
+
+                    if (settings.MetadataRemover.RemoveXmpProfile)
+                        img.Metadata.XmpProfile = null;
+                    if (settings.MetadataRemover.RemoveIptcProfile)
+                        img.Metadata.IptcProfile = null;
 
                     if (settings.MetadataRemover.RemoveCameraInfo)
                         _metadataProcessor.RemoveExifDeviceTags(img);

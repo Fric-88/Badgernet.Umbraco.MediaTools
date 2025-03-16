@@ -60,6 +60,8 @@ export type MetadataRemoverSettings = {
     removeCameraInfo: boolean;
     removeGpsInfo: boolean;
     removeShootingSituationInfo: boolean;
+    removeXmpProfile: boolean;
+    removeIptcProfile: boolean;
     metadataTagsToRemove: Array<(string)>;
 };
 

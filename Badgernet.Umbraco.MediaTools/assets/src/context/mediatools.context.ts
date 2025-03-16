@@ -33,6 +33,8 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
     #removeAuthorInfo = new UmbBooleanState(false);
+    #removeXmpProfile = new UmbBooleanState(false);
+    #removeIptcProfile = new UmbBooleanState(false);
     #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
     
     public get resizerEnabled() : Observable<boolean>{
@@ -129,6 +131,21 @@ export class MediaToolsContext extends UmbControllerBase {
         this.#removeAuthorInfo.setValue(value);
     }
     
+    public get removeXmpProfile(): Observable<boolean> {
+        return this.#removeXmpProfile.asObservable();
+    }
+    public set removeXmpProfile(value: boolean) {
+        this.#removeXmpProfile.setValue(value);
+    }
+    
+    public get removeIptcProfile(): Observable<boolean> {
+        return this.#removeIptcProfile.asObservable();
+    }
+    
+    public set removeIptcProfile(value: boolean) {
+        this.#removeIptcProfile.setValue(value);
+    }
+    
     public get metaTagsToRemove(): Observable<string[]> {
         return this.#metaTagsToRemove.asObservable();
     }
@@ -168,7 +185,6 @@ export class MediaToolsContext extends UmbControllerBase {
         if(responseData) {
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
             this.#converterEnabled.setValue(responseData.converter.enabled);
-            
             this.#convertMode.setValue(responseData.converter.convertMode);
             this.#convertQuality.setValue(responseData.converter.convertQuality);
             this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
@@ -181,6 +197,8 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#removeCameraInfo.setValue(responseData.metadataRemover.removeCameraInfo);
             this.#removeGpsInfo.setValue(responseData.metadataRemover.removeGpsInfo);
             this.#removeAuthorInfo.setValue(responseData.metadataRemover.removeShootingSituationInfo);
+            this.#removeXmpProfile.setValue(responseData.metadataRemover.removeXmpProfile);
+            this.#removeIptcProfile.setValue(responseData.metadataRemover.removeIptcProfile);
             this.#metaTagsToRemove.setValue(responseData.metadataRemover.metadataTagsToRemove);
         }
     }
@@ -206,7 +224,9 @@ export class MediaToolsContext extends UmbControllerBase {
                 removeGpsInfo: this.#removeGpsInfo.getValue(),
                 removeCameraInfo: this.#removeCameraInfo.getValue(),
                 removeShootingSituationInfo: this.#removeAuthorInfo.getValue(),
-                metadataTagsToRemove: this.#metaTagsToRemove.getValue()
+                metadataTagsToRemove: this.#metaTagsToRemove.getValue(),
+                removeXmpProfile: this.#removeXmpProfile.getValue(),
+                removeIptcProfile: this.#removeIptcProfile.getValue()
             },
             general: {
                 ignoreKeyword: this.#ignoreKeyword.getValue(),

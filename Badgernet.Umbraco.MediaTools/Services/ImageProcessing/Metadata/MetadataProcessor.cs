@@ -36,6 +36,7 @@ public class MetadataProcessor: IMetadataProcessor
                 ExifTags.ISOSpeedRatings => exifValue.TryParseUshortArray(", "),
                 ExifTags.FlashpixVersion => exifValue.TryParseUndefinedArray(),
                 ExifTags.ExifVersion => exifValue.TryParseUndefinedArray(),
+                ExifTags.MakerNote => exifValue.TryParseUndefinedArray(),
                 ExifTags.BitsPerSample => exifValue.TryParseUshortArray(", "),
                 ExifTags.LensSpecification => exifValue.TryParseLensSpecification(),
                 ExifTags.ComponentsConfiguration => exifValue.TryParseUndefinedArray(),

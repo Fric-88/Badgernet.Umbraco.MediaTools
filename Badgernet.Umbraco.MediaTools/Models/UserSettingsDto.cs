@@ -4,9 +4,7 @@ public class UserSettingsDto
 {
     public ResizerSettings Resizer { get; init; } = new();
     public ConverterSettings Converter { get; init; } = new();
-    
     public MetadataRemoverSettings MetadataRemover { get; init; } = new();
-    
     public GeneralSettings General { get; init; } = new();
 
 }
@@ -34,12 +32,15 @@ public class GeneralSettings
 
 public class MetadataRemoverSettings
 {
-    public bool Enabled { get; init; } = true;
-    public bool RemoveDateTime { get; set; } = true;
-    public bool RemoveCameraInfo { get; set; } = true;
-    public bool RemoveGpsInfo { get; set; } = true;
-    public bool RemoveShootingSituationInfo { get; set; } = false;
-    public HashSet<string> MetadataTagsToRemove { get; init; } = new();
+    public bool Enabled { get; init; } = false;
+    public bool RemoveDateTime { get; init; } = true;
+    public bool RemoveCameraInfo { get; init; } = true;
+    public bool RemoveGpsInfo { get; init; } = true;
+    public bool RemoveShootingSituationInfo { get; init; } = false;
+    public bool RemoveXmpProfile { get; init; } = false;
+    public bool RemoveIptcProfile { get; init; } = false;
+    public HashSet<string> MetadataTagsToRemove { get; init; } = [];
+
 } 
 
 public enum ConvertMode
