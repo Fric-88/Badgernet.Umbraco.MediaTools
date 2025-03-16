@@ -332,7 +332,9 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                     <uui-label class="muted" >Remove metadata from images that you upload to Umbraco.</uui-label>
                 </div>
 
-                <p>Select which EXIF metadata Tags to remove:</p>
+                <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
+
+                <p>EXIF Tag-groups to remove:</p>
                 <uui-button-group id="tagGroupsButtons" style="margin-bottom: 1rem;">
 
                     <uui-button look="${this.removeDateTime ? "primary" : "secondary"}" color="default"
@@ -363,12 +365,15 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                         <uui-icon style="margin-bottom: 2px" name="${this.removeShootingSituationInfo ? "check" : "remove"}"></uui-icon>
                         Shooting situation Info
                     </uui-button>
-
-                    
                 </uui-button-group>
 
-                
-                <p>Other tags that should also be removed:</p>
+                <div>
+                    <uui-checkbox label="Remove IPTC Profile" labelPosition="right"></uui-checkbox>
+                    <uui-checkbox label="Remove XMP Profile" labelPosition="right"></uui-checkbox>
+                </div> 
+
+
+                <p>Other tags to remove:</p>
                 <uui-combobox pristine="" value=""
                               style="--uui-combobox-popover-max-height: 300px;"
                               .disabled="${!this.metaRemoverEnabled}"
@@ -396,9 +401,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                             </div>
                         `
                     )}
-                </div> 
-
-                <uui-toggle slot="header-actions" label="" ?checked=${this.metaRemoverEnabled} @change="${this.#toggleMetaRemover}"></uui-toggle>
+                </div>
 
             </uui-box> 
 
@@ -503,7 +506,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             flex-direction: row;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 1rem;
+            margin: 1rem;
             
         }
 

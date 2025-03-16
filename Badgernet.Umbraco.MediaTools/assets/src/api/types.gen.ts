@@ -46,6 +46,7 @@ export type ImageMetadataDto = {
     decodedImageFormat: string;
     resolutionUnits: string;
     exifValues: Array<(ParsedTag)>;
+    xmpProfile: string;
 };
 
 export type KeyValuePair_2 = {

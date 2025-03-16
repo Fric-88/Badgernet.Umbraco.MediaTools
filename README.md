@@ -11,7 +11,7 @@
 
  - 🔎 **Advanced Search:** Find images quickly by resolution, extension, name, folder, and more.
 
- - 📦 **Bulk Actions:** Resize, convert, change metadata or download multiple images directly from the media section.
+ - 📦 **Bulk Actions:** Resize, convert or download multiple images directly from the media section.
 
  - 🎨 **Simple Image Editor:** Edit images with basic editing functionalities without leaving the Umbraco environment.  
 
@@ -28,6 +28,8 @@ This package is compatible with Umbraco version 14 and newer.
 If you are looking for similar functionalities for Umbraco 13, take a look at [this repository](https://github.com/Fric-88/Badgernet.Umbraco.WebPicAuto)  
 
 ---
+
+
 
 # 🚀 Installation
 Simply add the package by using dotnet add package to install the latest version:
@@ -46,7 +48,7 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 # 📈 Changelog
 
 #### 1.0.7
-- Image Metadata viewer/editor
+- Image Metadata viewer
 - Automatic Metadata remover (upon uploading)
 - Metadata adjustments when resizing and editing
 
@@ -113,8 +115,14 @@ If turned on, original images will not be deleted
 Any images containing this keyword in its filename will be ignored by this package. -> "ignoreme_IMG01012024.png" would not get processed.
 
 ---
+# 🧭 Disclaimer
+By using this package, you acknowledge that editing images and their metadata may infringe upon the rights of the original creators, especially if the images are copyrighted.
+Removing or altering copyright metadata without proper authorization may be illegal and violate copyright laws.
+It is your responsibility to ensure that you have the necessary rights or permissions to edit the images and their metadata.
+Always respect intellectual property rights and consult legal counsel if you are uncertain about the legality of your actions.
+---
 
-### 📣 Credits
+# 📣 Credits
 Big thanks to [Kevin Jump](https://github.com/kevinjump) for providing "EarlyAdopter's Guide Umbraco v14" series on [dev.to](https://dev.to/kevinjump/series) 
 
 

@@ -566,31 +566,31 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 return BadRequest();
             }
 
-            var metadata = metadataProcessor.ReadMetadata(imageStream);
-
-            var exifProfile = metadata.ExifProfile;
-            var cicpProfile = metadata.CicpProfile;
-            var iccProfile = metadata.IccProfile;
-            var xmpProfile = metadata.XmpProfile;
-            var iptcProfile = metadata.IptcProfile;
-
+            var imgMetadata = metadataProcessor.ReadMetadata(imageStream);
             var metadataDto = new ImageMetadataDto
             {
-                VerticalResolution = metadata.VerticalResolution,
-                HorizontalResolution = metadata.HorizontalResolution,
-                DecodedImageFormat = metadata.DecodedImageFormat?.ToString() ?? string.Empty,
-                ResolutionUnits = metadata.ResolutionUnits.ToString()
+                VerticalResolution = imgMetadata.VerticalResolution,
+                HorizontalResolution = imgMetadata.HorizontalResolution,
+                DecodedImageFormat = imgMetadata.DecodedImageFormat?.ToString() ?? string.Empty,
+                ResolutionUnits = imgMetadata.ResolutionUnits.ToString()
             };
 
-            if (exifProfile != null)
+            // Parsing EXIF Profile 
+            if (imgMetadata.ExifProfile != null)
             {
-                foreach (var exifValue in exifProfile.Values)   
+                foreach (var exifValue in imgMetadata.ExifProfile.Values)   
                 {
                     metadataDto.ExifValues.Add(metadataProcessor.ParseIExifValue(exifValue));    
                 }                
             }
+            //IPTC Profile
 
-            var xmpDoc = xmpProfile?.GetDocument()?.ToString() ?? "XMP profile not present.";
+            //Add XMP as a string
+            if (imgMetadata.XmpProfile != null)
+            {
+                metadataDto.XmpProfile = imgMetadata.XmpProfile.GetDocument()?.ToString() ?? "XMP profile not present.";
+            }
+            
 
             return Ok(metadataDto);
         }

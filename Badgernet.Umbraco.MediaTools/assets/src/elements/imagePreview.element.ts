@@ -15,6 +15,8 @@ import MediatoolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../context/mediatool
 import {GetMetadataData, GetMetadataResponse, ImageMediaDto} from "../api";
 
 
+type currentPage = "EXIF"|"IPTC"|"XMP";
+
 @customElement('image-preview')
 export class ImagePreview extends UmbElementMixin(LitElement) {
 
@@ -28,6 +30,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
     @state() renderHeight? : number = this.maxHeight;
 
     @state() dialogTemplate!: TemplateResult;
+    @state() currentPage: currentPage = "EXIF"; 
     @query("#previewContainer") container!: UUIModalContainerElement;
     @query("#dialogElement") dialog!: UUIModalDialogElement;
     
@@ -36,6 +39,11 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#context = _context;
         });
+    }
+
+    connectedCallback(): void {
+        super.connectedCallback();
+        this.currentPage = "EXIF";
     }
 
     public async showPreview(imageId: number, showMetadataFirst: boolean = false){
@@ -59,16 +67,19 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
         await this.#loadMetadata(imageId).catch((e) => {console.log(e)});
         
-        if(showMetadataFirst)
+        if(showMetadataFirst){
             this.#renderMetadataPreview();
-        else
-            this.#renderPreviewTemplate();
+        }
+        else{
+            this.#renderImagePreview();
+        }
     }
     
     #closePreview(){
         const dialog = this.dialog as UUIModalDialogElement;
         dialog.close(); 
         this.dialogTemplate = html``;
+        this.currentPage = "EXIF";
     }
     
     async #loadMetadata(imageId:number){
@@ -80,7 +91,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         }
     }
     
-    #renderPreviewTemplate(){
+    #renderImagePreview(){
+        this.currentPage = "EXIF"; //Reset paging when leaving metadata view
         this.dialogTemplate = html`
             <uui-modal-dialog id="dialogElement">
                 <uui-dialog-layout class="layout" headline="Preview">
@@ -108,62 +120,37 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                                     @click="${this.#closePreview}">Close
                         </uui-button>
                     </div>
-
-                    
-                    
                 </uui-dialog-layout>
             </uui-modal-dialog>
         `
     }
-
-
     
+    #changePage(page: currentPage){
+        this.currentPage = page;
+        this.#renderMetadataPreview();
+    }
+
     #renderMetadataPreview(){
         this.dialogTemplate = html`
             <uui-modal-dialog id="dialogElement">
                 <uui-dialog-layout class="layout" headline="Metadata">
 
-
                     <div style="display: flex;">
                         <uui-tab-group style="">
-                            <uui-tab label="exif" active="">EXIF</uui-tab>
-                            <uui-tab label="iptc">IPTC</uui-tab>
-                            <uui-tab label="xmp">XMP</uui-tab>
+                            <uui-tab label="exif" active="" @click="${() => this.#changePage('EXIF')}">EXIF</uui-tab>
+                            <uui-tab label="iptc" @click="${() => this.#changePage('IPTC')}">IPTC</uui-tab>
+                            <uui-tab label="xmp" @click="${() => this.#changePage('XMP')}">XMP</uui-tab>
                         </uui-tab-group>
                     </div>
 
                     <div class="metadataList" style="width: ${this.maxWidth}px; height: ${this.maxHeight}px;">
-                        <uui-table style="padding: 2px; width: 99%;">
-                            
-                            <uui-table-column style="width: 48%;"></uui-table-column>
-                            <uui-table-column style="width: 48%;"></uui-table-column>
-    
-                            <uui-table-head>
-                                <uui-table-head-cell>EXIF Tag</uui-table-head-cell>
-                                <uui-table-head-cell>Value</uui-table-head-cell>
-                            </uui-table-head>
-
-                            
-                            ${this.imageMetaData?.exifValues?.length ?
-                                this.imageMetaData.exifValues.map((e) =>
-                                        html`
-                                            <uui-table-row>
-                                                <uui-table-cell>${e.tag}</uui-table-cell>
-                                                <uui-table-cell>${e.value}</uui-table-cell>
-                                            </uui-table-row>
-                                        `):
-                                html`<p>No metadata available</p>`
-                            }
-                        </uui-table>
-
-                        ${this.imageMetaData.}
+                        ${this.#renderPage()}
                     </div>
                     
-
                     <div class="buttonsBar">
                         <uui-button slot="actions" label="Metadata"
                                     look="primary" color="default"
-                                    @click="${this.#renderPreviewTemplate}">Preview
+                                    @click="${this.#renderImagePreview}">Preview
                         </uui-button>
     
                         <uui-button slot="actions" label="Close"
@@ -175,6 +162,40 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             </uui-modal-dialog>
         `
         
+    }
+    
+    #renderPage(){
+        switch (this.currentPage) {
+            case "EXIF":
+                return html`
+                    <uui-table style="padding: 2px; width: 99%;">
+        
+                        <uui-table-column style="width: 48%;"></uui-table-column>
+                        <uui-table-column style="width: 48%;"></uui-table-column>
+        
+                        <uui-table-head>
+                            <uui-table-head-cell>EXIF Tag</uui-table-head-cell>
+                            <uui-table-head-cell>Value</uui-table-head-cell>
+                        </uui-table-head>
+        
+        
+                        ${this.imageMetaData?.exifValues?.length ?
+                            this.imageMetaData.exifValues.map((e) =>
+                                html`
+                                    <uui-table-row>
+                                        <uui-table-cell>${e.tag}</uui-table-cell>
+                                        <uui-table-cell>${e.value}</uui-table-cell>
+                                    </uui-table-row>
+                                `):
+                            html`<p>No metadata available</p>`
+                        }
+                    </uui-table>
+                `;
+            case "IPTC":
+                return html`<p>This is IPTC profile page</p> `;
+            case "XMP":
+                return html`<pre>${this.imageMetaData?.xmpProfile}</pre>`
+        }
     }
 
     render() {
@@ -221,6 +242,16 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
         uui-table-cell{
             padding: 0.3rem;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 10px;
+            border: 1px solid #ddd;
+            overflow: auto;
         }
     `
 }
