@@ -45,7 +45,8 @@ export type ImageMetadataDto = {
     horizontalResolution: number;
     decodedImageFormat: string;
     resolutionUnits: string;
-    exifValues: Array<(ParsedTag)>;
+    exifTags: Array<(ParsedTag)>;
+    iptcTags: Array<(ParsedTag)>;
     xmpProfile: string;
 };
 

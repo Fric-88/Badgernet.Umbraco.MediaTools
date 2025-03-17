@@ -8,7 +8,8 @@ public class ImageMetadataDto
     public double HorizontalResolution { get; set; } = 0;
     public string DecodedImageFormat { get; set; } = string.Empty;
     public string ResolutionUnits { get; set; } = string.Empty;
-    public List<ParsedTag> ExifValues { get; set; } = [];
+    public List<ParsedTag> ExifTags { get; set; } = [];
+    public List<ParsedTag> IptcTags { get; set; } = [];
     public string XmpProfile {get; set; } = string.Empty;
      
 }

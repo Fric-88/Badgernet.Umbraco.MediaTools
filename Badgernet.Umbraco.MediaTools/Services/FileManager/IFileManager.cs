@@ -2,7 +2,7 @@ namespace Badgernet.Umbraco.MediaTools.Services.FileManager;
 
 public interface IFileManager
 {
-    MemoryStream? ReadFile(string relativePath);
+    MemoryStream? TryReadFile(string relativePath);
     bool WriteFile(string relativePath, Stream fileStream);
     bool DeleteFile(string relativePath);
     bool FileExists(string relativePath);

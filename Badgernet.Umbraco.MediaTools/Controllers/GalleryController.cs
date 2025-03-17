@@ -226,22 +226,26 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var filename = Path.GetFileName(newMediaPath);
 
                 //READ FILE INTO A STREAM THAT NEEDS TO BE MANUALLY DISPOSED
-                var imageStream = fileManager.ReadFile(mediaPath);
-
-                if(imageStream == null)
+                
+                var imgStream = new MemoryStream();
+                imgStream = fileManager.TryReadFile(mediaPath);
+                if(imgStream == null)
                 {
                     logger.LogError("Image with id: {id} could not be read.", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 }
 
+                using var image = Image.Load(imgStream);
+                imgStream.Dispose();
+
                 //Image will be saved under this path if processing succeeds
                 var finalSavingPath = string.Empty;
 
                 //Resizing part
                 if(requestData.Resize) {
-                    using var resizedImageStream = imageProcessor.Resize(imageStream,newResolution);
-                    if(resizedImageStream != null)//If resizing succeeded
+                    var resizingSuccess = imageProcessor.Resize(image,newResolution);
+                    if(resizingSuccess)//If resizing succeeded
                     {
                         //Set properties
                         mediaHelper.SetUmbFilename(imageMedia, filename);
@@ -252,12 +256,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                         //Reassign path
                         mediaPath = newMediaPath;
-
-                        //Copy resized image to image stream
-                        imageStream.ClearAndReassign(resizedImageStream);
-
                         finalSavingPath = mediaPath;
-
                         resizerCounter++;
                         //SUCCESS
                     }
@@ -280,26 +279,20 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     {
                         newMediaPath = Path.ChangeExtension(newMediaPath, ".webp");
 
-                        using (var convertedImage = imageProcessor.ConvertToWebp(imageStream, convertMode, convertQuality))
+                        var convertingSuccess = imageProcessor.ConvertToWebp(image, convertMode, convertQuality);
+                        
+                        if(convertingSuccess)//If converting succeeded
                         {
-                            if(convertedImage != null)//If converting succeeded
-                            {
-                                mediaHelper.SetUmbFilename(imageMedia, filename);
-                                mediaHelper.SetUmbExtension(imageMedia, ".webp" );
-                                mediaHelper.SetUmbBytes(imageMedia, convertedImage.Length);
+                            mediaHelper.SetUmbFilename(imageMedia, filename);
+                            mediaHelper.SetUmbExtension(imageMedia, ".webp" );
 
-                                //Delete original image (before extension change)
-                                fileManager.DeleteFile(mediaPath);
-
-                                //Reassign image stream
-                                imageStream.ClearAndReassign(convertedImage);
-
-                                finalSavingPath = newMediaPath;
-
-                                converterCounter++;
-                                //SUCCESS
-                            }
+                            //Delete original image (before extension change)
+                            fileManager.DeleteFile(mediaPath);
+                            finalSavingPath = newMediaPath;
+                            converterCounter++;
+                            //SUCCESS
                         }
+                        
                     }
                     else
                     {
@@ -312,14 +305,25 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 if(finalSavingPath != string.Empty)
                 {
                     var writtenToDisk = false;
+                    
                     try{
+                        
+                        var encoder = imageProcessor.GetEncoder(finalSavingPath);
+                        
                         //Write image stream to file system  
-                        fileManager.WriteFile(finalSavingPath,imageStream);
+                        using (var imageStream = new MemoryStream())
+                        {
+                            image.Save(imageStream, encoder);
+                            fileManager.WriteFile(finalSavingPath, imageStream);
+                            mediaHelper.SetUmbBytes(imageMedia, imageStream.Length);
+                        }
+
                         writtenToDisk = true;
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         logger.LogError("Image with id: {id} could not be saved to file system.", id);
+                        logger.LogError(ex.Message);
                     }
 
                     if (writtenToDisk)
@@ -350,9 +354,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     }
                         
                 }
-
-                //Dispose the stream
-                imageStream.Dispose();
             }
             catch (Exception ex)
             {
@@ -447,7 +448,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             {
                 //Read physical file into a stream
                 var relativePath = mediaHelper.GetRelativePath(imageMedia);
-                using var fileStream = fileManager.ReadFile(relativePath);
+                using var fileStream = fileManager.TryReadFile(relativePath);
 
                 //Add it to the zip archive if it was successfully read 
                 if (fileStream == null) continue;
@@ -505,7 +506,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
         
         
-        using var oldImageStream =  fileManager.ReadFile(oldFilePath);
+        using var oldImageStream =  fileManager.TryReadFile(oldFilePath);
         if (oldImageStream == null)
         {
             response.Message = $"Image with id {id}  cannot be read";
@@ -546,8 +547,10 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     [HttpGet("getMetadata")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public IActionResult GetMetadata(int id)
     {
+        
         var imageMedia = mediaHelper.GetMediaById(id);
         if (imageMedia == null)
         {
@@ -558,7 +561,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         try
         {
             var filepath = mediaHelper.GetRelativePath(imageMedia);
-            using var imageStream = fileManager.ReadFile(filepath);
+            using var imageStream = fileManager.TryReadFile(filepath);
 
             if (imageStream == null)
             {
@@ -580,10 +583,17 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             {
                 foreach (var exifValue in imgMetadata.ExifProfile.Values)   
                 {
-                    metadataDto.ExifValues.Add(metadataProcessor.ParseIExifValue(exifValue));    
+                    metadataDto.ExifTags.Add(metadataProcessor.ParseIExifValue(exifValue));    
                 }                
             }
             //IPTC Profile
+            if (imgMetadata.IptcProfile != null)
+            {
+                foreach (var iptcValue in imgMetadata.IptcProfile.Values)
+                {
+                    metadataDto.IptcTags.Add(new ParsedTag(){ Tag = iptcValue.Tag.ToString(), Value = iptcValue.Value });
+                }
+            }
 
             //Add XMP as a string
             if (imgMetadata.XmpProfile != null)

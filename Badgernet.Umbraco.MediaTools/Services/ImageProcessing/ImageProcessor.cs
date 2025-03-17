@@ -20,40 +20,34 @@ namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 {
     
-    public MemoryStream? Resize(MemoryStream imageStream, Size targetResolution)
+    public bool Resize(Image image, Size targetResolution)
     {
         try
         {
-            using var img = Image.Load(imageStream);
-            var format = img.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
+            var format = image.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
 
-            img.Mutate(x =>
+            image.Mutate(x =>
             {
                 x.AutoOrient();
                 x.Resize(targetResolution.Width, targetResolution.Height);
             });
             
-            img.Metadata.HorizontalResolution = img.Width;
-            img.Metadata.VerticalResolution = img.Height;
-            img.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, img.Width);
-            img.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, img.Height );
-            img.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, img.Width);
-            img.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, img.Height);
-            
+            image.Metadata.HorizontalResolution = image.Width;
+            image.Metadata.VerticalResolution = image.Height;
+            image.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, image.Width);
+            image.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, image.Height );
+            image.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, image.Width);
+            image.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, image.Height);
 
-            var resizedStream = new MemoryStream();
-            img.Save(resizedStream, format);
-            resizedStream.Position = 0;
-
-            return resizedStream;
+            return true;
         }
         catch (Exception e)
         {
             logger.LogError("Error resizing image file: {Message}", e.Message);
-            return null;
+            return false;
         }
     }
-    public MemoryStream? ConvertToWebp(MemoryStream imageStream, ConvertMode convertMode, int convertQuality)
+    public bool ConvertToWebp(Image image, ConvertMode convertMode, int convertQuality)
     {
         var encoder = new WebpEncoder
             {
@@ -63,21 +57,19 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
         try
         {
-            using var img = Image.Load(imageStream);
-            img.Mutate(x => x.AutoOrient() );
+            image.Mutate(x => x.AutoOrient() );
 
-            var converted = new MemoryStream();
-            
-            img.Save(converted, encoder);
+            using var converted = new MemoryStream();
+            image.Save(converted, encoder);
+            converted.Position = 0; 
+            image = Image.Load(converted);
 
-            converted.Position = 0;
-
-            return converted;
+            return true;
         }
         catch (Exception e)
         {
             logger.LogError("Error converting image file: {Message}", e.Message);
-            return null;
+            return false;
         }
 
     }

@@ -179,8 +179,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                         </uui-table-head>
         
         
-                        ${this.imageMetaData?.exifValues?.length ?
-                            this.imageMetaData.exifValues.map((e) =>
+                        ${this.imageMetaData?.exifTags?.length ?
+                            this.imageMetaData.exifTags.map((e) =>
                                 html`
                                     <uui-table-row>
                                         <uui-table-cell>${e.tag}</uui-table-cell>
@@ -192,7 +192,30 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                     </uui-table>
                 `;
             case "IPTC":
-                return html`<p>This is IPTC profile page</p> `;
+                return html`
+                    <uui-table style="padding: 2px; width: 99%;">
+
+                        <uui-table-column style="width: 48%;"></uui-table-column>
+                        <uui-table-column style="width: 48%;"></uui-table-column>
+
+                        <uui-table-head>
+                            <uui-table-head-cell>IPTC Tag</uui-table-head-cell>
+                            <uui-table-head-cell>Value</uui-table-head-cell>
+                        </uui-table-head>
+
+
+                        ${this.imageMetaData?.iptcTags?.length ?
+                            this.imageMetaData.iptcTags.map((e) =>
+                                    html`
+                                <uui-table-row>
+                                    <uui-table-cell>${e.tag}</uui-table-cell>
+                                    <uui-table-cell>${e.value}</uui-table-cell>
+                                </uui-table-row>
+                            `):
+                            html`<p>No metadata available</p>`
+                        }
+                    </uui-table>
+                `;
             case "XMP":
                 return html`<pre>${this.imageMetaData?.xmpProfile}</pre>`
         }

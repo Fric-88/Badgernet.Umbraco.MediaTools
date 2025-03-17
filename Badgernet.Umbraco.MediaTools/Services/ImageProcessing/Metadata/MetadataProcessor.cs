@@ -24,7 +24,7 @@ public class MetadataProcessor: IMetadataProcessor
         destinationImage.Metadata.HorizontalResolution = destinationImage.Width;
         destinationImage.Metadata.VerticalResolution = destinationImage.Height;
     }
-    public  ParsedTag ParseIExifValue(IExifValue exifValue)
+    public ParsedTag ParseIExifValue(IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
         var tagValue = exifValue.GetValue() ?? string.Empty;
@@ -140,7 +140,6 @@ public class MetadataProcessor: IMetadataProcessor
         var deletedCount = 0; 
         
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ImageUniqueID)) deletedCount++;
-        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OwnerName)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SerialNumber)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensSpecification)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensMake)) deletedCount++;

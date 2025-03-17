@@ -455,11 +455,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                 id="notificationContainer"
                 auto-close="3000">
             </uui-toast-notification-container>
-
         </div>
-
-
-
         `
     }
 
