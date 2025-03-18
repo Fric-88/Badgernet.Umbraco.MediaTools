@@ -11,5 +11,5 @@ public interface IImageProcessor
     bool Resize(Image image, Size targetTResolution);
     bool ConvertToWebp(Image image, ConvertMode convertMode, int convertQuality);
     Size CalculateResolution(Size originalResolution, Size targetResolution, bool preserveAspectRatio = true);
-    ImageEncoder GetEncoder(string filePath);
+    ImageEncoder GetEncoder(string filePath, bool skipMetadata = false);
 }

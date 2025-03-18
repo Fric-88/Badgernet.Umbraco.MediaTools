@@ -145,6 +145,8 @@ public class MetadataProcessor: IMetadataProcessor
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensMake)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensModel)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensSerialNumber)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Make)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Model)) deletedCount++;
 
         return deletedCount;
     }
@@ -162,7 +164,51 @@ public class MetadataProcessor: IMetadataProcessor
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.WaterDepth)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Acceleration)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.CameraElevationAngle)) deletedCount++;
-
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ExposureTime)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FNumber)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ExposureProgram)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SpectralSensitivity)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SensitivityType)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.OECF)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.RecommendedExposureIndex)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ISOSpeed)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ISOSpeedLatitudeyyy)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ISOSpeedLatitudezzz)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ApertureValue)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.BrightnessValue)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ExposureBiasValue)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.MaxApertureValue)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubjectDistance)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.MeteringMode)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LightSource)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Flash)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubjectArea)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FocalLength)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FlashEnergy)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SpatialFrequencyResponse)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FocalPlaneXResolution)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FocalPlaneYResolution)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FocalPlaneResolutionUnit)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubjectLocation)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ExposureIndex)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SensingMethod)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FileSource)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SceneType)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.CFAPattern)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.CFARepeatPatternDim)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.CustomRendered)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ExposureMode)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.WhiteBalance)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DigitalZoomRatio)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.FocalLengthIn35mmFilm)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SceneCaptureType)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GainControl)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Contrast)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Saturation)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Sharpness)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DeviceSettingDescription)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubjectDistanceRange)) deletedCount++;
+        
         return deletedCount;
     }
 }

@@ -92,22 +92,22 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
             return new Size(newWidth, newHeight);
         }
-    public ImageEncoder GetEncoder(string filePath)
+    public ImageEncoder GetEncoder(string filePath, bool skipMetadata = false)
     {
         var extension = Path.GetExtension(filePath).ToLower();
 
         return extension switch
         {
-            ".pbm" => new PbmEncoder(),
-            ".png" => new PngEncoder(),
-            ".gif" => new GifEncoder(),
-            ".qoi" => new QoiEncoder(),
-            ".tga" => new TgaEncoder(),
-            ".jpg" => new JpegEncoder(),
-            ".jpeg" => new JpegEncoder(),
-            ".bmp" => new BmpEncoder(),
-            ".tiff" => new TiffEncoder(),
-            _ => new WebpEncoder()
+            ".pbm" => new PbmEncoder(){SkipMetadata = skipMetadata},
+            ".png" => new PngEncoder(){SkipMetadata = skipMetadata},
+            ".gif" => new GifEncoder(){SkipMetadata = skipMetadata},
+            ".qoi" => new QoiEncoder(){SkipMetadata = skipMetadata},
+            ".tga" => new TgaEncoder(){SkipMetadata = skipMetadata},
+            ".jpg" => new JpegEncoder(){SkipMetadata = skipMetadata},
+            ".jpeg" => new JpegEncoder(){SkipMetadata = skipMetadata},
+            ".bmp" => new BmpEncoder(){SkipMetadata = skipMetadata},
+            ".tiff" => new TiffEncoder(){SkipMetadata = skipMetadata},
+            _ => new WebpEncoder(){SkipMetadata = skipMetadata}
         };
         ;
     }

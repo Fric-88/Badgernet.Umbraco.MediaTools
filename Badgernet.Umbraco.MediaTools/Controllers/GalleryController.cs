@@ -226,7 +226,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var filename = Path.GetFileName(newMediaPath);
 
                 //READ FILE INTO A STREAM THAT NEEDS TO BE MANUALLY DISPOSED
-                
                 var imgStream = new MemoryStream();
                 imgStream = fileManager.TryReadFile(mediaPath);
                 if(imgStream == null)

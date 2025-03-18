@@ -7,6 +7,7 @@ using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
@@ -120,15 +121,16 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 
                 
                 //Read file into a stream
-                using var imageStream = _fileManager.TryReadFile(originalPath);
+                var imageStream = _fileManager.TryReadFile(originalPath);
                 if(imageStream == null) 
                 {
                     _logger.LogError("Could not read file: {originalFilepath}", originalPath);
                     continue;
                 }
-                
                 //Load image from stream
                 using var image = Image.Load(imageStream);
+                imageStream.Dispose();
+                
                 var finalSavingPath = originalPath;
                 var newResolution = originalResolution;
 
@@ -190,9 +192,6 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     if (settings.MetadataRemover.RemoveShootingSituationInfo)
                         _metadataProcessor.RemoveExifSettingTags(image);
 
-
-                    
-
                     //TODO Remove custom tags
                     //TODO Handle non exif profiles
 
@@ -204,10 +203,10 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 if(wasConvertedFlag || wasResizedFlag || metadataProcessedFlag)
                 {
                     var encoder = _imageProcessor.GetEncoder(finalSavingPath);
-
+                   
                     using var imgStream = new MemoryStream();
                     image.Save(imgStream, encoder);
-                    _fileManager.WriteFile(finalSavingPath, imageStream);
+                    _fileManager.WriteFile(finalSavingPath, imgStream);
 
                     //Adjust media properties
                     var newFilename = Path.GetFileNameWithoutExtension(finalSavingPath);
@@ -217,7 +216,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     _mediaHelper.SetUmbFilename(media, newFilename);
                     _mediaHelper.SetUmbExtension(media, "." + newExtension);
                     _mediaHelper.SetUmbResolution(media, newResolution);
-                }
+                } 
                 
                 //Deleting original files
                 if (!keepOriginals && wasResizedFlag || wasConvertedFlag || metadataProcessedFlag)

@@ -368,28 +368,28 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
                                 @click="${this.#toggleDateTime}">
                         
                         <uui-icon style="margin-bottom: 2px" name="${this.removeDateTime ? "check" : "remove"}"></uui-icon>
-                        Date & Timestamps
+                        Dates & Timestamps
                     </uui-button>
 
                     <uui-button look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleGpsInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeGpsInfo ? "check" : "remove"}"></uui-icon>
-                        GPS Info
+                        GPS Tags
                     </uui-button>
                     
                     <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleCameraInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
-                        Camera & Lens Info
+                        Camera & Lens Tags
                     </uui-button>
 
                     <uui-button look="${this.removeShootingSituationInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleShootingSituationInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeShootingSituationInfo ? "check" : "remove"}"></uui-icon>
-                        Shooting situation Info
+                        Picture-Taking situation Tags
                     </uui-button>
                 </uui-button-group>
 
