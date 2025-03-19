@@ -48,9 +48,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 # 📈 Changelog
 
 #### 1.0.7
-- Image Metadata viewer
-- Automatic Metadata remover (upon uploading)
-- Metadata adjustments when resizing and editing
+- Metadata remover (upon uploading)
+- Metadata Viewer
+- Performance & Memory usage improvements 
+- UI improvements
 
 #### 1.0.6
 - Fix: handling of EXIF Orientation fixed

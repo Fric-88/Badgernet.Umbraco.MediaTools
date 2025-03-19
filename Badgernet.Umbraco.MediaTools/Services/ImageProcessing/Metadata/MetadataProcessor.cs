@@ -33,17 +33,17 @@ public class MetadataProcessor: IMetadataProcessor
         {
             return tagName switch
             {
-                ExifTags.ISOSpeedRatings => exifValue.TryParseUshortArray(", "),
-                ExifTags.FlashpixVersion => exifValue.TryParseUndefinedArray(),
-                ExifTags.ExifVersion => exifValue.TryParseUndefinedArray(),
-                ExifTags.MakerNote => exifValue.TryParseUndefinedArray(),
-                ExifTags.BitsPerSample => exifValue.TryParseUshortArray(", "),
-                ExifTags.LensSpecification => exifValue.TryParseLensSpecification(),
-                ExifTags.ComponentsConfiguration => exifValue.TryParseUndefinedArray(),
-                ExifTags.GPSTimestamp => exifValue.TryParseGpsTimestamp(),
-                ExifTags.GPSVersionID => exifValue.TryParseUndefinedArray(),
-                ExifTags.GPSLatitude => exifValue.TryParseGpsCoordinate(),
-                ExifTags.GPSLongitude=> exifValue.TryParseGpsCoordinate(), 
+                ExifTagsHelper.ISOSpeedRatings => exifValue.TryParseUshortArray(", "),
+                ExifTagsHelper.FlashpixVersion => exifValue.TryParseUndefinedArray(),
+                ExifTagsHelper.ExifVersion => exifValue.TryParseUndefinedArray(),
+                ExifTagsHelper.MakerNote => exifValue.TryParseUndefinedArray(),
+                ExifTagsHelper.BitsPerSample => exifValue.TryParseUshortArray(", "),
+                ExifTagsHelper.LensSpecification => exifValue.TryParseLensSpecification(),
+                ExifTagsHelper.ComponentsConfiguration => exifValue.TryParseUndefinedArray(),
+                ExifTagsHelper.GPSTimestamp => exifValue.TryParseGpsTimestamp(),
+                ExifTagsHelper.GPSVersionID => exifValue.TryParseUndefinedArray(),
+                ExifTagsHelper.GPSLatitude => exifValue.TryParseGpsCoordinate(),
+                ExifTagsHelper.GPSLongitude=> exifValue.TryParseGpsCoordinate(), 
                 _ => new ParsedTag(tagName, "Array value")
             };
         }
@@ -86,6 +86,7 @@ public class MetadataProcessor: IMetadataProcessor
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubsecTimeDigitized)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSTimestamp)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.GPSDateStamp)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.TimeZoneOffset)) deletedCount++;
 
         return deletedCount;
     }
@@ -147,6 +148,7 @@ public class MetadataProcessor: IMetadataProcessor
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.LensSerialNumber)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Make)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Model)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.BatteryLevel)) deletedCount++;
 
         return deletedCount;
     }
@@ -208,6 +210,7 @@ public class MetadataProcessor: IMetadataProcessor
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.Sharpness)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.DeviceSettingDescription)) deletedCount++;
         if(image.Metadata.ExifProfile.RemoveValue(ExifTag.SubjectDistanceRange)) deletedCount++;
+        if(image.Metadata.ExifProfile.RemoveValue(ExifTag.ShutterSpeedValue)) deletedCount++;
         
         return deletedCount;
     }

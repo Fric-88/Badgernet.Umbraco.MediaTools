@@ -36,6 +36,7 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeXmpProfile = new UmbBooleanState(false);
     #removeIptcProfile = new UmbBooleanState(false);
     #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
+
     
     public get resizerEnabled() : Observable<boolean>{
         return this.#resizerEnabled.asObservable();  
@@ -231,6 +232,7 @@ export class MediaToolsContext extends UmbControllerBase {
             general: {
                 ignoreKeyword: this.#ignoreKeyword.getValue(),
                 keepOriginals: this.#keepOriginals.getValue()
+                
             }
         }
 

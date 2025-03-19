@@ -12,6 +12,7 @@ using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Security.Permissions;
+using K4os.Compression.LZ4.Internal;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -195,7 +196,8 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var resizerCounter = 0;
         var processedMedias = new List<ImageMediaDto>();
         
-
+        using var imageStream = new MemoryStream();
+        
         foreach(var id in ids)
         {
             try
@@ -225,18 +227,16 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var newMediaPath = fileManager.GetFreePath(mediaPath);
                 var filename = Path.GetFileName(newMediaPath);
 
-                //READ FILE INTO A STREAM THAT NEEDS TO BE MANUALLY DISPOSED
-                var imgStream = new MemoryStream();
-                imgStream = fileManager.TryReadFile(mediaPath);
-                if(imgStream == null)
+
+                var fileReadSuccess = fileManager.ReadToStream(mediaPath, imageStream, true);
+                if(!fileReadSuccess)
                 {
                     logger.LogError("Image with id: {id} could not be read.", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 }
 
-                using var image = Image.Load(imgStream);
-                imgStream.Dispose();
+                using var image = Image.Load(imageStream);
 
                 //Image will be saved under this path if processing succeeds
                 var finalSavingPath = string.Empty;
@@ -309,13 +309,12 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                         
                         var encoder = imageProcessor.GetEncoder(finalSavingPath);
                         
-                        //Write image stream to file system  
-                        using (var imageStream = new MemoryStream())
-                        {
-                            image.Save(imageStream, encoder);
-                            fileManager.WriteFile(finalSavingPath, imageStream);
-                            mediaHelper.SetUmbBytes(imageMedia, imageStream.Length);
-                        }
+                        //Encode processed image into a stream and write it on disk
+                        imageStream.Position = 0;
+                        imageStream.SetLength(0);
+                        image.Save(imageStream, encoder);
+                        fileManager.WriteFile(finalSavingPath, imageStream);
+                        mediaHelper.SetUmbBytes(imageMedia, imageStream.Length);
 
                         writtenToDisk = true;
                     }
@@ -440,17 +439,21 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     public IActionResult DownloadMedia(int[] ids)
     {
         var images = mediaHelper.GetMediaByIds(ids);
+        
         var zipStream = new MemoryStream();
+        using var fileStream = new MemoryStream();
+        
         using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
         {
             foreach (var imageMedia in images)
             {
                 //Read physical file into a stream
                 var relativePath = mediaHelper.GetRelativePath(imageMedia);
-                using var fileStream = fileManager.TryReadFile(relativePath);
+
+                var readSuccess = fileManager.ReadToStream(relativePath, fileStream, true);
 
                 //Add it to the zip archive if it was successfully read 
-                if (fileStream == null) continue;
+                if (!readSuccess) continue;
                 
                 var zipEntry = zipArchive.CreateEntry(imageMedia.Name! + Path.GetExtension(relativePath));
                 using (var entryStream = zipEntry.Open()){
@@ -503,10 +506,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var fileExtension = Path.GetExtension(checkFileExtensionString);
         newFilePath = Path.ChangeExtension(newFilePath, fileExtension);
         var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
-        
-        
-        using var oldImageStream =  fileManager.TryReadFile(oldFilePath);
-        if (oldImageStream == null)
+
+
+        using var oldImageStream = new MemoryStream();
+        var readSuccess = fileManager.ReadToStream(oldFilePath, oldImageStream, true);
+        if (!readSuccess)
         {
             response.Message = $"Image with id {id}  cannot be read";
             response.Status = ResponseStatus.Error;
@@ -560,9 +564,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         try
         {
             var filepath = mediaHelper.GetRelativePath(imageMedia);
-            using var imageStream = fileManager.TryReadFile(filepath);
 
-            if (imageStream == null)
+            using var imageStream = new MemoryStream();
+            var readSuccess = fileManager.ReadToStream(filepath,imageStream, true);
+
+            if (!readSuccess)
             {
                 logger.LogError("Could not read image with id {id}.", id);
                 return BadRequest();

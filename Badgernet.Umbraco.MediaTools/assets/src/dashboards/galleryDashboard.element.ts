@@ -3,7 +3,7 @@ import { LitElement, html, css, customElement, state, query } from "@umbraco-cms
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 import {
     UUICheckboxElement,
-    UUIPaginationElement,
+    UUIPaginationElement, UUISelectElement,
     UUITableCellElement,
     UUITableRowElement,
     UUIToastNotificationContainerElement,
@@ -25,6 +25,7 @@ import AcceptRejectDialog from "../elements/acceptRejectDialog.element.ts";
 import "../elements/acceptRejectDialog.element.ts"
 
 
+
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
 export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
@@ -34,14 +35,24 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     @state() height: number = 1;
 
     @state() currentPage: number = 1;
-    @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(10);
+    @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(15);
     @state() allSelected: boolean = false;
+    @state() resultsPerPage: number = 15;
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
     @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
     @query("#acceptRejectDialog") acceptRejectDialog!: AcceptRejectDialog;
 
+    #resultsPerPageOptions: Array<Option> = [
+        {name: "10", value: "10"},
+        {name: "15", value: "15", selected: true},
+        {name: "20", value: "20"},
+        {name: "30", value: "30"},
+        {name: "50", value: "50"},
+        {name: "100", value: "100"}
+    ];
+    
     constructor() {
         super();
 
@@ -491,6 +502,16 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             }
         }
     }
+    
+    //Change items per Page
+    #handleItemsPerPageChanged(e: Event){
+        var target = e.target;
+        if(target instanceof UUISelectElement){
+            this.itemsList.pageSize = Number(target.value);
+            this.requestUpdate();
+        }
+    }
+    
 
     #showOperationNotification(operationResponse:OperationResponse){
         switch (operationResponse.status){
@@ -658,7 +679,6 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                             </uui-table-row>
                         `
                         )}
-
                 </uui-table>
 
                 <uui-pagination 
@@ -667,7 +687,11 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                     current="${this.currentPage}" 
                     @change="${this.handleChangePage}" >
                 </uui-pagination>
-
+                
+                <uui-select style="margin-top: 0.5rem;"
+                            options="${this.#resultsPerPageOptions}" 
+                            @change="${this.#handleItemsPerPageChanged}">
+                </uui-select>
             `
         }
         else{
@@ -676,6 +700,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             `
         }
     }
+    
+    
 
 
     static styles = css`

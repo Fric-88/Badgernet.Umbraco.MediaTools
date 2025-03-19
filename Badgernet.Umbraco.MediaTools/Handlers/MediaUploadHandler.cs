@@ -7,12 +7,12 @@ using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Security;
+using MemoryStream = System.IO.MemoryStream;
 using Size = SixLabors.ImageSharp.Size;
 
 namespace Badgernet.Umbraco.MediaTools.Handlers;
@@ -75,6 +75,8 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             Math.Clamp(targetHeight, 1, 10000);
             Math.Clamp(convertQuality, 1, 100);
 
+            
+            using var imageStream = new MemoryStream();
 
             foreach(var media in notification.SavedEntities)
             {
@@ -120,17 +122,18 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 }
                 
                 
-                //Read file into a stream
-                var imageStream = _fileManager.TryReadFile(originalPath);
-                if(imageStream == null) 
+                //Reset stream and read new image
+                var fileReadSuccess = _fileManager.ReadToStream(originalPath, imageStream, true);
+                if(!fileReadSuccess) 
                 {
                     _logger.LogError("Could not read file: {originalFilepath}", originalPath);
                     continue;
                 }
+                
                 //Load image from stream
                 using var image = Image.Load(imageStream);
-                imageStream.Dispose();
-                
+
+
                 var finalSavingPath = originalPath;
                 var newResolution = originalResolution;
 
@@ -178,11 +181,16 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 var metadataProcessedFlag = false;
                 if (settings.MetadataRemover.Enabled)
                 {
+                    //Orient image beforehand, in case of deletion of the "Orientation" Tag. 
+                    image.Mutate(img => img.AutoOrient());
+                    
+                    //Remove entire profiles
                     if (settings.MetadataRemover.RemoveXmpProfile)
                         image.Metadata.XmpProfile = null;
                     if (settings.MetadataRemover.RemoveIptcProfile)
                         image.Metadata.IptcProfile = null;
 
+                    //Remove Exif Tag groups 
                     if (settings.MetadataRemover.RemoveCameraInfo)
                         _metadataProcessor.RemoveExifDeviceTags(image);
                     if (settings.MetadataRemover.RemoveDateTime)
@@ -191,8 +199,18 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         _metadataProcessor.RemoveExifDeviceTags(image);
                     if (settings.MetadataRemover.RemoveShootingSituationInfo)
                         _metadataProcessor.RemoveExifSettingTags(image);
+                    
+                    //Remove single exif tags
+                    var tagsToRemove = settings.MetadataRemover.MetadataTagsToRemove.ToList();
+                    foreach (var tagName in tagsToRemove)
+                    {
+                        var tagFound = ExifTagsHelper.StringToExifMap.TryGetValue(tagName, out var tag);
+                        if (tagFound)
+                        {
+                            image.Metadata.ExifProfile?.RemoveValue(tag!);
+                        }
+                    }
 
-                    //TODO Remove custom tags
                     //TODO Handle non exif profiles
 
                     finalSavingPath = tempSavingPath;
@@ -204,15 +222,17 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 {
                     var encoder = _imageProcessor.GetEncoder(finalSavingPath);
                    
-                    using var imgStream = new MemoryStream();
-                    image.Save(imgStream, encoder);
-                    _fileManager.WriteFile(finalSavingPath, imgStream);
+                    imageStream.Position = 0;
+                    imageStream.SetLength(0);
+
+                    image.Save(imageStream, encoder);
+                    _fileManager.WriteFile(finalSavingPath, imageStream);
 
                     //Adjust media properties
                     var newFilename = Path.GetFileNameWithoutExtension(finalSavingPath);
                     var newExtension = Path.GetExtension(finalSavingPath); 
                         
-                    _mediaHelper.SetUmbBytes(media,imgStream.Length);
+                    _mediaHelper.SetUmbBytes(media,imageStream.Length);
                     _mediaHelper.SetUmbFilename(media, newFilename);
                     _mediaHelper.SetUmbExtension(media, "." + newExtension);
                     _mediaHelper.SetUmbResolution(media, newResolution);
