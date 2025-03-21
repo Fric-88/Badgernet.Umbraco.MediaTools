@@ -3,6 +3,7 @@ using Badgernet.Umbraco.MediaTools.Handlers;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Services.FileManager;
 using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -35,6 +36,7 @@ public class MediaToolsComposer : IComposer
         builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
         builder.Services.AddSingleton<IFileManager, FileManager>();
         builder.Services.AddSingleton<IImageProcessor, ImageProcessor>(); 
+        builder.Services.AddSingleton<IMetadataProcessor, MetadataProcessor>(); 
 
         builder.Services.AddSingleton<ISettingsService>(x =>
         {

@@ -1,9 +1,8 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, property, state, ifDefined, query } from "@umbraco-cms/backoffice/external/lit";
+import { LitElement, html, css, customElement, property, state, ifDefined} from "@umbraco-cms/backoffice/external/lit";
 import { UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
-import AcceptRejectDialog from "./acceptRejectDialog.element.ts";
-import "./acceptRejectDialog.element.ts";
+
 
 
 @customElement('gallery-tools-panel')
@@ -21,7 +20,7 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
     @property({attribute : true, type: Number}) height: number = 1;
     
     @state() convert: boolean = false;
-    @property({attribute: true, type: String}) convertMode: ConvertMode = "lossy";
+    @property({attribute: true, type: String}) convertMode: ConvertMode = "Lossy";
     @property({attribute: true, type: Number}) convertQuality: number = 85;   
 
     @property({type: String}) processButtonState: UUIButtonState; //Allowing parent element change button state
@@ -30,16 +29,6 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
     @property({type: Boolean}) trashButtonEnabled: boolean = true; 
     @property({type: String}) downloadButtonState: UUIButtonState;  //Allowing parent element change button state
     @property({type: Boolean}) downloadButtonEnabled: boolean = true; 
-
-    @query("accept-reject-dialog") popoverDialog! : AcceptRejectDialog;  
-
-    //Show modal dialog before recycling
-    private confirmRecycling(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to move selected items to recycle bin?", "Yes", "No","", this.dispatchRecycleEvent); 
-        }
-    } 
 
     //Dispatches "Trash" button click event
     private dispatchRecycleEvent(){
@@ -53,61 +42,26 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
 
     //Asks before dispatching "Process" button click event
     private dispatchProcessEvent(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to resize and/or convert selected items?", "Yes", "No","", () => {
+        
+        const eventDetail: ProcessingSettings= { 
+            resize: this.resize, 
+            convert: this.convert,
+            resizeMode: this.resizeMode,
+            width: this.width,
+            height: this.height,
+            convertMode: this.convertMode,
+            convertQuality: this.convertQuality
+        };
 
-                const eventDetail: ProcessingSettings= { 
-                    resize: this.resize, 
-                    convert: this.convert,
-                    resizeMode: this.resizeMode,
-                    width: this.width,
-                    height: this.height,
-                    convertMode: this.convertMode,
-                    convertQuality: this.convertQuality
-                };
-        
-                const event = new CustomEvent<ProcessingSettings>("process-images-click", {
-                    detail: eventDetail,
-                    bubbles: true,
-                    composed: true
-                });
-        
-                this.dispatchEvent(event);
-            }); 
-        }
-    }
-    
-    //Dispatch Rename Media event
-    private dispatchRenameEvent(){
-        const event = new CustomEvent("rename-media-click",{
-            detail: { message: 'Button clicked!' },
-            bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
+        const event = new CustomEvent("process-images-click", {
+            detail: eventDetail,
+            bubbles: true,
+            composed: true
         });
 
         this.dispatchEvent(event);
     }
 
-    //Dispatch Edit Media event
-    private dispatchEditEvent(){
-        const event = new CustomEvent("edit-media-click",{
-            detail: { message: 'Button clicked!' },
-            bubbles: true,       // Allows the event to bubble up through the DOM
-            composed: true       // Allows the event to pass through shadow DOM boundaries
-        });
-
-        this.dispatchEvent(event);
-    }
-
-    //Show modal before downloading
-    private confirmDownloading(){
-        const dialog = this.popoverDialog;
-        if(dialog){
-            dialog.showModal("Are you sure?", "Do you want to download selected items?","Yes", "No","If zip archive exceeds 300Mb any further items will be skipped.", this.dispatchDownloadEvent); 
-        }
-    }
-    
     //Dispatch "Download" button click event
     private dispatchDownloadEvent(){
         const event = new CustomEvent("download-images-click",{
@@ -223,32 +177,11 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     state=${ifDefined(this.processButtonState)}
                     look="primary"
                     color="positive"
-                    style="margin-top: 0.5rem; margin-bottom: 1rem;"
+                    style="margin-top: 0.5rem;"
                     .disabled="${(!this.resize && !this.convert) || this.selectionCount < 1 || !this.processButtonEnabled}"
                     popovertarget="areYouSurePopover"
                     @click="${this.dispatchProcessEvent}"> <uui-icon name="sync"></uui-icon> Resize / Convert (${this.selectionCount})
             </uui-button>
-            
-
-            <div style="display:flex; gap: 0.5rem">
-                <uui-button
-                        label="Rename"
-                        look="primary"
-                        color="default"
-                        style="margin-top: 0.5rem; width: 100%"
-                        .disabled="${this.selectionCount != 1}"
-                        @click="${this.dispatchRenameEvent}"> <uui-icon name="edit"></uui-icon> Rename
-                </uui-button>
-    
-                <uui-button
-                        label="Edit"
-                        look="primary"
-                        color="default"
-                        style="margin-top: 0.5rem; width: 100%"
-                        .disabled="${this.selectionCount != 1}"
-                        @click="${this.dispatchEditEvent}"> <uui-icon name="wand"></uui-icon> Edit
-                </uui-button>
-            </div>
             
             <div style="display:flex; gap: 0.5rem">
                 <uui-button 
@@ -259,7 +192,7 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     style="margin-top: 0.5rem; width: 100%"
                     popovertarget="areYouSurePopover"
                     .disabled="${this.selectionCount < 1 || !this.trashButtonEnabled}"
-                    @click="${this.confirmRecycling}"><uui-icon name="delete"></uui-icon> Trash (${this.selectionCount})
+                    @click="${this.dispatchRecycleEvent}"><uui-icon name="delete"></uui-icon> Trash (${this.selectionCount})
                 </uui-button>
 
                 <uui-button 
@@ -269,11 +202,9 @@ export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
                     color="default" 
                     style="margin-top: 0.5rem; width: 100%"
                     .disabled="${this.selectionCount < 1 || !this.downloadButtonEnabled}"
-                    @click="${this.confirmDownloading}"><uui-icon name="download"></uui-icon> Download (${this.selectionCount})
+                    @click="${this.dispatchDownloadEvent}"><uui-icon name="download"></uui-icon> Download (${this.selectionCount})
                 </uui-button>
             </div>
-
-            <accept-reject-dialog></accept-reject-dialog>
         `
     }
 

@@ -4,12 +4,15 @@ using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
 using Badgernet.Umbraco.MediaTools.Services.FileManager;
 using Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
+using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
-using Badgernet.Umbraco.MediaTools.Helpers;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using System.Security.Permissions;
+using K4os.Compression.LZ4.Internal;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -17,7 +20,7 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "mediatools")]
 [Route("gallery")]
-public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor) : ControllerBase
+public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor) : ControllerBase
 {
 
     [HttpGet("get-info")]
@@ -76,8 +79,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(mediaInfo);
         
     }
-
-
+    
     [HttpPost("filter")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
     public IActionResult FilterGallery(FilterImagesDto requestData)
@@ -135,27 +137,27 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult RenameMedia(int mediaId, string newName)
     {
-       if (string.IsNullOrEmpty(newName))
-       {
-           logger.LogError("New name cannot be empty");
-           return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
-       }
-       
-       var imageMedia = mediaHelper.GetMediaById(mediaId);
+        if (string.IsNullOrEmpty(newName))
+        {
+            logger.LogError("New name cannot be empty");
+            return BadRequest(new OperationResponse(ResponseStatus.Error,"New name cannot be empty"));
+        }
+        
+        var imageMedia = mediaHelper.GetMediaById(mediaId);
 
-       if (imageMedia == null)
-       {
-           logger.LogError("Media not found");
-           return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
-       }
+        if (imageMedia == null)
+        {
+            logger.LogError("Media not found");
+            return BadRequest(new OperationResponse(ResponseStatus.Error, "Media not found"));
+        }
 
-       var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
+        var renameOperation = mediaHelper.RenameMedia(imageMedia, newName);
 
-       if (renameOperation) 
-           return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
-       
-       logger.LogError("Could not rename media.");
-       return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
+        if (renameOperation) 
+            return Ok(new OperationResponse(ResponseStatus.Success, "Media renamed"));
+        
+        logger.LogError("Could not rename media.");
+        return BadRequest(new OperationResponse(ResponseStatus.Error, "Could not rename media"));
 
     }
 
@@ -187,15 +189,15 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         }
 
         //Clamp convertQuality to 1 -> 100
-        if(requestData.ConvertQuality > 100) requestData.ConvertQuality = 100;
-        if(requestData.ConvertQuality < 1) requestData.ConvertQuality = 1; 
+        Math.Clamp(requestData.ConvertQuality, 1, 100);
 
 
         var converterCounter = 0;
         var resizerCounter = 0;
         var processedMedias = new List<ImageMediaDto>();
         
-
+        using var imageStream = new MemoryStream();
+        
         foreach(var id in ids)
         {
             try
@@ -225,23 +227,24 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 var newMediaPath = fileManager.GetFreePath(mediaPath);
                 var filename = Path.GetFileName(newMediaPath);
 
-                //READ FILE INTO A STREAM THAT NEEDS TO BE MANUALLY DISPOSED
-                var imageStream = fileManager.ReadFile(mediaPath);
 
-                if(imageStream == null)
+                var fileReadSuccess = fileManager.ReadToStream(mediaPath, imageStream, true);
+                if(!fileReadSuccess)
                 {
                     logger.LogError("Image with id: {id} could not be read.", id);
                     response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
                     continue;
                 }
 
+                using var image = Image.Load(imageStream);
+
                 //Image will be saved under this path if processing succeeds
                 var finalSavingPath = string.Empty;
 
                 //Resizing part
                 if(requestData.Resize) {
-                    using var resizedImageStream = imageProcessor.Resize(imageStream,newResolution);
-                    if(resizedImageStream != null)//If resizing succeeded
+                    var resizingSuccess = imageProcessor.Resize(image,newResolution);
+                    if(resizingSuccess)//If resizing succeeded
                     {
                         //Set properties
                         mediaHelper.SetUmbFilename(imageMedia, filename);
@@ -252,12 +255,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                         //Reassign path
                         mediaPath = newMediaPath;
-
-                        //Copy resized image to image stream
-                        imageStream.ClearAndReassign(resizedImageStream);
-
                         finalSavingPath = mediaPath;
-
                         resizerCounter++;
                         //SUCCESS
                     }
@@ -280,26 +278,20 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     {
                         newMediaPath = Path.ChangeExtension(newMediaPath, ".webp");
 
-                        using (var convertedImage = imageProcessor.ConvertToWebp(imageStream, convertMode, convertQuality))
+                        var convertingSuccess = imageProcessor.ConvertToWebp(image, convertMode, convertQuality);
+                        
+                        if(convertingSuccess)//If converting succeeded
                         {
-                            if(convertedImage != null)//If converting succeeded
-                            {
-                                mediaHelper.SetUmbFilename(imageMedia, filename);
-                                mediaHelper.SetUmbExtension(imageMedia, ".webp" );
-                                mediaHelper.SetUmbBytes(imageMedia, convertedImage.Length);
+                            mediaHelper.SetUmbFilename(imageMedia, filename);
+                            mediaHelper.SetUmbExtension(imageMedia, ".webp" );
 
-                                //Delete original image (before extension change)
-                                fileManager.DeleteFile(mediaPath);
-
-                                //Reassign image stream
-                                imageStream.ClearAndReassign(convertedImage);
-
-                                finalSavingPath = newMediaPath;
-
-                                converterCounter++;
-                                //SUCCESS
-                            }
+                            //Delete original image (before extension change)
+                            fileManager.DeleteFile(mediaPath);
+                            finalSavingPath = newMediaPath;
+                            converterCounter++;
+                            //SUCCESS
                         }
+                        
                     }
                     else
                     {
@@ -312,14 +304,24 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                 if(finalSavingPath != string.Empty)
                 {
                     var writtenToDisk = false;
+                    
                     try{
-                        //Write image stream to file system  
-                        fileManager.WriteFile(finalSavingPath,imageStream);
+                        
+                        var encoder = imageProcessor.GetEncoder(finalSavingPath);
+                        
+                        //Encode processed image into a stream and write it on disk
+                        imageStream.Position = 0;
+                        imageStream.SetLength(0);
+                        image.Save(imageStream, encoder);
+                        fileManager.WriteFile(finalSavingPath, imageStream);
+                        mediaHelper.SetUmbBytes(imageMedia, imageStream.Length);
+
                         writtenToDisk = true;
                     }
-                    catch
+                    catch(Exception ex)
                     {
                         logger.LogError("Image with id: {id} could not be saved to file system.", id);
+                        logger.LogError(ex.Message);
                     }
 
                     if (writtenToDisk)
@@ -350,9 +352,6 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     }
                         
                 }
-
-                //Dispose the stream
-                imageStream.Dispose();
             }
             catch (Exception ex)
             {
@@ -440,17 +439,21 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     public IActionResult DownloadMedia(int[] ids)
     {
         var images = mediaHelper.GetMediaByIds(ids);
+        
         var zipStream = new MemoryStream();
+        using var fileStream = new MemoryStream();
+        
         using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
         {
             foreach (var imageMedia in images)
             {
                 //Read physical file into a stream
                 var relativePath = mediaHelper.GetRelativePath(imageMedia);
-                using var fileStream = fileManager.ReadFile(relativePath);
+
+                var readSuccess = fileManager.ReadToStream(relativePath, fileStream, true);
 
                 //Add it to the zip archive if it was successfully read 
-                if (fileStream == null) continue;
+                if (!readSuccess) continue;
                 
                 var zipEntry = zipArchive.CreateEntry(imageMedia.Name! + Path.GetExtension(relativePath));
                 using (var entryStream = zipEntry.Open()){
@@ -503,14 +506,29 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var fileExtension = Path.GetExtension(checkFileExtensionString);
         newFilePath = Path.ChangeExtension(newFilePath, fileExtension);
         var encoder = imageProcessor.GetEncoder(checkFileExtensionString);
+
+
+        using var oldImageStream = new MemoryStream();
+        var readSuccess = fileManager.ReadToStream(oldFilePath, oldImageStream, true);
+        if (!readSuccess)
+        {
+            response.Message = $"Image with id {id}  cannot be read";
+            response.Status = ResponseStatus.Error;
+            logger.LogError("Image with id {id} cannot be read.", id);
+            return BadRequest(response);
+        }
         
-        
+        using var oldImage = Image.Load(oldImageStream);
         using var fileStream = imageFile.OpenReadStream();
-        using var img =Image.Load(fileStream);
+        using var newImage =Image.Load(fileStream);
+        
+        //Copy metadata from old image and change resolution values
+        metadataProcessor.CopyMetadata(oldImage, newImage);
+        metadataProcessor.SetResolutionTags(newImage, newImage.Width, newImage.Height);
         
         using var converted = new MemoryStream();
         
-        img.Save(converted, encoder);
+        newImage.Save(converted, encoder);
         converted.Position = 0;
         
         var writeSuccess = fileManager.WriteFile(newFilePath, converted);
@@ -518,7 +536,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         if (writeSuccess)
         {
             mediaHelper.SetUmbFilename(imageMedia, newFilePath);
-            mediaHelper.SetUmbResolution(imageMedia, new Size(img.Width, img.Height));
+            mediaHelper.SetUmbResolution(imageMedia, new Size(newImage.Width, newImage.Height));
             mediaHelper.SetUmbBytes(imageMedia,converted.Length);
             mediaHelper.SaveMedia(imageMedia);
             fileManager.DeleteFile(oldFilePath);
@@ -529,6 +547,75 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
 
     }
+
+    [HttpGet("getMetadata")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public IActionResult GetMetadata(int id)
+    {
+        
+        var imageMedia = mediaHelper.GetMediaById(id);
+        if (imageMedia == null)
+        {
+            logger.LogError("Image with id {id} cannot be found.", id);
+            return BadRequest();
+        }
+
+        try
+        {
+            var filepath = mediaHelper.GetRelativePath(imageMedia);
+
+            using var imageStream = new MemoryStream();
+            var readSuccess = fileManager.ReadToStream(filepath,imageStream, true);
+
+            if (!readSuccess)
+            {
+                logger.LogError("Could not read image with id {id}.", id);
+                return BadRequest();
+            }
+
+            var imgMetadata = metadataProcessor.ReadMetadata(imageStream);
+            var metadataDto = new ImageMetadataDto
+            {
+                VerticalResolution = imgMetadata.VerticalResolution,
+                HorizontalResolution = imgMetadata.HorizontalResolution,
+                DecodedImageFormat = imgMetadata.DecodedImageFormat?.ToString() ?? string.Empty,
+                ResolutionUnits = imgMetadata.ResolutionUnits.ToString()
+            };
+
+            // Parsing EXIF Profile 
+            if (imgMetadata.ExifProfile != null)
+            {
+                foreach (var exifValue in imgMetadata.ExifProfile.Values)   
+                {
+                    metadataDto.ExifTags.Add(metadataProcessor.ParseIExifValue(exifValue));    
+                }                
+            }
+            //IPTC Profile
+            if (imgMetadata.IptcProfile != null)
+            {
+                foreach (var iptcValue in imgMetadata.IptcProfile.Values)
+                {
+                    metadataDto.IptcTags.Add(new ParsedTag(){ Tag = iptcValue.Tag.ToString(), Value = iptcValue.Value });
+                }
+            }
+
+            //Add XMP as a string
+            if (imgMetadata.XmpProfile != null)
+            {
+                metadataDto.XmpProfile = imgMetadata.XmpProfile.GetDocument()?.ToString() ?? "XMP profile not present.";
+            }
+            
+
+            return Ok(metadataDto);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex.Message, ex);
+            return BadRequest(ex.Message);
+        }
+    }
+    
 }
 
 

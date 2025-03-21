@@ -3,7 +3,7 @@ import { LitElement, html, css, customElement, state, query } from "@umbraco-cms
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 import {
     UUICheckboxElement,
-    UUIPaginationElement,
+    UUIPaginationElement, UUISelectElement,
     UUITableCellElement,
     UUITableRowElement,
     UUIToastNotificationContainerElement,
@@ -21,6 +21,9 @@ import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";
 import "../elements/renameMediaDialog.element.ts"
 import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
 import "../elements/imageEditorDialog.element.ts"
+import AcceptRejectDialog from "../elements/acceptRejectDialog.element.ts";
+import "../elements/acceptRejectDialog.element.ts"
+
 
 
 @customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
@@ -34,12 +37,22 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     @state() currentPage: number = 1;
     @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(10);
     @state() allSelected: boolean = false;
+    @state() resultsPerPage: number = 10;
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
     @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
+    @query("#acceptRejectDialog") acceptRejectDialog!: AcceptRejectDialog;
 
-
+    #itemsPerPageOptions: Option[] = [
+        {name: "10", value: "10", selected: true},
+        {name: "15", value: "15"},
+        {name: "20", value: "20"},
+        {name: "30", value: "30"},
+        {name: "50", value: "50"},
+        {name: "100", value: "100"}
+    ];
+    
     constructor() {
         super();
 
@@ -56,6 +69,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         super.connectedCallback();
     }
 
+    //Toggling row selection
     private handleRowClicked(e: Event){
         const target = e.target;
 
@@ -81,6 +95,51 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
+    //Selects all rows
+    private toggleSelectAll(e: Event){
+        let target = e.target;
+
+        if(target instanceof UUICheckboxElement){
+            let isSelected = this.itemsList.count() == this.itemsList.countSelectedItems();
+
+            if(isSelected){
+                this.itemsList.unselectAll();
+                this.allSelected = false;
+            }
+            else{
+                this.itemsList.selectAll();
+                this.allSelected = true;
+            }
+            this.requestUpdate();
+        }
+
+    }
+
+    //Fetches and updates one image row -> e.detail must be image-Id
+    private async updateImageRow(e: CustomEvent){
+        const imageId = e.detail as number;
+
+        if(!imageId && imageId < 0) return;
+
+        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
+
+        if(response && !response.error){
+            const updatedImage = response.data as ImageMediaDto;
+            
+            const images = this.itemsList.getPage(this.currentPage);
+            if(images.length > 0 ){
+                for(let i= 0 ; i < images.length ; i++ ){
+                    if(images[i].id === updatedImage.id){
+                        this.itemsList.replace(images[i], updatedImage);
+                        this.requestUpdate(); //Redraw list 
+                        break; //Exit after first hit
+                    }
+                }
+            }
+        }
+    }
+
+    //Changes pages (pagination) 
     private handleChangePage(e: Event){
         const target = e.target;
         if(target instanceof UUIPaginationElement){
@@ -88,6 +147,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
+    //Searches media section 
     private async searchGallery(e: CustomEvent){
         let target = e.target;
 
@@ -116,308 +176,356 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         }
     }
 
-    private toggleSelectAll(e: Event){
-        let target = e.target;
+    //Opens popup to rename media
+    private async renameMedia(e: Event){
 
-        if(target instanceof UUICheckboxElement){
-            let isSelected = this.itemsList.count() == this.itemsList.countSelectedItems();
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(!imgRow) return;
+        
+        const imgIndex = Number(imgRow.dataset.imageRow ?? -1);
+        if(imgIndex < 0)return;
+        
+        const image = this.itemsList.itemAt(imgIndex);
+        if(!image) return;
 
-            if(isSelected){
-                this.itemsList.unselectAll();
-                this.allSelected = false;
+
+        const dialog = this.renameMediaDialog as RenameMediaDialog;
+        if(!dialog) return;
+        
+        dialog.showModal(image.name, async () => {
+
+            const requestData: RenameMediaData = {
+                mediaId: image.id,
+                newName: dialog.mediaName
             }
-            else{
-                this.itemsList.selectAll();
-                this.allSelected = true;
-            }
-            this.requestUpdate();
-        }
 
-    }
-    
-    
-    //Fetches and updates one image row -> e.detail must be image-Id
-    private async updateImageRow(e: CustomEvent){
-        const imageId = e.detail as number;
-        
-        if(!imageId && imageId < 0) return;
-        
-        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
-        
-        if(response && !response.error){
-            const updatedIMage = response.data as ImageMediaDto;
-            
-            const selectedImages = this.itemsList.getSelectedItems();
-            
-            if(selectedImages.length > 0 ){
-                for(let i= 0 ; i < selectedImages.length ; i++ ){
-                    if(selectedImages[i].id === updatedIMage.id){
-                        this.itemsList.replace(selectedImages[i], updatedIMage);
-                        this.requestUpdate(); //Redraw list 
-                        break; //Exit after first hit
+            const response = await this.#mediaToolsContext?.renameMedia(requestData);
+            if(response){
+                const operationResponse = response.data as OperationResponse;
+                if(operationResponse){
+                    if(operationResponse.status === "Success"){
+                        this.#showToastNotification("Done",operationResponse.message, "","positive");
+                        image.name = dialog.mediaName;
+                        this.requestUpdate();
                     }
                 }
             }
-            
-            
-        }
+        });
     }
     
-    private async renameMedia(e: Event){
-        
-        if(e.target instanceof ProcessImagePanel){
-            const dialog = this.renameMediaDialog as RenameMediaDialog;
-            
-            //Exactly one element has to be selected
-            if(this.itemsList.countSelectedItems() !== 1) return;
-            
-            let selectedImage = this.itemsList.getSelectedItems()[0];
-            
-            if(selectedImage == undefined) return;
-            
-            if(dialog){
-                dialog.showModal(selectedImage.name, async () => {
-                    
-                    const requestData: RenameMediaData = {
-                        mediaId: selectedImage.id,
-                        newName: dialog.mediaName
-                    }
-                    
-                    const response = await this.#mediaToolsContext?.renameMedia(requestData);
-                    if(response){
-                        const operationResponse = response.data as OperationResponse;
-                        if(operationResponse){
-                            if(operationResponse.status === "Success"){
-                                this.#showToastNotification("Done",operationResponse.message, "","positive");
-                                selectedImage.name = dialog.mediaName;
-                                this.requestUpdate();
-                            }
-                        }
-                    }    
-                });
-            }
-        }
-    }
-    
+    //Opens popup image editor
     private editMedia(e: Event){
-        if(e.target instanceof ProcessImagePanel){
-
-            //Get selected image  
-            let selectedImage = this.itemsList.getSelectedItems()[0];
-            if(selectedImage == undefined) return;
-            if(this.itemsList.countSelectedItems() !== 1) return;
-            
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
             //Find editor element 
             const editor = this.editImageDialog as ImageEditorDialog;
             if (editor == undefined) return;
+
+            const filePath = imgRow.dataset.imagePath;
+            const imageId = Number(imgRow.dataset.imageId ?? -1);
+            
+            if(!filePath || imageId < 0) return;
             
             //Open editor
-            const imageId = selectedImage.id;
-            editor.openEditor(900, 900, selectedImage.path, imageId);
+            editor.openEditor(900, 900, filePath, imageId);
         }
     }
+    
+    //Lets selected images get resized and/or converted
+    private async processSelectedImages(e: CustomEvent) {
+        let target = e.composedPath()[0];
+        if (target instanceof ProcessImagePanel) {
 
-    private async processSelectedImages(e: CustomEvent<ProcessingSettings>){
-        let target = e.target;
-        
-        if(target instanceof ProcessImagePanel){
-            let settings = e.detail as ProcessingSettings;
+            const acceptDialog = this.acceptRejectDialog;
+            if (acceptDialog) {
+                acceptDialog.build("Are you sure?", "Do you want to resize and/or convert selected items?", "", "Yes", "No");
+                const accepted = await acceptDialog.show();
 
-            if(this.itemsList.countSelectedItems() < 1){
-                this.#showToastNotification("Oops!", "You need to select some images first.", "", "warning");
-                return;
-            }
+                if (accepted) {
 
-            //Set buttons styles 
-            target.processButtonState = "waiting";
-            target.trashButtonEnabled = false;
-            target.downloadButtonEnabled = false;
-            
-            const selectedItems = this.itemsList.getSelectedItems();
+                    let settings = e.detail as ProcessingSettings;
 
-            let requestData: ProcessImagesData = {
-                requestBody: {
-                    ids: selectedItems.map((item) => item.id),
-                    resize: settings.resize,
-                    resizeMode: settings.resizeMode,
-                    width: settings.width,
-                    height: settings.height,
-                    convert: settings.convert,
-                    convertMode: settings.convertMode,
-                    convertQuality: settings.convertQuality
-                }
-            }
+                    if (this.itemsList.countSelectedItems() < 1) {
+                        this.#showToastNotification("Oops!", "You need to select some images first.", "", "warning");
+                        return;
+                    }
 
-            try{
-                const response = await this.#mediaToolsContext?.processImage(requestData);
+                    //Set buttons styles 
+                    target.processButtonState = "waiting";
+                    target.trashButtonEnabled = false;
+                    target.downloadButtonEnabled = false;
 
-                if(response){
-                    const operationResponse = response.data;
-                    
-                    if(operationResponse){
-                        if(operationResponse.status === "Warning"){
-                            this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
-                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
-                            
-                            for( let i = 0; i < processedImages.length; i++){
-                                for(let x = 0; x < selectedItems.length; x++){
-                                    if(processedImages[i].id === selectedItems[x].id){
-                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else if(operationResponse.status === "Success") {
-                            this.#showToastNotification("Done",operationResponse.message, "", "positive");
-                            const processedImages = operationResponse.payload as Array<ImageMediaDto>
-                            
-                            for( let i = 0; i < processedImages.length; i++){
-                                for(let x = 0; x < selectedItems.length; x++){
-                                    if(processedImages[i].id === selectedItems[x].id){
-                                        this.itemsList.replace(selectedItems[x], processedImages[i]);
-                                    }
-                                }
-                            }
-                            
-                        }
-                        else{
-                            this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.","danger");
+                    const selectedItems = this.itemsList.getSelectedItems();
+
+                    let requestData: ProcessImagesData = {
+                        requestBody: {
+                            ids: selectedItems.map((item) => item.id),
+                            resize: settings.resize,
+                            resizeMode: settings.resizeMode,
+                            width: settings.width,
+                            height: settings.height,
+                            convert: settings.convert,
+                            convertMode: settings.convertMode,
+                            convertQuality: settings.convertQuality
                         }
                     }
+
+                    try {
+                        const response = await this.#mediaToolsContext?.processImage(requestData);
+
+                        if (response) {
+                            const operationResponse = response.data;
+
+                            if (operationResponse) {
+                                if (operationResponse.status === "Warning") {
+                                    this.#showToastNotification("Done", operationResponse.message, "Check logs for more information.", "warning");
+                                    const processedImages = operationResponse.payload as Array<ImageMediaDto>
+
+                                    for (let i = 0; i < processedImages.length; i++) {
+                                        for (let x = 0; x < selectedItems.length; x++) {
+                                            if (processedImages[i].id === selectedItems[x].id) {
+                                                this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                            }
+                                        }
+                                    }
+
+                                } else if (operationResponse.status === "Success") {
+                                    this.#showToastNotification("Done", operationResponse.message, "", "positive");
+                                    const processedImages = operationResponse.payload as Array<ImageMediaDto>
+
+                                    for (let i = 0; i < processedImages.length; i++) {
+                                        for (let x = 0; x < selectedItems.length; x++) {
+                                            if (processedImages[i].id === selectedItems[x].id) {
+                                                this.itemsList.replace(selectedItems[x], processedImages[i]);
+                                            }
+                                        }
+                                    }
+
+                                } else {
+                                    this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.", "danger");
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        this.#showToastNotification("Oops", "Something went wrong", "Check logs for more information.", "danger");
+                    }
+
+                    this.requestUpdate();
+
+                    //Reset normal buttons state
+                    target.processButtonState = undefined;
+                    target.trashButtonEnabled = true;
+                    target.downloadButtonEnabled = true;
+
+
                 }
             }
-            catch(err){
-                this.#showToastNotification("Oops","Something went wrong", "Check logs for more information.", "danger");
+        }
+    }
+    
+    //Opens image preview popup
+    private async showImagePreview(e: Event){
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
+            const previewElement = this.previewModal as ImagePreview;
+            if(previewElement) {
+
+                let imgId = Number(imgRow.dataset.imageId ?? -1);
+                if (imgId < 0) return;
+
+                await previewElement.showPreview(imgId);
             }
-
-            this.requestUpdate();
-
-            //Reset normal buttons state
-            target.processButtonState = undefined;
-            target.trashButtonEnabled = true;
-            target.downloadButtonEnabled = true;
-
         }
     }
 
-    private showImagePreview(e: Event){
-        const previewElement = this.previewModal as ImagePreview;
+    //Opens metadata preview popup
+    private async showMetadataPreview(e: Event){
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(imgRow){
+            const previewElement = this.previewModal as ImagePreview;
+            if(previewElement) {
 
-        if(previewElement){
+                let imgId = Number(imgRow.dataset.imageId ?? -1);
+                if (imgId < 0) return;
 
-            const target = e.target as HTMLDivElement;
-
-                let imgPath = target.dataset.imgPath ?? "";
-                let imgName = target.dataset.imgName ?? "";
-
-                previewElement.showPreview(imgName, imgPath);
+                await previewElement.showPreview(imgId, true);
+            }
+        }
+    }
+    
+    //Moves single image to trash
+    private async recycleSingleImage(e: Event){
+        if(!this.#mediaToolsContext)return; 
+        
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        if(!imgRow) return;
+        let imgId = Number(imgRow.dataset.imageId ?? -1);
+        if(imgId < 0) return;
+        
+        const dialog = this.acceptRejectDialog as AcceptRejectDialog;
+        if(dialog == null) return;
+        
+        dialog.build("Are you sure?","Do you want to move this image to trash?", "", "Yes", "Cancel");
+        const accepted = await dialog.show();
+        if(accepted){
             
-        }
-    }
+            const response = await this.#mediaToolsContext?.trashMedia({requestBody: [imgId]});
 
-    private async trashSelectedImages(e: Event){
-        let target = e.target;
-
-        if(target instanceof ProcessImagePanel){
-
-            const selectedImages = this.itemsList.getSelectedItems();
-
-            //Set buttons states and visibility
-            target.trashButtonState = "waiting";
-            target.processButtonEnabled = false;
-            target.downloadButtonEnabled = false;
-
-
-            const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
-
-            if(response){
-                let responseData = response.data;
-                if(responseData){
-
+            if(response) {
+                let responseData = response.data as OperationResponse;
+                if (responseData) {
                     const trashedIds = responseData.payload as Array<number>;
 
-                    //This is slow - removing trashed images from the list
-                    for(let i = 0; i < trashedIds.length; i++)
-                    {
-                        for(let x = 0; x < selectedImages.length; x ++){
-                            if(trashedIds[i] == selectedImages[x].id){
-                                this.itemsList.remove(selectedImages[x]);
+                    //There should only be one id 
+                    if (trashedIds.length === 1) {
+                        let allItems = this.itemsList.getItems();
+                        for (let x = 0; x < allItems.length; x++) {
+                            if (trashedIds[0] == allItems[x].id) {
+                                this.itemsList.remove(allItems[x]);
                             }
-                        } 
+                        }
                     }
-                    
-                    switch (responseData.status){
-                        case "Success":
-                            this.#showToastNotification("Success", responseData.message, "", "positive");
-                            break;
-                        case "Warning":
-                            this.#showToastNotification("Success", responseData.message, "", "warning");
-                            break;
-                        case "Error":
-                            this.#showToastNotification("Success", responseData.message, "", "danger");
-                            break;
+
+                    this.#showOperationNotification(responseData)
+                    this.requestUpdate();
+                }
+            }
+            
+        }
+    }
+
+    //Moves selected media to trash
+    private async recycleSelectedImages(e: Event){
+        let target = e.composedPath()[0];
+        if(target instanceof ProcessImagePanel){
+
+            const selectedImages = this.itemsList.getSelectedItems();
+            
+            const acceptDialog = this.acceptRejectDialog;
+            if(!acceptDialog) return;
+
+            acceptDialog.build("Are you sure?", "Do you want to recycle " + selectedImages.length +" media?","","Yes", "No");
+            const accepted = await acceptDialog.show();
+            
+            if(accepted)
+            {
+                //Set buttons states and visibility
+                target.trashButtonState = "waiting";
+                target.processButtonEnabled = false;
+                target.downloadButtonEnabled = false;
+
+                const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
+
+                if(response){
+                    let responseData = response.data;
+                    if(responseData){
+
+                        const trashedIds = responseData.payload as Array<number>;
+
+                        //This is slow - removing trashed images from the list
+                        for(let i = 0; i < trashedIds.length; i++)
+                        {
+                            for(let x = 0; x < selectedImages.length; x ++){
+                                if(trashedIds[i] == selectedImages[x].id){
+                                    this.itemsList.remove(selectedImages[x]);
+                                }
+                            }
+                        }
+
+                        this.#showOperationNotification(responseData);
+                        
+                        //Reset buttons state and visibility
+                        target.trashButtonState = undefined;
+                        target.processButtonEnabled = true;
+                        target.downloadButtonEnabled = true;
+
+                        this.requestUpdate();
                     }
                 }
             }
-
-            //Reset buttons state and visibility
-            target.trashButtonState = undefined;
-            target.processButtonEnabled = true;
-            target.downloadButtonEnabled = true;
-
-            this.requestUpdate();
         }
-
     }
-
+    
+    //Download selected media
     private async downloadSelectedMedia(e: Event){
 
-        let target = e.target;
-
+        let target = e.composedPath()[0];
         if(target instanceof ProcessImagePanel){
-            const selectedImages = this.itemsList.getSelectedItems();
+                
+            const acceptDialog = this.acceptRejectDialog;
+            if(acceptDialog){
+                
+                acceptDialog.build("Are you sure?", "Do you want to download selected items?","If the archive exceeds 300Mb any further images will be skipped.", "Yes", "No");
+                const accepted = await acceptDialog.show();
+                if(accepted){
+                    
+                    const selectedImages = this.itemsList.getSelectedItems();
 
-            //Set buttons states
-            target.downloadButtonState = "waiting";
-            target.processButtonEnabled = false;
-            target.trashButtonEnabled = false; 
+                    //Set buttons states
+                    target.downloadButtonState = "waiting";
+                    target.processButtonEnabled = false;
+                    target.trashButtonEnabled = false;
 
-            const response = await this.#mediaToolsContext?.downloadMedia({requestBody: selectedImages.map(item => item.id)});
+                    const response = await this.#mediaToolsContext?.downloadMedia({requestBody: selectedImages.map(item => item.id)});
+    
+                    if(response){
 
-            if(response){
+                        try{
+                            const blob = response.data as Blob;
+                            // Create a download link for the Blob
+                            const downloadUrl: string = window.URL.createObjectURL(blob);
+                            const a: HTMLAnchorElement = document.createElement('a');
+                            a.href = downloadUrl;
+                            a.download = 'download.zip'; // Filename for the downloaded file
+                            document.body.appendChild(a);
+                            a.click(); // Trigger the download
+                            a.remove(); // Clean up the DOM
 
-                try{
-                    const blob = response.data as Blob;
-                    // Create a download link for the Blob
-                    const downloadUrl: string = window.URL.createObjectURL(blob);
-                    const a: HTMLAnchorElement = document.createElement('a');
-                    a.href = downloadUrl;
-                    a.download = 'download.zip'; // Filename for the downloaded file
-                    document.body.appendChild(a);
-                    a.click(); // Trigger the download
-                    a.remove(); // Clean up the DOM
-
-                    //Free up memory
-                    setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 100);
-                }
-                catch (error: unknown) {
-                    if (error instanceof Error) {
-                        console.error('There was an error downloading the file:', error.message);
-                    } else {
-                        console.error('An unknown error occurred during the file download.');
+                            //Free up memory
+                            setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 100);
+                        }
+                        catch (error: unknown) {
+                            if (error instanceof Error) {
+                                console.error('There was an error downloading the file:', error.message);
+                            } else {
+                                console.error('An unknown error occurred during the file download.');
+                            }
+                        }
                     }
+    
+                    //Reset buttons states and visibility
+                    target.downloadButtonState = undefined;
+                    target.processButtonEnabled = false;
+                    target.trashButtonEnabled = false;
+                    
                 }
             }
-
-            //Reset buttons states and visibility
-            target.downloadButtonState = undefined;
-            target.processButtonEnabled = false;
-            target.trashButtonEnabled = false; 
         }
-
     }
+    
+    //Change items per Page
+    #handleItemsPerPageChanged(e: Event){
+        var target = e.target;
+        if(target instanceof UUISelectElement){
+            this.itemsList.pageSize = Number(target.value);
+            this.requestUpdate();
+        }
+    }
+    
 
+    #showOperationNotification(operationResponse:OperationResponse){
+        switch (operationResponse.status){
+            case "Success":
+                this.#showToastNotification("Success", operationResponse.message, "", "positive");
+                break;
+            case "Warning":
+                this.#showToastNotification("Warning", operationResponse.message, "", "warning");
+                break;
+            case "Error":
+                this.#showToastNotification("Error", operationResponse.message, "", "danger");
+                break;
+        }
+    }
     #showToastNotification(headline: string , message: string, information: string, color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
         const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
         const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
@@ -447,16 +555,13 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     render() {
 
         return html`
-
             <div class="dashboard">
                 <uui-box>
-
                     <gallery-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></gallery-search-bar>
 
                     <div style="display: flex">
-
                         <div class="leftPanel">
-                            ${this.renderFilterResults()}
+                            ${this.renderImagesTable()}
                         </div>
                         
                         <span class="rightPanel">
@@ -464,21 +569,18 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 selectionCount="${this.itemsList.countSelectedItems()}"
                                 width="${this.width}"
                                 height="${this.height}"
-                                convertMode="lossy"
+                                convertMode="Lossy"
                                 convertQuality="85"
                                 @process-images-click="${this.processSelectedImages}"
-                                @trash-images-click="${this.trashSelectedImages}"
-                                @download-images-click="${this.downloadSelectedMedia}"
-                                @rename-media-click="${this.renameMedia}"
-                                @edit-media-click="${this.editMedia}">
+                                @trash-images-click="${this.recycleSelectedImages}"
+                                @download-images-click="${this.downloadSelectedMedia}">
                             </gallery-tools-panel>
                         </span>
-
                     </div>
-                    
                 </uui-box>
             </div>
 
+            <accept-reject-dialog id="acceptRejectDialog"></accept-reject-dialog>
             <image-preview id="imagePreviewElement"></image-preview>
             <rename-media-dialog id="renameMediaDialog"></rename-media-dialog>
             
@@ -493,57 +595,90 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         `
     }
 
-    renderFilterResults(){
+    renderImagesTable(){
         if(this.itemsList.count() > 0){
             return html`
                 <uui-table aria-label="Filter results">
 
                     <uui-table-column style="width: 50px;"></uui-table-column>
-                    <uui-table-column style="width: 30%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
-                    <uui-table-column style="width: 15%;"></uui-table-column>
+                    <uui-table-column style="width: 1rem;"></uui-table-column>
+                    <uui-table-column style="width: auto;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
+                    <uui-table-column style="width: 8rem;"></uui-table-column>
 
                     <uui-table-head>
                         <uui-table-head-cell>
-                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}"></uui-checkbox>
+                            <uui-checkbox name="selectAll" label="Select all" .checked="${this.allSelected}" @change="${this.toggleSelectAll}">All</uui-checkbox>
                         </uui-table-head-cell>
+                        <uui-table-head-cell></uui-table-head-cell>
                         <uui-table-head-cell>Name</uui-table-head-cell>
                         <uui-table-head-cell>Width</uui-table-head-cell>
                         <uui-table-head-cell>Height</uui-table-head-cell>
-                        <uui-table-head-cell>Type</uui-table-head-cell>
+                        <uui-table-head-cell>Format</uui-table-head-cell>
                         <uui-table-head-cell>Size</uui-table-head-cell>
+                        <uui-table-head-cell></uui-table-head-cell>
                     </uui-table-head>
 
                     ${this.itemsList.getPage(this.currentPage).map(img =>
 
                         html`
-                            <uui-table-row 
-                                class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
-                                id="${"image-id-" + img.id}"
-                                data-image-row="${this.itemsList.indexOf(img)} "
-                                @click="${this.handleRowClicked}">
+                            <uui-table-row class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
+                                           data-image-id="${img.id}"
+                                           data-image-row="${this.itemsList.indexOf(img)}"
+                                           data-image-path="${img.path}"
+                                           @click="${this.handleRowClicked}">
+
+                              
                                 <uui-table-cell>
                                     <div 
                                         class="imagePreview"
                                         style="background: url('${img.path}?width=45&height=45')"
-                                        data-img-name="${img.name}"
-                                        data-img-path="${img.path}"
                                         @click="${this.showImagePreview}">
                                     </div>
                                 </uui-table-cell>
 
+                                <uui-table-cell style="padding-left: 1rem">
+                                    <uui-action-bar>
+                                        <uui-button title="Rename media" label="rename" pristine="" look="secondary"
+                                                    @click="${this.renameMedia}">
+                                            <uui-icon name="edit"></uui-icon>
+                                        </uui-button>
+                                    </uui-action-bar>
+                                </uui-table-cell>
                                 <uui-table-cell>${img.name}</uui-table-cell>
                                 <uui-table-cell>${img.width}px</uui-table-cell>
                                 <uui-table-cell>${img.height}px</uui-table-cell>
                                 <uui-table-cell>${img.extension}</uui-table-cell>
                                 <uui-table-cell>${img.size}</uui-table-cell>
+                                <uui-table-cell>
+                                    <uui-action-bar>
+                                        <uui-button title="Edit image" 
+                                                    label="edit" pristine=""
+                                                    look="secondary" 
+                                                    @click="${this.editMedia}">
+                                            <uui-icon name="wand"></uui-icon>
+                                        </uui-button>
+
+                                        <uui-button title="Metadata" label="metadata" pristine="" look="secondary"
+                                                    @click="${this.showMetadataPreview}">
+                                            <uui-icon name="code"></uui-icon>
+                                        </uui-button>
+                                        
+                                        <uui-button title="Move to trash" 
+                                                    label="delete" pristine="" 
+                                                    look="secondary" color="danger"
+                                                    @click="${this.recycleSingleImage}">
+                                            <uui-icon name="delete"></uui-icon>
+                                        </uui-button>
+                                    </uui-action-bar>
+                                </uui-table-cell>
 
                             </uui-table-row>
                         `
                         )}
-
                 </uui-table>
 
                 <uui-pagination 
@@ -552,7 +687,11 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                     current="${this.currentPage}" 
                     @change="${this.handleChangePage}" >
                 </uui-pagination>
-
+                
+                <uui-select style="margin-top: 0.5rem;"
+                            .options="${this.#itemsPerPageOptions}" 
+                            @change="${this.#handleItemsPerPageChanged}">
+                </uui-select>
             `
         }
         else{
@@ -561,6 +700,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             `
         }
     }
+    
+    
 
 
     static styles = css`
@@ -574,6 +715,10 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         .dashboard{
             padding: 1rem;
             height: 100%;
+        }
+        
+        uui-table-cell{
+            padding: 0.5rem;
         }
 
         uui-box{
@@ -645,7 +790,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
             transition: background-color 0.2s ease-in-out;
         }
             .selectableRow:hover {
-                opacity:0.5;
+                -webkit-box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
+                box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
             }
 
         .selectedRow{

@@ -1,18 +1,17 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property } from "@umbraco-cms/backoffice/external/lit";
 import { UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
-import { BoxEventDetail } from "../../code/box.event";
+import {BoxControl} from "./BoxControl.ts";
 
 
 @customElement('radio-box')
-export class RadioBox extends UmbElementMixin(LitElement) {
+export class RadioBox extends BoxControl{
 
     constructor() {
         super();
     }
 
     @property({attribute: true}) name: string = "Name";
-    @property({attribute: true}) targetProperty: string = "";
     @property({attribute: true}) description: string = "Description";    
     @property({type: Array}) options: Array<string> = [];
     @property({type: String}) selected: string = "";
@@ -20,9 +19,13 @@ export class RadioBox extends UmbElementMixin(LitElement) {
 
     private handleChange(e: Event){
         let target = e.target as UUIRadioGroupElement;
-        
-        const eventDetail: BoxEventDetail  = { targetProperty: this.targetProperty , newValue: target.value as string };
-        const event = new CustomEvent<BoxEventDetail>("change", {detail: eventDetail});
+
+        //Dispatch change event
+        const event = new CustomEvent("change",{
+            bubbles: true,
+            composed: true,
+            detail: target.value
+        });
         this.dispatchEvent(event);
     }
 

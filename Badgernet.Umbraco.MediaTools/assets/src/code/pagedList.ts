@@ -8,6 +8,14 @@ export class SelectablePagedList<T>{
     constructor(pageSize: number){
         this._pageSize = pageSize;
     }
+    
+    public get pageSize(): number{
+        return this._pageSize;
+    }
+    
+    public set pageSize(value: number){
+        this._pageSize = value;
+    }
 
     //Fills array from another array
     public fromArray(array: Array<T>): void{
@@ -128,6 +136,11 @@ export class SelectablePagedList<T>{
     //Returns selected items
     public getSelectedItems():Array<T>{
         return this.#arr.filter(item => this.isSelected(item));
+    }
+
+    //Returns selected items
+    public getItems():Array<T>{
+        return this.#arr;
     }
 
 

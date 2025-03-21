@@ -16,22 +16,37 @@ public class FileManager(MediaFileManager mediaFileManager) : IFileManager
         return _fileSystem.FileExists(relativePath);
     }
 
-    public MemoryStream? ReadFile(string relativePath)
+    public bool ReadToStream(string relativePath, MemoryStream outStream, bool overwrite = true)
     {
+        outStream ??= new MemoryStream();
+
         if(_fileSystem.FileExists(relativePath))
         {
-            using var fileStream =  _fileSystem.OpenFile(relativePath);
-            var memStream = new MemoryStream();
-            fileStream.CopyTo(memStream);
-            memStream.Position = 0;
-            return memStream;
+            try
+            {
+                using var fileStream =  _fileSystem.OpenFile(relativePath);
+                
+                if (overwrite)
+                {
+                    outStream.Position = 0;
+                    outStream.SetLength(0);
+                }
 
+                fileStream.CopyTo(outStream);
+                outStream.Position = 0;
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
-        return null;
+        return false;
     }
 
     public bool WriteFile(string relativePath, Stream fileStream)
     {
+        fileStream.Position = 0;
         _fileSystem.AddFile(relativePath, fileStream, true);
         return true;
     }

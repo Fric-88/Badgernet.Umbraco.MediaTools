@@ -13,7 +13,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/UmbracoVanilla/bin/Debug/net8.0/UmbracoVanilla.dll",
+            "program": "${workspaceFolder}/UmbracoVanilla/bin/Debug/net9.0/UmbracoVanilla.dll",
             "args": [],
             "cwd": "${workspaceFolder}/UmbracoVanilla",
             "stopAtEntry": false,

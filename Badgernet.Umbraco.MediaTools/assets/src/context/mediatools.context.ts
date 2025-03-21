@@ -2,58 +2,166 @@ import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
-import { UmbArrayState, UmbBooleanState, UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
+import { UmbArrayState, UmbBooleanState,
+         UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
 import {
-    ConvertMode,
-    DownloadMediaData,
-    FilterGalleryData,
-    GetSettingsData,
-    ProcessImagesData,
-    SetSettingsData,
-    UserSettingsDto,
-    RecycleMediaData,
-    GalleryInfoDto,
-    RenameMediaData, ReplaceImageData, GetMediaInfoData
+    ConvertMode, DownloadMediaData, FilterGalleryData,
+    GetSettingsData, ProcessImagesData, SetSettingsData,
+    UserSettingsDto, RecycleMediaData, RenameMediaData,
+    ReplaceImageData, GetMediaInfoData, GetMetadataData
 } from "../api";
-import { isNumber, isBool, isString, clampNumber } from "../code/helperFunctions";
+import { clampNumber } from "../code/helperFunctions";
+import { Observable } from "@umbraco-cms/backoffice/observable-api";
 
-
-
-export type MediaToolProperties =  keyof UserSettingsDto;
+export type MediaFolder = {name: string, value: string};
 export class MediaToolsContext extends UmbControllerBase {
 
     #repository: MediaToolsRepository;
 
     #resizerEnabled = new UmbBooleanState(false);
-    public readonly resizerEnabled = this.#resizerEnabled.asObservable();
-
     #converterEnabled = new UmbBooleanState(true);
-    public readonly converterEnabled = this.#converterEnabled.asObservable();
-
+    #metaRemoverEnabled = new UmbBooleanState(false);
     #convertQuality = new UmbNumberState(80);
-    public readonly convertQuality = this.#convertQuality.asObservable();
-
-    #convertMode = new UmbStringState("lossy");
-    public readonly convertMode = this.#convertMode.asObservable();
-
+    #convertMode = new UmbStringState("Lossy" as ConvertMode);
     #ignoreAspectRatio = new UmbBooleanState(false);
-    public readonly ignoreAspectRatio = this.#ignoreAspectRatio.asObservable();
-
     #targetWidth = new UmbNumberState(1920);
-    public readonly targetWidth = this.#targetWidth.asObservable();
-
     #targetHeight = new UmbNumberState(1080);
-    public readonly targetHeight = this.#targetHeight.asObservable();
-
     #keepOriginals = new UmbBooleanState(false);
-    public readonly keepOriginals = this.#keepOriginals.asObservable();
-
     #ignoreKeyword = new UmbStringState("ignoreme");
-    public readonly ignoreKeyword = this.#ignoreKeyword.asObservable();
+    #mediaFolders = new UmbArrayState([{name: "All folders", value: ""} as MediaFolder],(element) => element);
+    #removeDateTime = new UmbBooleanState(true);
+    #removeCameraInfo = new UmbBooleanState(true);
+    #removeGpsInfo = new UmbBooleanState(true);
+    #removeAuthorInfo = new UmbBooleanState(false);
+    #removeXmpProfile = new UmbBooleanState(false);
+    #removeIptcProfile = new UmbBooleanState(false);
+    #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
 
-    #mediaFolders = new UmbArrayState([{name: "All folders", value: ""}],(element) => element);
-    public readonly mediaFolders = this.#mediaFolders.asObservable();
-
+    
+    public get resizerEnabled() : Observable<boolean>{
+        return this.#resizerEnabled.asObservable();  
+    } 
+    public set resizerEnabled(value : boolean){
+        this.#resizerEnabled.setValue(value);
+    }
+    public get converterEnabled() : Observable<boolean>{
+        return this.#converterEnabled.asObservable();  
+    } 
+    public set converterEnabled(value: boolean){
+        this.#converterEnabled.setValue(value);
+    }
+    public get metaRemoverEnabled() : Observable<boolean>{
+        return this.#metaRemoverEnabled.asObservable();
+    }
+    public set metaRemoverEnabled(value : boolean){
+        this.#metaRemoverEnabled.setValue(value);
+    }
+    public get convertQuality() : Observable<number> {
+        return this.#convertQuality.asObservable();
+    }
+    public set convertQuality(value: number) {
+        value = clampNumber(value, 1, 100);
+        this.#convertQuality.setValue(value);
+    }
+    public get convertMode() : Observable<string> {
+        return this.#convertMode.asObservable();  
+    } 
+    public set convertMode(value: ConvertMode) {
+        this.#convertMode.setValue(value);
+    }
+    public get ignoreAspectRatio() : Observable<boolean> {
+        return this.#ignoreAspectRatio.asObservable();  
+    } 
+    public set ignoreAspectRatio(value: boolean) {
+        this.#ignoreAspectRatio.setValue(value);
+    }
+    public get targetWidth() : Observable<number> {
+        return this.#targetWidth.asObservable();  
+    } 
+    public set targetWidth(value : number){
+        value = clampNumber(value, 1, 10000);
+        this.#targetWidth.setValue(value);
+    }
+    public get targetHeight() :Observable<number>{
+        return this.#targetHeight.asObservable();  
+    } 
+    public set targetHeight(value : number){
+        value = clampNumber(value, 1, 10000);
+        this.#targetHeight.setValue(value);
+    }
+    public get keepOriginals() :Observable<boolean> {
+        return this.#keepOriginals.asObservable();
+    }
+    public set keepOriginals(value: boolean) {
+        this.#keepOriginals.setValue(value);
+    }
+    public get ignoreKeyword():Observable<string> {
+        return this.#ignoreKeyword.asObservable();  
+    } 
+    public set ignoreKeyword(value: string) {
+        this.#ignoreKeyword.setValue(value);
+    }
+    public get mediaFolders() : Observable<MediaFolder[]>{
+        return this.#mediaFolders.asObservable();  
+    }
+    public set mediaFolders(value: {name: string, value: string}[]) {
+        this.#mediaFolders.setValue(value)
+    }
+    public get removeDateTime() : Observable<boolean> {
+        return this.#removeDateTime.asObservable();  
+    } 
+    public set removeDateTime(value: boolean) {
+        this.#removeDateTime.setValue(value);
+    }
+    public get removeCameraInfo() : Observable<boolean>  {
+        return this.#removeCameraInfo.asObservable();
+    }
+    public set removeCameraInfo(value: boolean) {
+        this.#removeCameraInfo.setValue(value);
+    }
+    public get removeGpsInfo(): Observable<boolean> { 
+        return this.#removeGpsInfo.asObservable();
+    }
+    public set removeGpsInfo(value: boolean) {
+        this.#removeGpsInfo.setValue(value);
+    }
+    public get removeShootingSituationInfo() :Observable<boolean>{
+        return this.#removeAuthorInfo.asObservable();
+    } 
+    public set removeShootingSituationInfo(value: boolean) {
+        this.#removeAuthorInfo.setValue(value);
+    }
+    
+    public get removeXmpProfile(): Observable<boolean> {
+        return this.#removeXmpProfile.asObservable();
+    }
+    public set removeXmpProfile(value: boolean) {
+        this.#removeXmpProfile.setValue(value);
+    }
+    
+    public get removeIptcProfile(): Observable<boolean> {
+        return this.#removeIptcProfile.asObservable();
+    }
+    
+    public set removeIptcProfile(value: boolean) {
+        this.#removeIptcProfile.setValue(value);
+    }
+    
+    public get metaTagsToRemove(): Observable<string[]> {
+        return this.#metaTagsToRemove.asObservable();
+    }
+    
+    public addMetaTagsToRemove(value: string) {
+        if(!this.#metaTagsToRemove.getValue().includes(value)) {
+            this.#metaTagsToRemove.appendOne(value);
+        }
+    } 
+    
+    public removeMetaTagsToRemove(value: string) {
+        if(this.#metaTagsToRemove.getValue().includes(value)) {
+           this.#metaTagsToRemove.remove([value]); 
+        }
+    }
 
     constructor(host: UmbControllerHost) {
         super(host);
@@ -61,60 +169,8 @@ export class MediaToolsContext extends UmbControllerBase {
         this.#repository = new MediaToolsRepository(this);
     }
 
-    //Generic property setter 
-    public setProperty(targetProperty: MediaToolProperties  , value: any){
-
-        if(value != undefined){
-            switch(targetProperty){
-                case "resizerEnabled":
-                    if(!isBool(value)) return;
-                    this.#resizerEnabled.setValue(value);
-                    break;
-                case "converterEnabled":
-                    if(!isBool(value)) return; 
-                    this.#converterEnabled.setValue(value);
-                    break;
-                case "convertMode":
-                    if(!isString(value)) return;
-                    this.#convertMode.setValue(value);
-                    break; 
-                case "convertQuality":
-                    if(!isNumber(value)) return;
-                    value = clampNumber(value, 1, 100);
-                    this.#convertQuality.setValue(value);
-                    break;
-                case "ignoreAspectRatio":
-                    if(!isBool(value)) return; 
-                    this.#ignoreAspectRatio.setValue(value);
-                    break;
-                case "targetWidth":
-                    if(!isNumber(value)) return; 
-                    value = clampNumber(value, 1, 10000);
-                    this.#targetWidth.setValue(value);
-                    break;
-                case "targetHeight":
-                    if(!isNumber(value)) return;
-                    value = clampNumber(value, 1, 10000);
-                    this.#targetHeight.setValue(value)
-                    break;
-                case "keepOriginals":
-                    if(!isBool(value)) return;
-                    this.#keepOriginals.setValue(value); 
-                    break; 
-                case "ignoreKeyword":
-                    if(!isString(value)) return;
-                    this.#ignoreKeyword.setValue(value);
-                    break;
-                default:
-                    console.log('Could not change property: ${targetProperty}');
-                    break;
-            }
-        }
-    }
-
     async getGalleryInfo() {
         const responseData = await this.#repository.getGalleryInfo();
-
         if(responseData)
             return responseData.data;
     }
@@ -127,38 +183,66 @@ export class MediaToolsContext extends UmbControllerBase {
 
         const responseData = (await this.#repository.fetchSettings(reqData)).data as UserSettingsDto;
 
-        if(responseData){
-            this.#resizerEnabled.setValue(responseData.resizerEnabled);
-            this.#converterEnabled.setValue(responseData.converterEnabled);
-            this.#convertMode.setValue(responseData.convertMode);
-            this.#convertQuality.setValue(responseData.convertQuality);
-            this.#ignoreAspectRatio.setValue(responseData.ignoreAspectRatio);
-            this.#targetWidth.setValue(responseData.targetWidth);
-            this.#targetHeight.setValue(responseData.targetHeight);
-            this.#keepOriginals.setValue(responseData.keepOriginals);
-            this.#ignoreKeyword.setValue(responseData.ignoreKeyword);
+        if(responseData) {
+            this.#resizerEnabled.setValue(responseData.resizer.enabled);
+            this.#converterEnabled.setValue(responseData.converter.enabled);
+            this.#convertMode.setValue(responseData.converter.convertMode);
+            this.#convertQuality.setValue(responseData.converter.convertQuality);
+            this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
+            this.#targetWidth.setValue(responseData.resizer.targetWidth);
+            this.#targetHeight.setValue(responseData.resizer.targetHeight);
+            this.#keepOriginals.setValue(responseData.general.keepOriginals);
+            this.#ignoreKeyword.setValue(responseData.general.ignoreKeyword);
+            this.#metaRemoverEnabled.setValue(responseData.metadataRemover.enabled);
+            this.#removeDateTime.setValue(responseData.metadataRemover.removeDateTime);
+            this.#removeCameraInfo.setValue(responseData.metadataRemover.removeCameraInfo);
+            this.#removeGpsInfo.setValue(responseData.metadataRemover.removeGpsInfo);
+            this.#removeAuthorInfo.setValue(responseData.metadataRemover.removeShootingSituationInfo);
+            this.#removeXmpProfile.setValue(responseData.metadataRemover.removeXmpProfile);
+            this.#removeIptcProfile.setValue(responseData.metadataRemover.removeIptcProfile);
+            this.#metaTagsToRemove.setValue(responseData.metadataRemover.metadataTagsToRemove);
         }
     }
 
     async saveSettings(userKey: string){
 
-        //Build request object from observable properties
-        const reqData: SetSettingsData = {
-
-            userKey: userKey,
-            requestBody: {
-                resizerEnabled: this.#resizerEnabled.getValue(),
-                converterEnabled: this.#converterEnabled.getValue(),
-                convertMode: this.#convertMode.getValue() as ConvertMode,
-                convertQuality: this.#convertQuality.getValue(),
-                ignoreAspectRatio: this.#ignoreAspectRatio.getValue(),
+        //Map observables to settings object
+        const settings: UserSettingsDto = {
+            resizer: {
+                enabled: this.#resizerEnabled.getValue(),
                 targetWidth: this.#targetWidth.getValue(),
                 targetHeight: this.#targetHeight.getValue(),
-                keepOriginals: this.#keepOriginals.getValue(),
+                ignoreAspectRatio: this.#ignoreAspectRatio.getValue()
+            },
+            converter: {
+                enabled: this.#converterEnabled.getValue(),
+                convertMode: this.#convertMode.getValue() as ConvertMode,
+                convertQuality: this.#convertQuality.getValue()
+            },
+            metadataRemover: {
+                enabled: this.#metaRemoverEnabled.getValue(),
+                removeDateTime: this.#removeDateTime.getValue(),
+                removeGpsInfo: this.#removeGpsInfo.getValue(),
+                removeCameraInfo: this.#removeCameraInfo.getValue(),
+                removeShootingSituationInfo: this.#removeAuthorInfo.getValue(),
+                metadataTagsToRemove: this.#metaTagsToRemove.getValue(),
+                removeXmpProfile: this.#removeXmpProfile.getValue(),
+                removeIptcProfile: this.#removeIptcProfile.getValue()
+            },
+            general: {
                 ignoreKeyword: this.#ignoreKeyword.getValue(),
+                keepOriginals: this.#keepOriginals.getValue()
+                
             }
         }
-        
+
+        //Build request data
+        const reqData: SetSettingsData = {
+            userKey: userKey,
+            requestBody: settings
+        }
+
+        //Send setting to server
         await this.#repository.saveSettings(reqData);
     }
 
@@ -178,7 +262,6 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#mediaFolders.setValue(options);    
         }
     }
-
 
     async filterGallery(requestData: FilterGalleryData){
         const responseData = (await this.#repository.filterGallery(requestData));
@@ -222,6 +305,10 @@ export class MediaToolsContext extends UmbControllerBase {
     }
     async getMediaInfo(requestData: GetMediaInfoData){
         return await this.#repository.getMediaInfo(requestData); 
+    }
+    
+    async getMediaMetadata(requestData: GetMetadataData){
+        return await this.#repository.getMediaMetadata(requestData);
     }
 }
 

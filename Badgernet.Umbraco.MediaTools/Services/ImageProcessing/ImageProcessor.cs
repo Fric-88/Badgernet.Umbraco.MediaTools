@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Badgernet.Umbraco.MediaTools.Models;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
@@ -15,67 +14,65 @@ using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using SixLabors.ImageSharp.Processing;
 
+
 namespace Badgernet.Umbraco.MediaTools.Services.ImageProcessing;
 
 public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 {
     
-    public MemoryStream? Resize(MemoryStream imageStream, Size targetResolution)
+    public bool Resize(Image image, Size targetResolution)
     {
         try
         {
-            using var img = Image.Load(imageStream);
-            var format = img.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
+            var format = image.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
 
-            img.Mutate(x =>
+            image.Mutate(x =>
             {
                 x.AutoOrient();
                 x.Resize(targetResolution.Width, targetResolution.Height);
             });
+            
+            image.Metadata.HorizontalResolution = image.Width;
+            image.Metadata.VerticalResolution = image.Height;
+            image.Metadata.ExifProfile?.SetValue(ExifTag.ImageWidth, image.Width);
+            image.Metadata.ExifProfile?.SetValue(ExifTag.ImageLength, image.Height );
+            image.Metadata.ExifProfile?.SetValue(ExifTag.PixelXDimension, image.Width);
+            image.Metadata.ExifProfile?.SetValue(ExifTag.PixelYDimension, image.Height);
 
-            var resizedStream = new MemoryStream();
-            img.Save(resizedStream, format);
-            resizedStream.Position = 0;
-
-            return resizedStream;
+            return true;
         }
         catch (Exception e)
         {
             logger.LogError("Error resizing image file: {Message}", e.Message);
-            return null;
+            return false;
         }
     }
-    public MemoryStream? ConvertToWebp(MemoryStream imageStream, ConvertMode convertMode, int convertQuality)
+    public bool ConvertToWebp(Image image, ConvertMode convertMode, int convertQuality)
     {
         var encoder = new WebpEncoder
             {
                 Quality = convertQuality,
-                FileFormat = convertMode == ConvertMode.lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
+                FileFormat = convertMode == ConvertMode.Lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
             };
 
         try
         {
-            using var img = Image.Load(imageStream);
-            img.Mutate(x => x.AutoOrient() );
-            
-            var converted = new MemoryStream();
-            
-            img.Save(converted, encoder);
+            image.Mutate(x => x.AutoOrient() );
 
-            converted.Position = 0;
+            using var converted = new MemoryStream();
+            image.Save(converted, encoder);
+            converted.Position = 0; 
+            image = Image.Load(converted);
 
-            return converted;
+            return true;
         }
         catch (Exception e)
         {
             logger.LogError("Error converting image file: {Message}", e.Message);
-            return null;
+            return false;
         }
 
     }
-
-
-
     public Size CalculateResolution(Size originalResolution, Size targetResolution, bool preserveAspectRatio = true)
         {
             if (!preserveAspectRatio)
@@ -95,24 +92,24 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
             return new Size(newWidth, newHeight);
         }
-
-    public ImageEncoder GetEncoder(string filePath)
+    public ImageEncoder GetEncoder(string filePath, bool skipMetadata = false)
     {
         var extension = Path.GetExtension(filePath).ToLower();
 
         return extension switch
         {
-            ".pbm" => new PbmEncoder(),
-            ".png" => new PngEncoder(),
-            ".gif" => new GifEncoder(),
-            ".qoi" => new QoiEncoder(),
-            ".tga" => new TgaEncoder(),
-            ".jpg" => new JpegEncoder(),
-            ".jpeg" => new JpegEncoder(),
-            ".bmp" => new BmpEncoder(),
-            ".tiff" => new TiffEncoder(),
-            _ => new WebpEncoder()
+            ".pbm" => new PbmEncoder(){SkipMetadata = skipMetadata},
+            ".png" => new PngEncoder(){SkipMetadata = skipMetadata},
+            ".gif" => new GifEncoder(){SkipMetadata = skipMetadata},
+            ".qoi" => new QoiEncoder(){SkipMetadata = skipMetadata},
+            ".tga" => new TgaEncoder(){SkipMetadata = skipMetadata},
+            ".jpg" => new JpegEncoder(){SkipMetadata = skipMetadata},
+            ".jpeg" => new JpegEncoder(){SkipMetadata = skipMetadata},
+            ".bmp" => new BmpEncoder(){SkipMetadata = skipMetadata},
+            ".tiff" => new TiffEncoder(){SkipMetadata = skipMetadata},
+            _ => new WebpEncoder(){SkipMetadata = skipMetadata}
         };
         ;
     }
+
 }
