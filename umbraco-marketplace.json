@@ -16,20 +16,28 @@
     ],
     "Screenshots": [
         {
-            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Uploads.png",
-            "Caption": "Uploads"
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Processing_panel.png",
+            "Caption": "Upload Dashboard"
         },
         {
-            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Gallery.png",
-            "Caption": "Gallery"
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/MyMedia_Panel.png",
+            "Caption": "My Media Dashboard"
         },
         {
-            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/ImageEditor_1.png",
-            "Caption": "Cropping"
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Image_Preview.png",
+            "Caption": "Image preview"
         },
         {
-            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/ImageEditor_2.png",
-            "Caption": "Contrast, Brightness, Exposure & RGB adjustments"
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Metadata_View.png",
+            "Caption": "Metadata view"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Crop.png",
+            "Caption": "Image editor - crop"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Adjustments.png",
+            "Caption": "Image editor - adjustments"
         }
     ]
 }
