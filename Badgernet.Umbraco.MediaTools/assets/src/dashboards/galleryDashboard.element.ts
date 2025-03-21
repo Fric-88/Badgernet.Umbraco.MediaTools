@@ -35,18 +35,18 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     @state() height: number = 1;
 
     @state() currentPage: number = 1;
-    @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(15);
+    @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(10);
     @state() allSelected: boolean = false;
-    @state() resultsPerPage: number = 15;
+    @state() resultsPerPage: number = 10;
 
     @query("#imagePreviewElement") previewModal!: ImagePreview;
     @query("#renameMediaDialog") renameMediaDialog!: RenameMediaDialog;
     @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
     @query("#acceptRejectDialog") acceptRejectDialog!: AcceptRejectDialog;
 
-    #resultsPerPageOptions: Array<Option> = [
-        {name: "10", value: "10"},
-        {name: "15", value: "15", selected: true},
+    #itemsPerPageOptions: Option[] = [
+        {name: "10", value: "10", selected: true},
+        {name: "15", value: "15"},
         {name: "20", value: "20"},
         {name: "30", value: "30"},
         {name: "50", value: "50"},
@@ -689,7 +689,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                 </uui-pagination>
                 
                 <uui-select style="margin-top: 0.5rem;"
-                            options="${this.#resultsPerPageOptions}" 
+                            .options="${this.#itemsPerPageOptions}" 
                             @change="${this.#handleItemsPerPageChanged}">
                 </uui-select>
             `

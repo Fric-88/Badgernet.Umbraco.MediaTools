@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "buildMini": "tsc && vite build --minify 'eslint'",
     "preview": "vite preview",
     "watch": "vite build --watch",
     "generateApi": "openapi-ts --input http://localhost:2812/umbraco/swagger/mediatools/swagger.json --output src/api --debug false --schemas false"

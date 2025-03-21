@@ -196,7 +196,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     if (settings.MetadataRemover.RemoveDateTime)
                         _metadataProcessor.RemoveExifDateTimeTags(image);
                     if (settings.MetadataRemover.RemoveGpsInfo)
-                        _metadataProcessor.RemoveExifDeviceTags(image);
+                        _metadataProcessor.RemoveExifGpsTags(image);
                     if (settings.MetadataRemover.RemoveShootingSituationInfo)
                         _metadataProcessor.RemoveExifSettingTags(image);
                     
