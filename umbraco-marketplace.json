@@ -4,7 +4,7 @@
     "Name": "David Jazbec",
     "Description": "",
     "Url": "https://badgernet.de",
-    "ImageUrl": ""
+    "ImageUrl": "https://github.com/Fric-88"
     },
     "Title": "MediaTools",
     "Description": "This package adds additional functionalities to Umbraco media section.",
@@ -12,7 +12,7 @@
     "LicenseTypes": [ "Free" ],
     "PackageType": "Package",
     "Tags": [
-    "Media tools"
+    "Media tools", "Webp", "Resize", "Convert", "Metadata", "Image editor" 
     ],
     "Screenshots": [
         {
