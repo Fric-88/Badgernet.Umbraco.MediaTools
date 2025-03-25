@@ -159,30 +159,49 @@ public class MediaHelperV15(
 
     public string GetUmbExtension(IMedia media)
     {
-        var umbracoFileJson = media.GetValue("umbracoFile");
-        if (umbracoFileJson == null) return string.Empty;
-        
-        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-        var srcProp = umbracoFile!["src"]!.GetValue<string>();
-        var extension = Path.GetExtension(srcProp);
+        var umbracoFileRaw = media.GetValue("umbracoFile");
+        if (umbracoFileRaw == null) return string.Empty;
 
-        extension = extension.TrimStart('.');
-        return extension;
+        try //When file is a JSON object
+        {
+            var umbracoFile = JsonNode.Parse((string)umbracoFileRaw);
+            var srcProp = umbracoFile!["src"]!.GetValue<string>();
+            var extension = Path.GetExtension(srcProp);
 
+            extension = extension.TrimStart('.');
+            return extension;
+        }
+        catch (Exception) //Cannot Parse Json -> use raw string
+        {
+            if (umbracoFileRaw == null) throw;
+            var src = umbracoFileRaw.ToString();
+            var extension = Path.GetExtension(src);
+            return extension?.TrimStart(".") ?? string.Empty;
+        }
     }
     public void SetUmbExtension(IMedia media, string extension)
     {
-        var umbracoFileJson = media.GetValue("umbracoFile");
-        if (umbracoFileJson == null) return;
+        var umbracoFileRaw = media.GetValue("umbracoFile");
+        if (umbracoFileRaw == null) return;
         
         //Remove starting dots like in '.webp'
-        extension = extension.TrimStart('.');    
+        extension = extension.TrimStart('.');
 
-        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-        var srcProp = umbracoFile!["src"]!.GetValue<string>();
-        umbracoFile["src"] = Path.ChangeExtension(srcProp, extension);
-        media.SetValue("umbracoFile", umbracoFile.ToJsonString());
-        media.SetValue("umbracoExtension", extension);
+        try // JSON Format
+        {
+            var umbracoFile = JsonNode.Parse((string)umbracoFileRaw);
+            var srcProp = umbracoFile!["src"]!.GetValue<string>();
+            umbracoFile["src"] = Path.ChangeExtension(srcProp, extension);
+            media.SetValue("umbracoFile", umbracoFile.ToJsonString());
+            media.SetValue("umbracoExtension", extension);
+        }
+        catch (Exception) //Failed to parse JSON -> use raw string
+        {
+            var newPath = umbracoFileRaw.ToString();
+            newPath = Path.ChangeExtension(newPath , extension);
+            media.SetValue("umbracoFile", newPath);
+            media.SetValue("umbracoExtension", extension);
+        }
     }
 
     public long GetUmbBytes(IMedia media){
@@ -199,14 +218,24 @@ public class MediaHelperV15(
         var umbracoFileJson = media.GetValue("umbracoFile");
         if (umbracoFileJson == null) return;
         
-        var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
-        var srcProp = umbracoFile!["src"]!.GetValue<string>();
-        var directory = Path.GetDirectoryName(srcProp)!;
-        var path = Path.Combine(directory, filename);
-        path = path.Replace('\\', '/');
-        umbracoFile["src"] = path;
-
-        media.SetValue("umbracoFile", umbracoFile.ToJsonString());
+        try
+        {
+            var umbracoFile = JsonNode.Parse((string)umbracoFileJson);
+            var srcProp = umbracoFile!["src"]!.GetValue<string>();
+            var directory = Path.GetDirectoryName(srcProp)!;
+            var path = Path.Combine(directory, filename);
+            path = path.Replace('\\', '/');
+            umbracoFile["src"] = path;
+            media.SetValue("umbracoFile", umbracoFile.ToJsonString());
+        }
+        catch (Exception)
+        {
+            var newPath = umbracoFileJson.ToString();
+            var directory = Path.GetDirectoryName(newPath)!;
+            newPath = Path.Combine(directory, filename);
+            newPath = newPath.Replace('\\', '/');
+            media.SetValue("umbracoFile", newPath);
+        }
     }
 
     public void SaveMedia(IMedia media)

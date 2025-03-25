@@ -27,28 +27,9 @@ public class MetadataProcessor: IMetadataProcessor
     public ParsedTag ParseIExifValue(IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
-        var tagValue = exifValue.GetValue() ?? string.Empty;
+        var parsedTag = ExifTagsHelper.ParseExifValue(tagName, exifValue);
 
-        if (exifValue.IsArray)
-        {
-            return tagName switch
-            {
-                ExifTagsHelper.ISOSpeedRatings => exifValue.TryParseUshortArray(", "),
-                ExifTagsHelper.FlashpixVersion => exifValue.TryParseUndefinedArray(),
-                ExifTagsHelper.ExifVersion => exifValue.TryParseUndefinedArray(),
-                ExifTagsHelper.MakerNote => exifValue.TryParseUndefinedArray(),
-                ExifTagsHelper.BitsPerSample => exifValue.TryParseUshortArray(", "),
-                ExifTagsHelper.LensSpecification => exifValue.TryParseLensSpecification(),
-                ExifTagsHelper.ComponentsConfiguration => exifValue.TryParseUndefinedArray(),
-                ExifTagsHelper.GPSTimestamp => exifValue.TryParseGpsTimestamp(),
-                ExifTagsHelper.GPSVersionID => exifValue.TryParseUndefinedArray(),
-                ExifTagsHelper.GPSLatitude => exifValue.TryParseGpsCoordinate(),
-                ExifTagsHelper.GPSLongitude=> exifValue.TryParseGpsCoordinate(), 
-                _ => new ParsedTag(tagName, "Array value")
-            };
-        }
-
-        return new ParsedTag(tagName, tagValue.ToString() ?? "");
+        return parsedTag!;
 
     }
 
