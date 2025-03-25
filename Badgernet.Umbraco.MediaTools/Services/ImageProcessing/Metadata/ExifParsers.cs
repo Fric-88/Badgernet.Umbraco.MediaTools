@@ -13,35 +13,29 @@ public static class ExifParsers
         var tagValue = tagVal.GetValue();
         return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
     }
-    public static ParsedTag FromUShort(this IExifValue tagVal, string prefix, string suffix)
+    public static ParsedTag FromNumber(this IExifValue tagVal, string prefix, string suffix)
     {
         var tagName = tagVal.Tag.ToString();
         var tagValue = tagVal.GetValue();
-        
-        if (tagValue is not ushort)
+
+        if (tagValue is not Number)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);//Default 
 
         return new ParsedTag(tagName, $"{prefix}{tagValue}{suffix}");
     }
-    public static ParsedTag FromULong(this IExifValue tagVal, string prefix, string suffix)
-    {
-        var tagName = tagVal.Tag.ToString();
-        var tagValue = tagVal.GetValue();
-
-        if (tagValue is not SixLabors.ImageSharp.Number)
-            return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);//Default 
-
-        return new ParsedTag(tagName, $"{prefix}{tagValue}{suffix}");
-    }
-    public static ParsedTag FromRational(this IExifValue tagVal, string prefix, string suffix)
+    public static ParsedTag FromRational(this IExifValue tagVal, string prefix, string suffix, bool toSingle = false)
     {
         var tagName = tagVal.Tag.ToString();
         var tagValue = tagVal.GetValue();
         
-        if(tagValue is not Rational)
+        if(tagValue is not Rational value)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
-        
-        return new ParsedTag(tagName, $"{prefix}{tagValue}{suffix}");
+
+        if (toSingle)
+        {
+            return new  ParsedTag(tagName, $"{prefix}{value.ToSingle()}{suffix}");
+        }
+        return new ParsedTag(tagName, $"{prefix}{value.Numerator}/{value.Denominator}{suffix}");
     }
     public static ParsedTag FromRationalArray(this IExifValue tagVal, string separator)
     {
@@ -87,7 +81,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
         
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             1 => new ParsedTag(tagName, "uncompressed"),
             6 => new ParsedTag(tagName, "JPEG"),
@@ -103,7 +98,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
         
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             1 => new ParsedTag(tagName, "centered"),
             2 => new ParsedTag(tagName, "co-sited"),
@@ -127,15 +123,7 @@ public static class ExifParsers
             return new ParsedTag(tagName, "YCbCr4:2:0");
         
         return new ParsedTag(tagName, "other");
-        
-        
-        
-        return tagValue switch
-        {
-            1 => new ParsedTag(tagName, "centered"),
-            2 => new ParsedTag(tagName, "co-sited"),
-            _ => new ParsedTag(tagName, "other")
-        };
+
     }
     public static ParsedTag FromOrientation(this IExifValue exifValue)
     {
@@ -145,8 +133,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
 
-
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             1 => new ParsedTag(tagName, "top left"),
             2 => new ParsedTag(tagName, "top right"),
@@ -167,8 +155,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
 
-
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             1 => new ParsedTag(tagName, "chunky"),
             2 => new ParsedTag(tagName, "planar"),
@@ -183,8 +171,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
 
-
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             2 => new ParsedTag(tagName, "inches"),
             3 => new ParsedTag(tagName, "centimeters"),
@@ -198,25 +186,15 @@ public static class ExifParsers
 
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
-
-        return tagValue switch
+        
+        var value = (ushort)tagValue;
+        return value switch
         {
             2 => new ParsedTag(tagName, "RGB"),
             6 => new ParsedTag(tagName, "YCbCr"),
             _ => new ParsedTag(tagName, "other")
         };
     }
-    public static ParsedTag FromExposureTime(this IExifValue exifValue)
-    {
-        var tagName = exifValue.Tag.ToString();
-        var tagValue = exifValue.GetValue();
-
-        if (tagValue is not Rational value)
-            return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
-        
-        return new ParsedTag(tagName, $"{value.Numerator}/{value.Denominator} sec");
-    }
-    
     public static ParsedTag FromExposureProgram(this IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
@@ -225,7 +203,8 @@ public static class ExifParsers
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
 
-        return tagValue switch
+        var value = (ushort)tagValue;
+        return value switch
         {
             0 => new ParsedTag(tagName, "Not defined"),
             1 => new ParsedTag(tagName, "Manual"),
@@ -239,7 +218,6 @@ public static class ExifParsers
             _ => new ParsedTag(tagName, "other")
         };
     }
-    
     public static ParsedTag FromSensitivityType(this IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
@@ -247,8 +225,9 @@ public static class ExifParsers
 
         if (tagValue is not ushort)
             return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
-
-        return tagValue switch
+        
+        var value = (ushort)tagValue;
+        return value switch
         {
             0 => new ParsedTag(tagName, "Unknown"),
             1 => new ParsedTag(tagName, "SOS"),
@@ -261,9 +240,64 @@ public static class ExifParsers
             _ => new ParsedTag(tagName, "other")
         };
     }
-
+    public static ParsedTag FromComponentConfiguration(this IExifValue exifValue)
+    {
+        var tagName = exifValue.Tag.ToString();
+        var tagValue = exifValue.GetValue();
     
+        if (exifValue.GetValue() is not byte[] tagArr)
+            return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
 
+
+        var value = string.Empty;
+        foreach (var arrItem in tagArr)
+        {
+            if (ComponentsConfigurationMap.TryGetValue(arrItem, out var tag))
+            {
+                value += tag;
+            }
+        }
+        return new ParsedTag(tagName, value);
+    }
+    public static ParsedTag FromMeteringMode(this IExifValue exifValue)
+    {
+        var tagName = exifValue.Tag.ToString();
+        var tagValue = exifValue.GetValue();
+
+        if (tagValue is not ushort value)
+            return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
+
+        return value switch
+        {
+            0 => new ParsedTag(tagName, "Unknown"),
+            1 => new ParsedTag(tagName, "Average"),
+            2 => new ParsedTag(tagName, "CenterWeightedAverage"),
+            3 => new ParsedTag(tagName, "Spot"),
+            4 => new ParsedTag(tagName, "MultiSpot"),
+            5 => new ParsedTag(tagName, "Pattern"),
+            6 => new ParsedTag(tagName, "Partial"),
+            255 => new ParsedTag(tagName, "Other"),
+            _ => new ParsedTag(tagName, "reserved")
+        };
+    }
+    public static ParsedTag FromLightSource(this IExifValue exifValue)
+    {
+        var tagName = exifValue.Tag.ToString();
+        var tagValue = exifValue.GetValue();
+
+        if (tagValue is not ushort value)
+            return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
+
+        if (LightSourceMap.TryGetValue(value, out var tag))
+        {
+            return new ParsedTag(tagName, tag);
+        }
+        
+        return new ParsedTag(tagName, tagValue?.ToString() ?? string.Empty);
+    }
+    
+    
+    //OLD 
     public static ParsedTag TryParseLensSpecification(this IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
@@ -333,4 +367,23 @@ public static class ExifParsers
             return new ParsedTag(tagName, "00:00:00");
         }
     }
+    
+    
+    private static readonly Dictionary<byte, string> ComponentsConfigurationMap = new()
+    {
+        { 1, "Y " }, { 2, "Cb " }, { 3, "Cr " },
+        { 4, "R " }, { 5, "G " }, { 6, "B " }
+    };
+
+    private static readonly Dictionary<ushort, string> LightSourceMap = new()
+    {
+        { 0, "Unknown" }, { 1, "Daylight" }, { 2, "Fluorescent" },
+        { 3, "Tungsten" }, { 4, "Flash" }, { 9, "Fine weather" },
+        { 10, "Cloudy weather" }, { 11, "Shade" }, { 12, "Daylight Fluorescent" },
+        { 13, "Day white fluorescent" }, { 14, "Cool white fluorescent" }, 
+        { 15, "White fluorescent" }, { 16, "Warm white fluorescent" }, { 17, "Standard light A" }, 
+        { 18, "Standard light B" }, { 19, "Standard light C" }, { 20, "D55" }, 
+        { 21, "D65" }, { 22, "D75" }, { 23, "D50" }, 
+        { 24, "ISO studio tungsten" }, { 255, "other light source" }
+    };
 }
