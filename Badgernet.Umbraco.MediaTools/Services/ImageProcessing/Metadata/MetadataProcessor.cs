@@ -27,6 +27,8 @@ public class MetadataProcessor: IMetadataProcessor
     public ParsedTag ParseIExifValue(IExifValue exifValue)
     {
         var tagName = exifValue.Tag.ToString();
+        
+        
         var parsedTag = ExifTagsHelper.ParseExifValue(tagName, exifValue);
 
         return parsedTag!;
