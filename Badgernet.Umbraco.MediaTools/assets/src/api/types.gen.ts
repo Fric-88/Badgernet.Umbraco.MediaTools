@@ -55,6 +55,11 @@ export type KeyValuePair_2 = {
     value: number;
 };
 
+export type MediaFolderDto = {
+    name: string;
+    path: string;
+};
+
 export type MetadataRemoverSettings = {
     enabled: boolean;
     removeDateTime: boolean;
@@ -134,7 +139,7 @@ export type GetMetadataData = {
 
 export type GetMetadataResponse = ImageMetadataDto;
 
-export type ListFoldersResponse = Array<(string)>;
+export type ListFoldersResponse = Array<(MediaFolderDto)>;
 
 export type GetMediaInfoData = {
     mediaId?: number;
@@ -234,7 +239,7 @@ export type $OpenApiTs = {
                 /**
                  * OK
                  */
-                200: Array<(string)>;
+                200: Array<(MediaFolderDto)>;
             };
         };
     };

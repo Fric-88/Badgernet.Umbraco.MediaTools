@@ -10,7 +10,6 @@ import {
     property, ifDefined
 } from "@umbraco-cms/backoffice/external/lit";
 import { UUIModalContainerElement, UUIModalDialogElement } from "@umbraco-cms/backoffice/external/uui";
-import {PropertyPart} from "lit";
 
 
 @customElement('accept-reject-dialog')

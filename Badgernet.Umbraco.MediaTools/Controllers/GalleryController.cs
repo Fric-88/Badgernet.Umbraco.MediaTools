@@ -45,10 +45,10 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     }
 
     [HttpGet("list-folders")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
-    public string[] ListFolders()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MediaFolderDto[]))]
+    public MediaFolderDto[] ListFolders()
     {
-        var response = mediaHelper.ListFolders();
+        var response = mediaHelper.GetFolders();
         return response.ToArray();
     }
 

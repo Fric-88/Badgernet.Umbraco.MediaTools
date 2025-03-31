@@ -165,9 +165,8 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
                 if(response?.data){
                     this.itemsList.fromArray(response.data);
-                    this.requestUpdate();
                 }
-
+                this.requestUpdate(); //Update list
                 target.findButtonState = undefined;//Normal button look
             }
             catch(error){

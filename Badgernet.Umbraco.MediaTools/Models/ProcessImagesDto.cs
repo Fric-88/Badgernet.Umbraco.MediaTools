@@ -1,6 +1,6 @@
 namespace Badgernet.Umbraco.MediaTools.Models;
 
-public class ProcessImagesDto
+public record struct ProcessImagesDto()
 {
     public int[] Ids { get; set; } = [];
     public bool Resize { get; set; } = false;

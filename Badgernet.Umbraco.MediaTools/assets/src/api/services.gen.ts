@@ -55,7 +55,7 @@ export const getMetadata = (data: GetMetadataData = {}): CancelablePromise<GetMe
 }); };
 
 /**
- * @returns string OK
+ * @returns unknown OK
  * @throws ApiError
  */
 export const listFolders = (): CancelablePromise<ListFoldersResponse> => { return __request(OpenAPI, {

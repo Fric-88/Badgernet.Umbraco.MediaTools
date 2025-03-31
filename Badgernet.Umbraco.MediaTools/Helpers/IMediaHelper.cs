@@ -7,7 +7,7 @@ namespace Badgernet.Umbraco.MediaTools.Helpers;
 
 public interface IMediaHelper
 {
-        IEnumerable<string> ListFolders();
+        IEnumerable<MediaFolderDto> GetFolders();
         IEnumerable<IPublishedContent> GetAllMedia();
         IMedia? GetMediaById(int id);
         IEnumerable<IMedia> GetMediaByIds(int[] ids);

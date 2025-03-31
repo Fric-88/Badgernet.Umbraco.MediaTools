@@ -2,18 +2,19 @@ import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
-import { UmbArrayState, UmbBooleanState,
-         UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
+import {
+    UmbArrayState, UmbBooleanState, UmbClassState,
+    UmbNumberState, UmbObjectState, UmbStringState
+} from "@umbraco-cms/backoffice/observable-api";
 import {
     ConvertMode, DownloadMediaData, FilterGalleryData,
     GetSettingsData, ProcessImagesData, SetSettingsData,
     UserSettingsDto, RecycleMediaData, RenameMediaData,
-    ReplaceImageData, GetMediaInfoData, GetMetadataData
+    ReplaceImageData, GetMediaInfoData, GetMetadataData, ListFoldersResponse, MediaFolderDto
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
 
-export type MediaFolder = {name: string, value: string};
 export class MediaToolsContext extends UmbControllerBase {
 
     #repository: MediaToolsRepository;
@@ -28,7 +29,8 @@ export class MediaToolsContext extends UmbControllerBase {
     #targetHeight = new UmbNumberState(1080);
     #keepOriginals = new UmbBooleanState(false);
     #ignoreKeyword = new UmbStringState("ignoreme");
-    #mediaFolders = new UmbArrayState([{name: "All folders", value: ""} as MediaFolder],(element) => element);
+    #mediaFolders = new UmbArrayState<MediaFolderDto>([], folder => folder);
+    #mediaFolderOptions = new UmbArrayState<Option>([], option => option);
     #removeDateTime = new UmbBooleanState(true);
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
@@ -101,12 +103,16 @@ export class MediaToolsContext extends UmbControllerBase {
     public set ignoreKeyword(value: string) {
         this.#ignoreKeyword.setValue(value);
     }
-    public get mediaFolders() : Observable<MediaFolder[]>{
+    public get mediaFolders() : Observable<MediaFolderDto[]>{
         return this.#mediaFolders.asObservable();  
     }
-    public set mediaFolders(value: {name: string, value: string}[]) {
+    public set mediaFolders(value: MediaFolderDto[]) {
         this.#mediaFolders.setValue(value)
     }
+    public get mediaFoldersOptions() : Observable<Option[]>{
+        return this.#mediaFolderOptions.asObservable();
+    }
+    
     public get removeDateTime() : Observable<boolean> {
         return this.#removeDateTime.asObservable();  
     } 
@@ -169,13 +175,13 @@ export class MediaToolsContext extends UmbControllerBase {
         this.#repository = new MediaToolsRepository(this);
     }
 
-    async getGalleryInfo() {
+    async fetchGalleryInfo() {
         const responseData = await this.#repository.getGalleryInfo();
         if(responseData)
             return responseData.data;
     }
     
-    async loadSettings(userKey: string){
+    async fetchUserSettings(userKey: string){
 
         const reqData: GetSettingsData = {
             userKey: userKey
@@ -246,20 +252,21 @@ export class MediaToolsContext extends UmbControllerBase {
         await this.#repository.saveSettings(reqData);
     }
 
-    async listFolders(){
-
-        const responseData = (await this.#repository.listFolders());
-
-        if(responseData){
-            const foldersArray = responseData.data as Array<string>;
-            const options = new Array<Option>();
-
-            options.push({value: "All", name: "All folders", selected: true});
-            
-            for(let folder of foldersArray){
-                options.push({value: folder, name: folder});
+    async fetchMediaFolders(){
+        const response = (await this.#repository.listFolders());
+        if(response){
+            const responseData = response.data as Array<MediaFolderDto>;
+            if(responseData){
+                this.#mediaFolders.setValue(responseData);
             }
-            this.#mediaFolders.setValue(options);    
+            
+            let folderOptions: Array<Option> = [];
+            folderOptions.push({name: "All folders", value: "", selected: true} );
+            for(const item of responseData){
+                folderOptions.push({name: item.name, value: item.name, selected: false });
+            }
+            
+            this.#mediaFolderOptions.setValue(folderOptions);
         }
     }
 
@@ -269,7 +276,6 @@ export class MediaToolsContext extends UmbControllerBase {
         if(responseData){
             return responseData;
         }
-
     }
 
     async processImage(requestData: ProcessImagesData){

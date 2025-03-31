@@ -14,7 +14,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) height: number = 1080;
     @state() findButtonState: UUIButtonState = undefined; 
     @state() resolutionFilter: SizeFilter = "AllSizes";
-    @state() mediaFolders: Array<Option> =  [];
+    @state() mediaFolderOptions: Array<Option> =  [];
 
     private nameFilter: string = "";
     private extensionFilter: string = "";
@@ -24,7 +24,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
         super();
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#mediaToolsContext = _context;
-            this.observe(_context.mediaFolders, (_value) => { this.mediaFolders = _value; });
+            this.observe(_context.mediaFoldersOptions, (_value) => { this.mediaFolderOptions = _value; });
         });
 
     }
@@ -33,10 +33,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
     connectedCallback(): void {
         super.connectedCallback();
 
-        this.#mediaToolsContext?.listFolders()
-            .then( () => { 
-                console.log("Fetching folders");
-            })
+        this.#mediaToolsContext?.fetchMediaFolders()
             .catch(()=>{
                 console.log("Something went wrong fetching media folders");
             });
@@ -132,7 +129,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
                     <uui-select
                         label="Select folder"
                         placeholder="Select an option"
-                        .options="${this.mediaFolders}"
+                        .options="${this.mediaFolderOptions}"
                         @change="${this.folderSelectionChanged}">
                     </uui-select>
                 </div>

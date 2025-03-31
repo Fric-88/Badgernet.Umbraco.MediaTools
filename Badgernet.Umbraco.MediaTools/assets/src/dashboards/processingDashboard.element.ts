@@ -105,7 +105,7 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
 
         if(this.currentUser)
         {
-            await this.#mediaToolsContext?.loadSettings(this.currentUser.unique).catch(()=>{ 
+            await this.#mediaToolsContext?.fetchUserSettings(this.currentUser.unique).catch(()=>{ 
                 this.#showToastNotification("Oops", "Something went wrong","danger");
             });
         }

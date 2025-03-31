@@ -50,10 +50,26 @@ public class MediaHelperV15(
         return Task.Run(() => GetMediaContent(keys)).GetAwaiter().GetResult();
     }
     
-    public IEnumerable<string> ListFolders()
+    public IEnumerable<MediaFolderDto> GetFolders()
     {
-        var allMedia = GetAllMedia();
-        return allMedia.OfTypes("Folder").Select(x => x.Name);
+        return GetAllMedia()
+            .OfTypes("Folder")
+            .Where(x => x.Level == 1)
+            .SelectMany(x => GetChildrenFolders(x, ""));
+    }
+
+    private IEnumerable<MediaFolderDto> GetChildrenFolders(IPublishedContent media, string parentPath)
+    {
+        var currentPath = string.IsNullOrEmpty(parentPath) ? media.Name : $"{parentPath}/{media.Name}";
+        yield return new MediaFolderDto(media.Name, currentPath); // Return current folder
+
+        foreach (var childFolder in media.Children().OfTypes("Folder"))
+        {
+            foreach (var subFolder in GetChildrenFolders(childFolder, currentPath))
+            {
+                yield return subFolder; // Recursively yield subfolders
+            }
+        }
     }
 
     public IMedia? GetMediaById(int id)
