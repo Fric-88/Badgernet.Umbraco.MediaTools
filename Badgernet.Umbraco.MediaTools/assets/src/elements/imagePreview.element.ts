@@ -13,6 +13,9 @@ import {
 import { UUIModalContainerElement, UUIModalDialogElement } from "@umbraco-cms/backoffice/external/uui";
 import MediatoolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../context/mediatools.context.ts";
 import {GetMetadataData, GetMetadataResponse, ImageMediaDto} from "../api";
+import LoadingPopup from "./imageEditor/loadingPopup.ts";
+import "./imageEditor/loadingPopup.ts";
+
 
 
 type currentPage = "EXIF"|"IPTC"|"XMP";
@@ -33,6 +36,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
     @state() currentPage: currentPage = "EXIF"; 
     @query("#previewContainer") container!: UUIModalContainerElement;
     @query("#dialogElement") dialog!: UUIModalDialogElement;
+    @query("#loadingPopup") loadingPopup!: LoadingPopup;
     
     constructor() {
         super();
@@ -48,6 +52,9 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
     public async showPreview(imageId: number, showMetadataFirst: boolean = false){
         if(!this.#context) return;
+
+        const loadingPopup = this.loadingPopup as LoadingPopup;
+        loadingPopup.openPopup("Loading preview...");
         
         const imgInfoResponse = await this.#context.getMediaInfo({mediaId: imageId});
         if(!imgInfoResponse.data) return;
@@ -65,7 +72,9 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         this.renderWidth = (this.imageInfo.width * scale);
         this.renderHeight = (this.imageInfo.height * scale);
 
-        await this.#loadMetadata(imageId).catch((e) => {console.log(e)});
+        await this.#loadMetadata(imageId).catch((e) => {console.log(e)}).then(() =>
+            loadingPopup.closePopup()
+        );
         
         if(showMetadataFirst){
             this.#renderMetadataPreview();
@@ -97,8 +106,11 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             <uui-modal-dialog id="dialogElement">
                 <uui-dialog-layout class="layout" headline="Preview">
                     
-                    <img src="${this.imageInfo?.path}?width=${this.renderWidth?.toFixed(0)}&height=${this.renderHeight?.toFixed(0)}" 
-                         alt="${ifDefined(this.imageInfo?.name)}">
+                    <div class="imageContainer" style="width: ${this.renderWidth?.toFixed(0)}px; height: ${this.renderHeight?.toFixed(0)}px">
+                        <img src="${this.imageInfo?.path}?width=${this.renderWidth?.toFixed(0)}&height=${this.renderHeight?.toFixed(0)}"
+                             alt="${ifDefined(this.imageInfo?.name)}" onload="this.classList.add('loaded')">
+                    </div>
+
                     
                     <uui-box>
                         <uui-label style="display: block">Path: <strong>${this.imageInfo?.path}</strong></uui-label>
@@ -122,6 +134,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                     </div>
                 </uui-dialog-layout>
             </uui-modal-dialog>
+            
+
         `
     }
     
@@ -226,6 +240,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             <uui-modal-container id="previewContainer" >
                 ${this.dialogTemplate}
             </uui-modal-container>
+            <loading-popup id="loadingPopup"></loading-popup>
         `
     }
 
@@ -238,9 +253,23 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         }
         
         .imageContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            display: block;
+            background-color: #e9eeff;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .image-container img.loaded {
+            opacity: 1;
         }
         
         .metadataList {

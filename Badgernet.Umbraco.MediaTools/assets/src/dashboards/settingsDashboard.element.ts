@@ -18,8 +18,8 @@ import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
 import {exifTagOptions} from "../code/metadataTags.ts";
 
-@customElement('badgernet_umbraco_mediatools-upload-worker-dash')
-export class ProcessingDashboard extends UmbElementMixin(LitElement) {
+@customElement('badgernet_umbraco_mediatools-settings-dashboard')
+export class SettingsDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
     #convertModeOptions: ConvertMode[] = ["Lossy","Lossless"];
@@ -535,18 +535,15 @@ export class ProcessingDashboard extends UmbElementMixin(LitElement) {
             background-color: #d0d0cb;
             border-radius: 15px;
         }
-
-
-
     `
 }
 
 
-export default ProcessingDashboard
+export default SettingsDashboard
 
 declare global {
     interface HtmlElementTagNameMap {
-        'badgernet_umbraco_mediatools-upload-worker-dash': ProcessingDashboard
+        'badgernet_umbraco_mediatools-settings-dashboard': SettingsDashboard
     }
 }
 

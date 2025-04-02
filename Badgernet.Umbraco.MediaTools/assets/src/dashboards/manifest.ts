@@ -6,11 +6,11 @@ const dashboards: Array<ManifestDashboard> = [
         name: 'Badgernet.Umbraco.MediaTools',
         alias: 'Badgernet.Umbraco.MediaTools.GalleryWorkerDashboard',
         elementName: 'GalleryWorkerDashboard',
-        js: ()=> import('./galleryDashboard.element.ts'),
+        js: ()=> import('./myMediaDashboard.element.ts'),
         weight: -10,
         meta: {
             label: '🔍️ My Media',
-            pathname: 'mediatools-gallery'
+            pathname: 'mediatools-mymedia'
         },
         conditions: [
             {
@@ -24,11 +24,11 @@ const dashboards: Array<ManifestDashboard> = [
         name: 'Badgernet.Umbraco.MediaTools',
         alias: 'Badgernet.Umbraco.MediaTools.UploadWorkerDashboard',
         elementName: 'UploadWorkerDashboard',
-        js: ()=> import('./processingDashboard.element.ts'),
+        js: ()=> import('./settingsDashboard.element.ts'),
         weight: -10,
         meta: {
-            label: '♾️ Upload processing',
-            pathname: 'mediatools-uploads'
+            label: '⚙️ Settings',
+            pathname: 'mediatools-settings'
         },
         conditions: [
             {

@@ -5,8 +5,8 @@ import { ConvertMode } from "../api";
 
 
 
-@customElement('gallery-tools-panel')
-export class GalleryToolsPanel extends UmbElementMixin(LitElement) {
+@customElement('my-media-tools-panel')
+export class MyMediaToolsPanel extends UmbElementMixin(LitElement) {
 
     constructor() {
         super();
@@ -246,11 +246,11 @@ export interface ProcessingSettings{
     convertQuality: number;
 }
 
-export default GalleryToolsPanel;
+export default MyMediaToolsPanel;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'gallery-tools-panel': GalleryToolsPanel
+        'my-media-tools-panel': MyMediaToolsPanel
     }
 }
-
+0

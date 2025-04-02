@@ -10,7 +10,7 @@ import "./saveImageDialog.element.ts"
 import {UUIToastNotificationContainerElement, UUIToastNotificationElement} from "@umbraco-cms/backoffice/external/uui";
 import LoadingPopup from "./loadingPopup.ts";
 import "./loadingPopup.ts"
-import {sleep} from "../../code/helperFunctions.ts";
+
 
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {

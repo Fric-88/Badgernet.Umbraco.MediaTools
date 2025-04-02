@@ -18,12 +18,12 @@ import {
     RenameMediaData
 } from "../api";
 import { SelectablePagedList } from "../code/pagedList";
-import "../elements/galleryToolsPanel.element.ts";
-import ProcessImagePanel, { ProcessingSettings } from "../elements/galleryToolsPanel.element.ts";
+import "../elements/myMediaToolsPanel.element.ts";
+import ProcessImagePanel, { ProcessingSettings } from "../elements/myMediaToolsPanel.element.ts";
 import ImagePreview from "../elements/imagePreview.element.ts";
 import "../elements/imagePreview.element.ts"
-import GallerySearchBar from "../elements/gallerySearchBar.element.ts";
-import "../elements/gallerySearchBar.element.ts"
+import MyMediaSearchBar from "../elements/myMediaSearchBar.element.ts";
+import "../elements/myMediaSearchBar.element.ts"
 import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";
 import "../elements/renameMediaDialog.element.ts"
 import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
