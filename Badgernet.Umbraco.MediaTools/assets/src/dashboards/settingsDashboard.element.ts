@@ -469,7 +469,7 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
 
             <uui-button style="float: right;" label="Save changes" look="primary" color="positive" @click="${this.saveSettings}">Save settings</uui-button>
 
-            <resizer-folders-dialog id="resizerFolderDialog"></resizer-folders-dialog>
+            <resizer-folders-dialog id="resizerFolderDialog" width="700px" height="600px"></resizer-folders-dialog>
             
             <uui-toast-notification-container 
                 id="notificationContainer"

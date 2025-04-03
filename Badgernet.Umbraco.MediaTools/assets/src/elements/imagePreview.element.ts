@@ -187,12 +187,6 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
                         <uui-table-column style="width: 48%;"></uui-table-column>
                         <uui-table-column style="width: 48%;"></uui-table-column>
         
-                        <uui-table-head>
-                            <uui-table-head-cell>EXIF Tag</uui-table-head-cell>
-                            <uui-table-head-cell>Value</uui-table-head-cell>
-                        </uui-table-head>
-        
-        
                         ${this.imageMetaData?.exifTags?.length ?
                             this.imageMetaData.exifTags.map((e) =>
                                 html`
@@ -211,12 +205,6 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
 
                         <uui-table-column style="width: 48%;"></uui-table-column>
                         <uui-table-column style="width: 48%;"></uui-table-column>
-
-                        <uui-table-head>
-                            <uui-table-head-cell>IPTC Tag</uui-table-head-cell>
-                            <uui-table-head-cell>Value</uui-table-head-cell>
-                        </uui-table-head>
-
 
                         ${this.imageMetaData?.iptcTags?.length ?
                             this.imageMetaData.iptcTags.map((e) =>
@@ -282,7 +270,6 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         }
 
         uui-table{
-            border:1px #D8D7D9 solid;
             margin-bottom:1rem;
         }
 
