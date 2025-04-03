@@ -17,6 +17,8 @@ import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/back
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
 import {exifTagOptions} from "../code/metadataTags.ts";
+import ResizerFolderDialog from "../elements/resizerFoldersDialog.element.ts";
+import "../elements/resizerFoldersDialog.element.ts";
 
 @customElement('badgernet_umbraco_mediatools-settings-dashboard')
 export class SettingsDashboard extends UmbElementMixin(LitElement) {
@@ -49,7 +51,7 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
     @state() filteredTagsToRemove: string[] = exifTagOptions;
 
     @query('#notificationsContainer') notificationContainer: UUIToastNotificationContainerElement | undefined
-    
+    @query("#resizerFolderDialog") resizerFolderDialog: ResizerFolderDialog | undefined;
 
 
     constructor() {
@@ -200,7 +202,6 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
         this.#mediaToolsContext.removeShootingSituationInfo = !this.removeShootingSituationInfo
     }
     
-    
     #filterTagsOnInput(e: Event){
         
         if(e.target instanceof UUIComboboxElement){
@@ -236,8 +237,6 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
             }
         }
     }
-    
-
     #showToastNotification(headline: string , message: string , color: '' | 'default' | 'positive' | 'warning' | 'danger' = '') {
         const container = this.renderRoot.querySelector('#notificationContainer') as UUIToastNotificationContainerElement;
         const toast = document.createElement('uui-toast-notification') as UUIToastNotificationElement;
@@ -254,6 +253,14 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
             container.appendChild(toast);
         }
     }
+    
+    async #showResizerFoldersDialog(){
+        const dialog = this.resizerFolderDialog as ResizerFolderDialog; 
+        
+        if(dialog){
+            await dialog.showDialog();
+        }
+    }
 
     render() {
         return html`
@@ -266,6 +273,7 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                 </div>
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
+                
 
                 <input-box
                     class="boxElement"
@@ -302,6 +310,16 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                     .disabled="${!this.resizerEnabled}"
                     @toggle="${this.handleBoxEvent}">
                 </toggle-box>
+                
+                <div style="display: block; margin-top: 0.5rem; padding: 0.2rem;">
+                    <uui-button color="positive" look="primary" 
+                                .disabled="${!this.resizerEnabled}" 
+                                @click="${this.#showResizerFoldersDialog}">
+                        
+                        <uui-icon name="folder" style="margin-bottom: 2px"></uui-icon>
+                        Folder rules
+                    </uui-button>
+                </div>
             </uui-box> 
 
             <uui-box>
@@ -451,6 +469,8 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
 
             <uui-button style="float: right;" label="Save changes" look="primary" color="positive" @click="${this.saveSettings}">Save settings</uui-button>
 
+            <resizer-folders-dialog id="resizerFolderDialog"></resizer-folders-dialog>
+            
             <uui-toast-notification-container 
                 id="notificationContainer"
                 auto-close="3000">
