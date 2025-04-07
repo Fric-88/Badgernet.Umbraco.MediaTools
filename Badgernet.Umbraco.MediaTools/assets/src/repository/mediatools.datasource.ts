@@ -4,7 +4,7 @@ import { tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
 import {
     getSettings,
     setSettings,
-    filterGallery,
+    searchMedia,
     downloadMedia,
     listFolders,
     renameMedia,
@@ -20,7 +20,7 @@ import {
 import {
     DownloadMediaData,
     DownloadMediaResponse,
-    FilterGalleryData,
+    SearchMediaData,
     GetSettingsData,
     ImageMediaDto,
     ListFoldersResponse,
@@ -55,8 +55,8 @@ export class MediaToolsManagementDataSource {
     async listFolders(): Promise<UmbDataSourceResponse<ListFoldersResponse>>{
         return await tryExecuteAndNotify(this.#host, listFolders());
     }
-    async filterGallery(requestData: FilterGalleryData ): Promise<UmbDataSourceResponse<ImageMediaDto[]>> {
-        return await tryExecuteAndNotify(this.#host, filterGallery(requestData));
+    async searchMedia(requestData: SearchMediaData ): Promise<UmbDataSourceResponse<ImageMediaDto[]>> {
+        return await tryExecuteAndNotify(this.#host, searchMedia(requestData));
     }
     async processImage(requestData: ProcessImagesData): Promise<UmbDataSourceResponse<ProcessImagesResponse>>{
         return await tryExecuteAndNotify(this.#host, processImages(requestData));

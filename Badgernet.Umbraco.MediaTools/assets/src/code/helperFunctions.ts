@@ -51,4 +51,9 @@ export function verboseBool(value: boolean | undefined, trueVal: string, falseVa
     return value ? trueVal : falseVal;
 }
 
+export function clamp(num: number, min: number, max: number): number{
+    return Math.min(Math.max(num, min), max);
+  
+}
+
     

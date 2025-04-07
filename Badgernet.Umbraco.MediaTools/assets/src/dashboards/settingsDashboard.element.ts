@@ -298,7 +298,8 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                 </toggle-box>
                 
                 <div style="display: block; margin-top: 0.5rem; padding: 0.2rem;">
-                    <uui-button color="positive" look="primary" 
+                    <uui-button label="Folder settings"
+                                look="primary" 
                                 .disabled="${!this.resizerEnabled}" 
                                 @click="${this.#showResizerFoldersDialog}">
                         
@@ -367,7 +368,8 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                 <p>EXIF Tag-groups to remove:</p>
                 <uui-button-group id="tagGroupsButtons" style="margin-bottom: 1rem;">
 
-                    <uui-button look="${this.removeDateTime ? "primary" : "secondary"}" color="default"
+                    <uui-button label="Date time tags"
+                                look="${this.removeDateTime ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleDateTime}">
                         
@@ -375,21 +377,24 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                         Dates & Timestamps
                     </uui-button>
 
-                    <uui-button look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
+                    <uui-button label="Gps info tags"
+                                look="${this.removeGpsInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleGpsInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeGpsInfo ? "check" : "remove"}"></uui-icon>
                         GPS Tags
                     </uui-button>
                     
-                    <uui-button look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
+                    <uui-button label="Camera info tags" 
+                                look="${this.removeCameraInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleCameraInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeCameraInfo ? "check" : "remove"}"></uui-icon>
                         Camera & Lens Tags
                     </uui-button>
 
-                    <uui-button look="${this.removeShootingSituationInfo ? "primary" : "secondary"}" color="default"
+                    <uui-button label="Shooting situation tags "
+                                look="${this.removeShootingSituationInfo ? "primary" : "secondary"}" color="default"
                                 .disabled="${!this.metaRemoverEnabled}"
                                 @click="${this.#toggleShootingSituationInfo}">
                         <uui-icon style="margin-bottom: 2px" name="${this.removeShootingSituationInfo ? "check" : "remove"}"></uui-icon>
@@ -434,6 +439,7 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
 
                 <toggle-box 
                     class="boxElement"
+                    label="Keep original images"
                     name="Keep original images" 
                     description="If turned on, original images do not get deleted"
                     controlIdentifier="keepOriginals"

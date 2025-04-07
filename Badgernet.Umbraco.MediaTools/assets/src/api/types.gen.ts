@@ -134,12 +134,6 @@ export type DownloadMediaData = {
 
 export type DownloadMediaResponse = (Blob | File);
 
-export type FilterGalleryData = {
-    requestBody?: FilterImagesDto;
-};
-
-export type FilterGalleryResponse = Array<(ImageMediaDto)>;
-
 export type GetGalleryInfoResponse = GalleryInfoDto;
 
 export type GetMetadataData = {
@@ -179,6 +173,12 @@ export type ReplaceImageData = {
 
 export type ReplaceImageResponse = OperationResponse;
 
+export type SearchMediaData = {
+    requestBody?: FilterImagesDto;
+};
+
+export type SearchMediaResponse = Array<(ImageMediaDto)>;
+
 export type RecycleMediaData = {
     requestBody?: Array<(number)>;
 };
@@ -207,17 +207,6 @@ export type $OpenApiTs = {
                  * OK
                  */
                 200: (Blob | File);
-            };
-        };
-    };
-    '/gallery/filter': {
-        post: {
-            req: FilterGalleryData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: Array<(ImageMediaDto)>;
             };
         };
     };
@@ -309,6 +298,17 @@ export type $OpenApiTs = {
                  * Bad Request
                  */
                 400: OperationResponse;
+            };
+        };
+    };
+    '/gallery/search': {
+        post: {
+            req: SearchMediaData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: Array<(ImageMediaDto)>;
             };
         };
     };

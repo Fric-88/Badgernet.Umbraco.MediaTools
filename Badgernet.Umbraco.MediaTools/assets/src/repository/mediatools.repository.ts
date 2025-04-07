@@ -5,7 +5,7 @@ import {
     ProcessImagesData,
     RecycleMediaData,
     DownloadMediaData,
-    FilterGalleryData,
+    SearchMediaData,
     GetSettingsData,
     SetSettingsData,
     RenameMediaData,
@@ -31,8 +31,8 @@ export class MediaToolsRepository extends UmbControllerBase {
     async listFolders(){
         return this.#datasource.listFolders();
     }
-    async filterGallery(requestData: FilterGalleryData){
-        return this.#datasource.filterGallery(requestData);
+    async searchMedia(requestData: SearchMediaData){
+        return this.#datasource.searchMedia(requestData);
     }
     async processImage(requestData: ProcessImagesData){
         return this.#datasource.processImage(requestData);

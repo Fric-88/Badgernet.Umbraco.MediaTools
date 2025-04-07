@@ -18,6 +18,7 @@ import MediatoolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../context/mediatool
 import LoadingPopup from "./imageEditor/loadingPopup.ts";
 import "./imageEditor/loadingPopup.ts";
 import {MediaFolderDto, ResizerFolderOverride} from "../api";
+import {clamp} from "../code/helperFunctions.ts";
 
 //This Type is only for displaying settings in a list
 export type FolderSetting = { 
@@ -31,7 +32,12 @@ export type FolderSetting = {
 
 @customElement('resizer-folders-dialog')
 export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
-
+    
+    #MAX_WIDTH = 10000;
+    #MIN_WIDTH = 1;
+    #MAX_HEIGHT = 1000;
+    #MIN_HEIGHT = 1;
+    
     #context?: MediatoolsContext;
     @state() dialogTemplate!: TemplateResult;
     
@@ -136,7 +142,7 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     #widthChange(e: Event){
         const input = e.target as UUIInputElement;
         const folderKey = input.dataset.folderKey;
-        const newValue = Number(input.value);
+        const newValue = clamp(Number(input.value), this.#MIN_WIDTH, this.#MAX_WIDTH);
         
         if(folderKey){
             let item = this.unsavedFolderOverrides.find(i => i.key === folderKey);
@@ -157,7 +163,7 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     #heightChange(e: Event){
         const input = e.target as UUIInputElement;
         const folderKey = input.dataset.folderKey;
-        const newValue = Number(input.value);
+        const newValue = clamp(Number(input.value), this.#MIN_HEIGHT, this.#MAX_HEIGHT);
 
         if(folderKey){
             let item = this.unsavedFolderOverrides.find(i => i.key === folderKey);
@@ -229,7 +235,8 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     
                                     <uui-table-cell>
                                             <small>Width</small>
-                                            <uui-input type="number"
+                                            <uui-input label="Width"
+                                                       type="number"
                                                        min="1"
                                                        max="10000"
                                                        value="${setting.width}"
@@ -241,7 +248,8 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     
                                     <uui-table-cell>
                                         <small>Height</small>
-                                        <uui-input type="number"
+                                        <uui-input label="Height"
+                                                   type="number"
                                                    min="1"
                                                    max="10000"
                                                    value="${setting.height}"
@@ -254,7 +262,8 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     
                                     <uui-table-cell>
                                         <small>Resize</small>
-                                        <uui-toggle .checked = "${setting.resizeEnabled}"
+                                        <uui-toggle label=""
+                                                    .checked = "${setting.resizeEnabled}"
                                                     data-folder-key="${setting.key}"
                                                     @change="${this.#resizerToggleChange}"></uui-toggle>
                                     </uui-table-cell>
@@ -266,7 +275,7 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
                     </div>
                     
                     <div class="buttonsBar">
-                        <uui-button slot="actions" label="Metadata"
+                        <uui-button slot="actions" label="Save and  close"
                                     look="primary" color="default"
                                     @click="${this.#saveAndCloseDialog}">Save & Close
                         </uui-button>

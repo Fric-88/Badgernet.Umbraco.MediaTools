@@ -1,7 +1,7 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, state, property} from "@umbraco-cms/backoffice/external/lit";
 import { UUIButtonState, UUIInputElement, UUISelectElement, UUISliderElement } from "@umbraco-cms/backoffice/external/uui";
-import { FilterGalleryData, SizeFilter } from "../api";
+import { SearchMediaData, SizeFilter } from "../api";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 
 
@@ -98,7 +98,7 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
 
     private findButtonClick(){
 
-        let filterRequest: FilterGalleryData = {
+        let filterRequest: SearchMediaData = {
             requestBody: {
                 folderName: this.selectedFolder,
                 width: this.width,

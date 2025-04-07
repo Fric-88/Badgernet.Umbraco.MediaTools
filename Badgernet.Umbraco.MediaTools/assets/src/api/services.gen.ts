@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, FilterGalleryResponse, GetGalleryInfoResponse, GetMetadataData, GetMetadataResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
+import type { DownloadMediaData, DownloadMediaResponse, GetGalleryInfoResponse, GetMetadataData, GetMetadataResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, SearchMediaData, SearchMediaResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
 
 /**
  * @param data The data for the request.
@@ -14,19 +14,6 @@ import type { DownloadMediaData, DownloadMediaResponse, FilterGalleryData, Filte
 export const downloadMedia = (data: DownloadMediaData = {}): CancelablePromise<DownloadMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
     url: '/gallery/download',
-    body: data.requestBody,
-    mediaType: 'application/json'
-}); };
-
-/**
- * @param data The data for the request.
- * @param data.requestBody
- * @returns unknown OK
- * @throws ApiError
- */
-export const filterGallery = (data: FilterGalleryData = {}): CancelablePromise<FilterGalleryResponse> => { return __request(OpenAPI, {
-    method: 'POST',
-    url: '/gallery/filter',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -135,6 +122,19 @@ export const replaceImage = (data: ReplaceImageData = {}): CancelablePromise<Rep
     errors: {
         400: 'Bad Request'
     }
+}); };
+
+/**
+ * @param data The data for the request.
+ * @param data.requestBody
+ * @returns unknown OK
+ * @throws ApiError
+ */
+export const searchMedia = (data: SearchMediaData = {}): CancelablePromise<SearchMediaResponse> => { return __request(OpenAPI, {
+    method: 'POST',
+    url: '/gallery/search',
+    body: data.requestBody,
+    mediaType: 'application/json'
 }); };
 
 /**

@@ -7,7 +7,7 @@ import {
     UmbNumberState, UmbObjectState, UmbStringState
 } from "@umbraco-cms/backoffice/observable-api";
 import {
-    ConvertMode, DownloadMediaData, FilterGalleryData,
+    ConvertMode, DownloadMediaData, SearchMediaData,
     GetSettingsData, ProcessImagesData, SetSettingsData,
     UserSettingsDto, RecycleMediaData, RenameMediaData,
     ReplaceImageData, GetMediaInfoData, GetMetadataData, MediaFolderDto, ResizerFolderOverride
@@ -290,8 +290,8 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async filterGallery(requestData: FilterGalleryData){
-        const responseData = (await this.#repository.filterGallery(requestData));
+    async searchMedia(requestData: SearchMediaData){
+        const responseData = (await this.#repository.searchMedia(requestData));
 
         if(responseData){
             return responseData;

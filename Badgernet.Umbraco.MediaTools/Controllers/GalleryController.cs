@@ -22,6 +22,10 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [Route("gallery")]
 public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor) : ControllerBase
 {
+    private const int MAX_WIDTH = 10000;
+    private const int MIN_WIDTH = 1;
+    private const int MAX_HEIGHT = 10000;
+    private const int MIN_HEIGHT = 1;
 
     [HttpGet("get-info")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GalleryInfoDto))]
@@ -80,9 +84,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
     }
     
-    [HttpPost("filter")]
+    [HttpPost("search")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
-    public IActionResult FilterGallery(FilterImagesDto requestData)
+    public IActionResult SearchMedia(FilterImagesDto requestData)
     {
         IEnumerable<ImageMediaDto> images;
 
@@ -170,6 +174,10 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         //Validate request
         var ids = requestData.Ids;
+        requestData.ConvertQuality = Math.Clamp(requestData.ConvertQuality, 1, 100);
+        requestData.Width = Math.Clamp(requestData.Width, MIN_WIDTH, MAX_WIDTH);
+        requestData.Height = Math.Clamp(requestData.Height, MIN_HEIGHT, MAX_HEIGHT);
+        
         
         if(ids.Length == 0)
         {
@@ -189,7 +197,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         }
 
         //Clamp convertQuality to 1 -> 100
-        Math.Clamp(requestData.ConvertQuality, 1, 100);
+        requestData.ConvertQuality = requestData.ConvertQuality;
 
 
         var converterCounter = 0;

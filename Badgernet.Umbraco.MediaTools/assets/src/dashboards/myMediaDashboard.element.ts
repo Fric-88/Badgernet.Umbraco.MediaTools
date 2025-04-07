@@ -9,7 +9,7 @@ import {
     UUIToastNotificationContainerElement,
     UUIToastNotificationElement
 } from "@umbraco-cms/backoffice/external/uui";
-import {FilterGalleryData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
+import {SearchMediaData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
 import "../elements/myMediaToolsPanel.element.ts";
 import ProcessImagePanel, { ProcessingSettings } from "../elements/myMediaToolsPanel.element.ts";
@@ -160,8 +160,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
             try{
 
-                const requestData = e.detail as FilterGalleryData;
-                const response = await this.#mediaToolsContext?.filterGallery(requestData);
+                const requestData = e.detail as SearchMediaData;
+                const response = await this.#mediaToolsContext?.searchMedia(requestData);
 
                 if(response?.data){
                     this.itemsList.fromArray(response.data);
@@ -688,6 +688,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 </uui-pagination>
                 
                 <uui-select style="margin-top: 0.5rem;"
+                            label="Items per page"
                             .options="${this.#itemsPerPageOptions}" 
                             @change="${this.#handleItemsPerPageChanged}">
                 </uui-select>
