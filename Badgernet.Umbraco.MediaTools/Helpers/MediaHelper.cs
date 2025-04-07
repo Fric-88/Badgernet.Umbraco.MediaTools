@@ -19,23 +19,33 @@ public class MediaHelper(
 {
     public IEnumerable<MediaFolderDto> GetFolders()
     {
-        var allMedia = GetAllMedia();
-        return allMedia.OfTypes("Folder")
-            .SelectMany(folder => GetChildrenFolders(folder, ""));
-    }
+        var result = new List<MediaFolderDto>();
+        var stack = new Stack<(IPublishedContent folder, string path)>();
 
-    private IEnumerable<MediaFolderDto> GetChildrenFolders(IPublishedContent media, string parentPath)
-    {
-        var currentPath = string.IsNullOrEmpty(parentPath) ? media.Name : $"{parentPath}/{media.Name}";
-        yield return new MediaFolderDto(media.Name, currentPath); // Return current folder
-
-        foreach (var childFolder in media.Children().OfTypes("Folder"))
+        foreach (var root in GetAllMedia())
         {
-            foreach (var subFolder in GetChildrenFolders(childFolder, currentPath))
+            if (root.ContentType.Alias == "Folder" && root.Level == 1)
             {
-                yield return subFolder; // Recursively yield subfolders
+                stack.Push((root, ""));
             }
         }
+
+        while (stack.Count > 0)
+        {
+            var (folder, parentPath) = stack.Pop();
+            var currentPath = string.IsNullOrEmpty(parentPath) ? folder.Name : $"{parentPath}/{folder.Name}";
+
+            result.Add(new MediaFolderDto(folder.Key, folder.Name, currentPath));
+
+            foreach (var child in folder.Children())
+            {
+                if (child.ContentType.Alias == "Folder")
+                {
+                    stack.Push((child, currentPath));
+                }
+            }
+        }
+        return result;
     }
 
     public IEnumerable<IPublishedContent> GetAllMedia()

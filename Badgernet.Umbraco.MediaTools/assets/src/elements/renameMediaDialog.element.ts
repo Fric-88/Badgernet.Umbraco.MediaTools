@@ -70,11 +70,11 @@ export class RenameMediaDialog extends UmbElementMixin(LitElement) {
                
                 <uui-button slot="actions" label="Cancel"
                             look="primary" color="default" 
-                            @click="${this.#cancelAction}">Cancel
+                            @input="${this.#cancelAction}">Cancel
                 </uui-button>
                 <uui-button slot="actions" label="Rename"
                             look="primary" color="positive" 
-                            @click="${this.#okAction}">Rename
+                            @input="${this.#okAction}">Rename
                 </uui-button>
 
             </uui-dialog-layout>

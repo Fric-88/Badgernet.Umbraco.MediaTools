@@ -56,6 +56,7 @@ export type KeyValuePair_2 = {
 };
 
 export type MediaFolderDto = {
+    key: string;
     name: string;
     path: string;
 };
@@ -101,11 +102,19 @@ export type ProcessImagesDto = {
 
 export type ResizeMode = 'FitInside' | 'ExactSize';
 
+export type ResizerFolderOverride = {
+    key: string;
+    targetWidth: number;
+    targetHeight: number;
+    resizerEnabled: boolean;
+};
+
 export type ResizerSettings = {
     enabled: boolean;
     ignoreAspectRatio: boolean;
     targetWidth: number;
     targetHeight: number;
+    folderOverrides: Array<(ResizerFolderOverride)>;
 };
 
 export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';

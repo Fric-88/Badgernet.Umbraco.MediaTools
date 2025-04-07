@@ -144,7 +144,7 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
                     </uui-select>
                 </div>
 
-                <div class="settingItem" style="flex: 1 1 80px;">
+                <div class="settingItem" style="flex: 1 1 100px;">
                     <uui-label class="inputLabel" for="Width">Width</uui-label>
                     <uui-input 
                         label="Width"
@@ -154,10 +154,11 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
                         value="${this.width}"
                         .disabled="${this.resolutionFilter === "AllSizes"}"
                         @change="${this.widthChanged}">
+                        <div class="extra" slot="append">px</div>
                     </uui-input>
                 </div>
 
-                <div class="settingItem" style="flex: 1 1 80px;">
+                <div class="settingItem" style="flex: 1 1 100px;">
                     <uui-label class="inputLabel" for="Height">Height</uui-label>
                     <uui-input 
                         label="Height"
@@ -167,6 +168,7 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
                         value="${this.height}"
                         .disabled="${this.resolutionFilter === "AllSizes"}"
                         @change="${this.heightChanged}">
+                        <div class="extra" slot="append">px</div>
                     </uui-input>
                 </div>
 
@@ -223,6 +225,23 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
             font-size: 0.8rem;
             font-style: italic;
             font-weight: lighter;
+        }
+        .extra {
+            user-select: none;
+            height: 100%;
+            padding: 0 var(--uui-size-3);
+            background: #f3f3f3;
+            color: grey;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .extra:first-child {
+        var(--uui-input-border-color, var(--uui-color-border));
+        }
+        * + .extra {
+            border-left: 1px solid
+            var(--uui-input-border-color, var(--uui-color-border));
         }
     `
 }

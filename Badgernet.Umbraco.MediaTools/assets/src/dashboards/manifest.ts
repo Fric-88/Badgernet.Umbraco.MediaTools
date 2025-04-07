@@ -36,24 +36,6 @@ const dashboards: Array<ManifestDashboard> = [
                 match: 'Umb.Section.Media'
             }
         ]
-    },
-    {
-        type: 'dashboard',
-        name: 'Badgernet.Umbraco.MediaTools',
-        alias: 'Badgernet.Umbraco.MediaTools.FoldersDashboard',
-        elementName: 'UploadWorkerDashboard',
-        js: ()=> import('./foldersDashboard.element.ts'),
-        weight: -10,
-        meta: {
-            label: '📁 Folder Rules',
-            pathname: 'mediatools-folders'
-        },
-        conditions: [
-            {
-                alias: 'Umb.Condition.SectionAlias',
-                match: 'Umb.Section.Media'
-            }
-        ]
     }
 ]
 

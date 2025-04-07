@@ -13,7 +13,7 @@ import {
     UUIToastNotificationContainerElement,
     UUIToastNotificationElement
 } from "@umbraco-cms/backoffice/external/uui";
-import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
+
 import {BoxControl} from "../elements/inputElements/BoxControl.ts";
 import {verboseBool} from "../code/helperFunctions.ts";
 import {exifTagOptions} from "../code/metadataTags.ts";
@@ -38,7 +38,6 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
     @state() targetHeight?: number;
     @state() keepOriginals?: boolean;
     @state() ignoreKeyword?: string;
-    @state() currentUser?: UmbCurrentUserModel;
     @state() metaRemoverEnabled?: boolean;
     @state() removeDateTime?: boolean;
     @state() removeCameraInfo?: boolean;
@@ -79,19 +78,9 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
             this.observe(_context.removeXmpProfile, (_value) => { this.removeXmpProfile = _value; } );
             this.observe(_context.removeIptcProfile, (_value) => { this.removeIptcProfile = _value; } );
         });
-
-        
-        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (instance) => {
-            this._observeCurrentUser(instance);
-        });
-        
+      
     }
 
-    private async _observeCurrentUser(instance: typeof UMB_CURRENT_USER_CONTEXT.TYPE) {
-        this.observe(instance.currentUser, (currentUser) => {
-            this.currentUser = currentUser;
-        });
-    }
 
     connectedCallback(): void {
 
@@ -105,28 +94,22 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
     //Read setting from a file on the server
     private async loadSettings(){
 
-        if(this.currentUser)
-        {
-            await this.#mediaToolsContext?.fetchUserSettings(this.currentUser.unique).catch(()=>{ 
-                this.#showToastNotification("Oops", "Something went wrong","danger");
-            });
-        }
+        await this.#mediaToolsContext?.fetchUserSettings().catch(()=>{ 
+            this.#showToastNotification("Oops", "Something went wrong","danger");
+        });
+      
     }
 
     //Save settings to a file on a server
     private async saveSettings(){
 
-        if(this.currentUser)
-        {
-            await this.#mediaToolsContext?.saveSettings(this.currentUser?.unique)
-                .then(()=>{
-                    this.#showToastNotification("Success","Settings saved","positive");
-                })
-                .catch(()=>{ 
-                    this.#showToastNotification("Oops", "Something went wrong","danger");
-                });
-        }
-
+        await this.#mediaToolsContext?.saveSettings()
+            .then(()=>{
+                this.#showToastNotification("Success","Settings saved","positive");
+            })
+            .catch(()=>{ 
+                this.#showToastNotification("Oops", "Something went wrong","danger");
+            });
     }
 
     //Handles events dispatched within box controls
@@ -268,8 +251,9 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
         <div class="dashboard">
             <uui-box>
                 <div slot="headline">
-                    <uui-label >📏 Resolution limiter <light>(${verboseBool(this.resizerEnabled, "Enabled", "Disabled")})</light></uui-label>
-                    <uui-label class="muted" >Any images being uploaded that exceed the specified resolution will be sized-down to the desired resolution.</uui-label>
+                    <uui-label >📏 Resolution limiter <light>(${verboseBool(this.resizerEnabled, "Enabled", "Dis" +
+                            "abled")})</light></uui-label>
+                    <uui-label class="muted" >Any images that exceed the specified resolution will be sized-down during upload.</uui-label>
                 </div>
 
                 <uui-toggle slot="header-actions" label="" ?checked=${this.resizerEnabled} @change="${this.#toggleResizer}"></uui-toggle>
@@ -278,12 +262,13 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                 <input-box
                     class="boxElement"
                     name="Max Width"
-                    description="Image width in px"
+                    description="Image width limit"
                     controlIdentifier="targetWidth"
                     type="number"
                     min="1"
                     step="1"
                     value="${ifDefined(this.targetWidth)}"
+                    appendText="px"
                     .disabled="${!this.resizerEnabled}"  
                     @change="${this.handleBoxEvent}">
                 </input-box>
@@ -291,12 +276,13 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                 <input-box
                     class="boxElement"
                     name="Max Height"
-                    description="Image height in px"
+                    description="Image height limit"
                     controlIdentifier="targetHeight"
                     type="number"
                     min="1"
                     step="1"
                     value="${ifDefined(this.targetHeight)}"
+                    appendText="px"
                     .disabled="${!this.resizerEnabled}"  
                     @change="${this.handleBoxEvent}">
                 </input-box>
@@ -317,7 +303,7 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
                                 @click="${this.#showResizerFoldersDialog}">
                         
                         <uui-icon name="folder" style="margin-bottom: 2px"></uui-icon>
-                        Folder rules
+                        Folder settings
                     </uui-button>
                 </div>
             </uui-box> 
@@ -546,7 +532,6 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
             margin: 1rem;
             
         }
-
         .metaTag {
             display: flex;
             flex-direction: row;
@@ -555,6 +540,8 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
             background-color: #d0d0cb;
             border-radius: 15px;
         }
+
+
     `
 }
 

@@ -1,5 +1,5 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, property } from "@umbraco-cms/backoffice/external/lit";
+import {LitElement, html, css, customElement, property, ifDefined} from "@umbraco-cms/backoffice/external/lit";
 import { UUIInputElement} from "@umbraco-cms/backoffice/external/uui";
 import {InputType } from "@umbraco-cms/backoffice/external/uui";
 import {BoxControl} from "./BoxControl.ts";
@@ -19,6 +19,7 @@ export class InputBox extends BoxControl{
     @property({attribute: true, type: Number}) step: number = 1;
     @property({attribute: true, type: String}) value: string = "";
     @property({attribute: true, type: Boolean}) disabled: boolean = false;
+    @property({attribute: true, type: String}) appendText: string | undefined;
 
     private handleInput(e: Event){
         let target = e.target as UUIInputElement;
@@ -48,6 +49,11 @@ export class InputBox extends BoxControl{
                             value="${this.value}"
                             .disabled="${this.disabled}"
                             @input="${this.handleInput}">
+                        
+                            ${ifDefined(this.appendText) ? 
+                                html`<div class="extra" slot="append">${this.appendText}</div>` :
+                                html``
+                            }
                         </uui-input>
                     </div>
                 </div>
@@ -79,6 +85,24 @@ export class InputBox extends BoxControl{
         .header{
             display: block;
             font-weight: bold;
+        }
+
+        .extra {
+            user-select: none;
+            height: 100%;
+            padding: 0 var(--uui-size-3);
+            background: #f3f3f3;
+            color: grey;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .extra:first-child {
+        var(--uui-input-border-color, var(--uui-color-border));
+        }
+        * + .extra {
+            border-left: 1px solid
+            var(--uui-input-border-color, var(--uui-color-border));
         }
     `
 }

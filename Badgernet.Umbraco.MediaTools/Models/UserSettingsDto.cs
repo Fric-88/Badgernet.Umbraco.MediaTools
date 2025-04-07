@@ -15,6 +15,8 @@ public class ResizerSettings
     public bool IgnoreAspectRatio { get; init; } = false;
     public int TargetWidth { get; init; } = 1920;
     public int TargetHeight { get; init; } = 1080;
+    
+    public List<ResizerFolderOverride> FolderOverrides { get; init; } = [];
 }
 
 public class ConverterSettings
@@ -30,7 +32,7 @@ public class GeneralSettings
     public string IgnoreKeyword {get; init;} = "ignoreme";
 }
 
-public class MetadataRemoverSettings
+public record class MetadataRemoverSettings
 {
     public bool Enabled { get; init; } = false;
     public bool RemoveDateTime { get; init; } = true;
@@ -41,7 +43,15 @@ public class MetadataRemoverSettings
     public bool RemoveIptcProfile { get; init; } = false;
     public HashSet<string> MetadataTagsToRemove { get; init; } = [];
 
-} 
+}
+
+public record class ResizerFolderOverride
+{
+    public Guid Key { get; init; } = Guid.Empty;
+    public int TargetWidth { get; init; } = 0;
+    public int TargetHeight { get; init; } = 0;
+    public bool ResizerEnabled { get; init; } = false;
+}
 
 public enum ConvertMode
 {

@@ -1,5 +1,5 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import { LitElement, html, css, customElement, property, state } from "@umbraco-cms/backoffice/external/lit";
+import {LitElement, html, css, customElement, property, state, ifDefined} from "@umbraco-cms/backoffice/external/lit";
 import { UUIToggleElement } from "@umbraco-cms/backoffice/external/uui";
 import {BoxControl} from "./BoxControl.ts";
 
@@ -17,7 +17,7 @@ export class ToggleBox extends BoxControl{
     }
 
     @property({attribute: true}) name: string = "Name";
-    @property({attribute: true}) description: string = "Description";    
+    @property({attribute: true}) description?: string;    
     @property({attribute: true, type: Boolean}) checked: boolean = false;
     @property({attribute: true, type: Boolean}) disabled: boolean = false;
     @state() label: string = "default";  
@@ -52,7 +52,10 @@ export class ToggleBox extends BoxControl{
                     </uui-toggle>
                     </div>
                 </div>
-                <uui-label class="muted">${this.description}</uui-label>
+                ${ifDefined(this.description) ? 
+                    html`<uui-label class="muted">${this.description}</uui-label>` 
+                    : ""
+                }
             </uui-box>
         `
     }

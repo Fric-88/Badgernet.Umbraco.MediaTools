@@ -10,14 +10,16 @@ import {
     ConvertMode, DownloadMediaData, FilterGalleryData,
     GetSettingsData, ProcessImagesData, SetSettingsData,
     UserSettingsDto, RecycleMediaData, RenameMediaData,
-    ReplaceImageData, GetMediaInfoData, GetMetadataData, ListFoldersResponse, MediaFolderDto
+    ReplaceImageData, GetMediaInfoData, GetMetadataData, MediaFolderDto, ResizerFolderOverride
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
+import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 
 export class MediaToolsContext extends UmbControllerBase {
 
     #repository: MediaToolsRepository;
+    #currentUser?: UmbCurrentUserModel;
 
     #resizerEnabled = new UmbBooleanState(false);
     #converterEnabled = new UmbBooleanState(true);
@@ -29,8 +31,9 @@ export class MediaToolsContext extends UmbControllerBase {
     #targetHeight = new UmbNumberState(1080);
     #keepOriginals = new UmbBooleanState(false);
     #ignoreKeyword = new UmbStringState("ignoreme");
-    #mediaFolders = new UmbArrayState<MediaFolderDto>([], folder => folder);
-    #mediaFolderOptions = new UmbArrayState<Option>([], option => option);
+    #mediaFolders = new UmbArrayState<MediaFolderDto>([], (x) => x.key);
+    #mediaFolderOptions = new UmbArrayState<Option>([], (x) => x.value);
+    #resizerFolderOverrides = new UmbArrayState<ResizerFolderOverride>([], (x) => x.key);
     #removeDateTime = new UmbBooleanState(true);
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
@@ -38,7 +41,6 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeXmpProfile = new UmbBooleanState(false);
     #removeIptcProfile = new UmbBooleanState(false);
     #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
-
     
     public get resizerEnabled() : Observable<boolean>{
         return this.#resizerEnabled.asObservable();  
@@ -91,6 +93,12 @@ export class MediaToolsContext extends UmbControllerBase {
         value = clampNumber(value, 1, 10000);
         this.#targetHeight.setValue(value);
     }
+    public get resizerFolderOverrides() : Observable<ResizerFolderOverride[]> {
+        return this.#resizerFolderOverrides.asObservable();
+    }
+    public set resizerFolderOverrides(value : ResizerFolderOverride[]) {
+        this.#resizerFolderOverrides.setValue(value);
+    }
     public get keepOriginals() :Observable<boolean> {
         return this.#keepOriginals.asObservable();
     }
@@ -112,7 +120,6 @@ export class MediaToolsContext extends UmbControllerBase {
     public get mediaFoldersOptions() : Observable<Option[]>{
         return this.#mediaFolderOptions.asObservable();
     }
-    
     public get removeDateTime() : Observable<boolean> {
         return this.#removeDateTime.asObservable();  
     } 
@@ -137,32 +144,26 @@ export class MediaToolsContext extends UmbControllerBase {
     public set removeShootingSituationInfo(value: boolean) {
         this.#removeAuthorInfo.setValue(value);
     }
-    
     public get removeXmpProfile(): Observable<boolean> {
         return this.#removeXmpProfile.asObservable();
     }
     public set removeXmpProfile(value: boolean) {
         this.#removeXmpProfile.setValue(value);
     }
-    
     public get removeIptcProfile(): Observable<boolean> {
         return this.#removeIptcProfile.asObservable();
     }
-    
     public set removeIptcProfile(value: boolean) {
         this.#removeIptcProfile.setValue(value);
     }
-    
     public get metaTagsToRemove(): Observable<string[]> {
         return this.#metaTagsToRemove.asObservable();
     }
-    
     public addMetaTagsToRemove(value: string) {
         if(!this.#metaTagsToRemove.getValue().includes(value)) {
             this.#metaTagsToRemove.appendOne(value);
         }
     } 
-    
     public removeMetaTagsToRemove(value: string) {
         if(this.#metaTagsToRemove.getValue().includes(value)) {
            this.#metaTagsToRemove.remove([value]); 
@@ -173,7 +174,18 @@ export class MediaToolsContext extends UmbControllerBase {
         super(host);
         this.provideContext(MEDIA_TOOLS_CONTEXT_TOKEN, this);
         this.#repository = new MediaToolsRepository(this);
+
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (instance) => {
+            this._observeCurrentUser(instance);
+        });
     }
+
+    private async _observeCurrentUser(instance: typeof UMB_CURRENT_USER_CONTEXT.TYPE) {
+        this.observe(instance.currentUser, (currentUser) => {
+            this.#currentUser = currentUser;
+        });
+    }
+
 
     async fetchGalleryInfo() {
         const responseData = await this.#repository.getGalleryInfo();
@@ -181,10 +193,14 @@ export class MediaToolsContext extends UmbControllerBase {
             return responseData.data;
     }
     
-    async fetchUserSettings(userKey: string){
+    
+    
+    async fetchUserSettings(){
+
+        if(!this.#currentUser) return null;
 
         const reqData: GetSettingsData = {
-            userKey: userKey
+            userKey: this.#currentUser.unique
         }
 
         const responseData = (await this.#repository.fetchSettings(reqData)).data as UserSettingsDto;
@@ -197,6 +213,7 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
             this.#targetWidth.setValue(responseData.resizer.targetWidth);
             this.#targetHeight.setValue(responseData.resizer.targetHeight);
+            this.#resizerFolderOverrides.setValue(responseData.resizer.folderOverrides);
             this.#keepOriginals.setValue(responseData.general.keepOriginals);
             this.#ignoreKeyword.setValue(responseData.general.ignoreKeyword);
             this.#metaRemoverEnabled.setValue(responseData.metadataRemover.enabled);
@@ -210,7 +227,9 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async saveSettings(userKey: string){
+    async saveSettings(){
+
+        if(!this.#currentUser) return null;
 
         //Map observables to settings object
         const settings: UserSettingsDto = {
@@ -218,7 +237,8 @@ export class MediaToolsContext extends UmbControllerBase {
                 enabled: this.#resizerEnabled.getValue(),
                 targetWidth: this.#targetWidth.getValue(),
                 targetHeight: this.#targetHeight.getValue(),
-                ignoreAspectRatio: this.#ignoreAspectRatio.getValue()
+                ignoreAspectRatio: this.#ignoreAspectRatio.getValue(),
+                folderOverrides: this.#resizerFolderOverrides.getValue()
             },
             converter: {
                 enabled: this.#converterEnabled.getValue(),
@@ -244,7 +264,7 @@ export class MediaToolsContext extends UmbControllerBase {
 
         //Build request data
         const reqData: SetSettingsData = {
-            userKey: userKey,
+            userKey: this.#currentUser.unique,
             requestBody: settings
         }
 
