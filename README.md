@@ -49,7 +49,6 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 
 #### 1.1.2
 - Resizer settings configurable per folder
-- Converter settings configurable per folder
 - Minor UI improvements
 
 #### 1.1.1

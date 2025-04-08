@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.1.1</Version>
+    <Version>1.1.2</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Metadata viewer improvements.</PackageReleaseNotes> 
+    <PackageReleaseNotes>Folder-by-Folder resizer settings </PackageReleaseNotes> 
 
   </PropertyGroup>
 
