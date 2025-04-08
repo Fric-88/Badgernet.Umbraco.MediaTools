@@ -16,8 +16,12 @@
     ],
     "Screenshots": [
         {
-            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Processing_panel.png",
-            "Caption": "Upload Dashboard"
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Settings_Panel.png",
+            "Caption": "Settings Dashboard"
+        },
+        {
+            "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/Folder_Setting",
+            "Caption": "Folder Settings"
         },
         {
             "ImageUrl": "https://raw.githubusercontent.com/Fric-88/Badgernet.Umbraco.MediaTools/refs/heads/main/Screenshots/MyMedia_Panel.png",
