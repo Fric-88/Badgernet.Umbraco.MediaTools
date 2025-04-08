@@ -11,25 +11,23 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [Route("settings")]
 public class SettingsController(ISettingsService settingsService) : ControllerBase
 {
-    private readonly ISettingsService _settingsService = settingsService;
-    
     private UserSettingsDto? _currentSettings;
 
-    [HttpGet("get")]
+    [HttpGet("get-settings")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(UserSettingsDto))]
     public IActionResult GetSettings(string userKey)
     {
-        _currentSettings ??= _settingsService.GetUserSettings(userKey);
+        _currentSettings ??= settingsService.GetUserSettings(userKey);
         _currentSettings ??= new UserSettingsDto();//Create default settings
 
         return Ok(_currentSettings);
     }
 
-    [HttpPost("set")]
+    [HttpPost("set-settings")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult SetSettings(string userKey, UserSettingsDto settings)
     {
-        _settingsService.SaveUserSettings(userKey, settings);
+        settingsService.SaveUserSettings(userKey, settings);
         _currentSettings = settings;
         return Ok();
 

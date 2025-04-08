@@ -27,36 +27,15 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     private const int MAX_HEIGHT = 10000;
     private const int MIN_HEIGHT = 1;
 
-    [HttpGet("get-info")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GalleryInfoDto))]
-    public GalleryInfoDto GetGalleryInfo()
-    {
-        var response = new GalleryInfoDto();
-        var allMedia = mediaHelper.GetAllMedia();
-
-        response.FolderCount = allMedia.OfTypes("Folder").Count(); //Count Folders 
-        response.MediaCount = allMedia.Count() - response.FolderCount; //The rest should be media files
-
-        var extensionCounts = allMedia
-            .Where(media => media.HasValue("UmbracoExtension"))
-            .GroupBy(media => media.Value("UmbracoExtension")?.ToString() ?? string.Empty)
-            .Select(group => new KeyValuePair<string, int>(group.Key, group.Count()))
-            .ToList();
-
-        response.CountByExtension = extensionCounts;
-
-        return response;
-    }
-
-    [HttpGet("list-folders")]
+    [HttpGet("get-media-folders")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MediaFolderDto[]))]
-    public MediaFolderDto[] ListFolders()
+    public MediaFolderDto[] GetMediaFolders()
     {
         var response = mediaHelper.GetFolders();
         return response.ToArray();
     }
 
-    [HttpGet("mediaInfo")]
+    [HttpGet("get-media-info")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageMediaDto))]
     public IActionResult GetMediaInfo(int mediaId)
@@ -84,7 +63,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
     }
     
-    [HttpPost("search")]
+    [HttpPost("search-media")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
     public IActionResult SearchMedia(FilterImagesDto requestData)
     {
@@ -136,7 +115,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(images.ToArray());
     }
 
-    [HttpPost("rename")]
+    [HttpPost("rename-media")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult RenameMedia(int mediaId, string newName)
@@ -165,7 +144,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     }
 
-    [HttpPost("process")]
+    [HttpPost("process-images")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult ProcessImages(ProcessImagesDto requestData)
@@ -388,9 +367,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
     }
 
-    [HttpPost("trash")]
+    [HttpPost("trash-media")]
     [ProducesResponseType(typeof(OperationResponse),200)]
-    public OperationResponse RecycleMedia(int[] ids)
+    public OperationResponse TrashMedia(int[] ids)
     {
         var trashedCount = 0;
         var errorCount = 0;
@@ -441,7 +420,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
     }
 
-    [HttpPost("download")]
+    [HttpPost("download-media")]
     [ProducesResponseType(typeof(Stream), 200, "application/zip")]
     [Produces("application/zip")]
     public IActionResult DownloadMedia(int[] ids)
@@ -480,7 +459,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return File(zipStream, "application/zip", "download.zip");
     }
 
-    [HttpPost("replace")]
+    [HttpPost("replace-image")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     [Consumes("multipart/form-data")]
@@ -556,7 +535,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     }
 
-    [HttpGet("getMetadata")]
+    [HttpGet("get-metadata")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public IActionResult GetMetadata(int id)

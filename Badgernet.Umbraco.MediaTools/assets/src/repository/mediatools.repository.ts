@@ -3,7 +3,7 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsManagementDataSource } from "./mediatools.datasource";
 import {
     ProcessImagesData,
-    RecycleMediaData,
+    TrashMediaData,
     DownloadMediaData,
     SearchMediaData,
     GetSettingsData,
@@ -18,9 +18,6 @@ export class MediaToolsRepository extends UmbControllerBase {
     constructor(host: UmbControllerHost) {
         super(host);
         this.#datasource  = new MediaToolsManagementDataSource(this);
-    }
-    async getGalleryInfo(){
-        return this.#datasource.getGalleryInfo(); 
     }
     async fetchSettings(requestData: GetSettingsData) {
         return this.#datasource.fetchSettings(requestData);
@@ -37,8 +34,8 @@ export class MediaToolsRepository extends UmbControllerBase {
     async processImage(requestData: ProcessImagesData){
         return this.#datasource.processImage(requestData);
     }
-    async recycleMedia(requestData: RecycleMediaData){
-        return this.#datasource.recycleMedia(requestData);
+    async trashMedia(requestData: TrashMediaData){
+        return this.#datasource.trashMedia(requestData);
     }
     async downloadMedia(requestData: DownloadMediaData){
         return this.#datasource.downloadMedia(requestData);

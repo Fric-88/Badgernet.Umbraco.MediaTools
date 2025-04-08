@@ -9,7 +9,7 @@ import {
 import {
     ConvertMode, DownloadMediaData, SearchMediaData,
     GetSettingsData, ProcessImagesData, SetSettingsData,
-    UserSettingsDto, RecycleMediaData, RenameMediaData,
+    UserSettingsDto, TrashMediaData, RenameMediaData,
     ReplaceImageData, GetMediaInfoData, GetMetadataData, MediaFolderDto, ResizerFolderOverride
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
@@ -186,15 +186,6 @@ export class MediaToolsContext extends UmbControllerBase {
         });
     }
 
-
-    async fetchGalleryInfo() {
-        const responseData = await this.#repository.getGalleryInfo();
-        if(responseData)
-            return responseData.data;
-    }
-    
-    
-    
     async fetchUserSettings(){
 
         if(!this.#currentUser) return null;
@@ -306,8 +297,8 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async trashMedia(requestData: RecycleMediaData ){
-        const responseData = await this.#repository.recycleMedia(requestData);
+    async trashMedia(requestData: TrashMediaData ){
+        const responseData = await this.#repository.trashMedia(requestData);
 
         if(responseData){
             return responseData;

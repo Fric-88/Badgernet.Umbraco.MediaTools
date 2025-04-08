@@ -57,7 +57,7 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 
 #### 1.1.0
 - Metadata remover (upon uploading)
-- Metadata Viewer
+- Metadata Viewer 
 - Performance & Memory usage improvements 
 - UI improvements
 

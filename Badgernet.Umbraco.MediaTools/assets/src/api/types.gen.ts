@@ -19,12 +19,6 @@ export type FilterImagesDto = {
     sizeFilter: SizeFilter;
 };
 
-export type GalleryInfoDto = {
-    mediaCount: number;
-    folderCount: number;
-    countByExtension: Array<(KeyValuePair_2)>;
-};
-
 export type GeneralSettings = {
     keepOriginals: boolean;
     ignoreKeyword: string;
@@ -48,11 +42,6 @@ export type ImageMetadataDto = {
     exifTags: Array<(ParsedTag)>;
     iptcTags: Array<(ParsedTag)>;
     xmpProfile: string;
-};
-
-export type KeyValuePair_2 = {
-    key?: string | null;
-    value: number;
 };
 
 export type MediaFolderDto = {
@@ -134,21 +123,19 @@ export type DownloadMediaData = {
 
 export type DownloadMediaResponse = (Blob | File);
 
-export type GetGalleryInfoResponse = GalleryInfoDto;
-
-export type GetMetadataData = {
-    id?: number;
-};
-
-export type GetMetadataResponse = ImageMetadataDto;
-
-export type ListFoldersResponse = Array<(MediaFolderDto)>;
+export type GetMediaFoldersResponse = Array<(MediaFolderDto)>;
 
 export type GetMediaInfoData = {
     mediaId?: number;
 };
 
 export type GetMediaInfoResponse = ImageMediaDto;
+
+export type GetMetadataData = {
+    id?: number;
+};
+
+export type GetMetadataResponse = ImageMetadataDto;
 
 export type ProcessImagesData = {
     requestBody?: ProcessImagesDto;
@@ -179,11 +166,11 @@ export type SearchMediaData = {
 
 export type SearchMediaResponse = Array<(ImageMediaDto)>;
 
-export type RecycleMediaData = {
+export type TrashMediaData = {
     requestBody?: Array<(number)>;
 };
 
-export type RecycleMediaResponse = OperationResponse;
+export type TrashMediaResponse = OperationResponse;
 
 export type GetSettingsData = {
     userKey?: string;
@@ -199,7 +186,7 @@ export type SetSettingsData = {
 export type SetSettingsResponse = string;
 
 export type $OpenApiTs = {
-    '/gallery/download': {
+    '/gallery/download-media': {
         post: {
             req: DownloadMediaData;
             res: {
@@ -210,28 +197,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/get-info': {
-        get: {
-            res: {
-                /**
-                 * OK
-                 */
-                200: GalleryInfoDto;
-            };
-        };
-    };
-    '/gallery/getMetadata': {
-        get: {
-            req: GetMetadataData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: ImageMetadataDto;
-            };
-        };
-    };
-    '/gallery/list-folders': {
+    '/gallery/get-media-folders': {
         get: {
             res: {
                 /**
@@ -241,7 +207,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/mediaInfo': {
+    '/gallery/get-media-info': {
         get: {
             req: GetMediaInfoData;
             res: {
@@ -256,7 +222,18 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/process': {
+    '/gallery/get-metadata': {
+        get: {
+            req: GetMetadataData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: ImageMetadataDto;
+            };
+        };
+    };
+    '/gallery/process-images': {
         post: {
             req: ProcessImagesData;
             res: {
@@ -271,7 +248,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/rename': {
+    '/gallery/rename-media': {
         post: {
             req: RenameMediaData;
             res: {
@@ -286,7 +263,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/replace': {
+    '/gallery/replace-image': {
         post: {
             req: ReplaceImageData;
             res: {
@@ -301,7 +278,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/search': {
+    '/gallery/search-media': {
         post: {
             req: SearchMediaData;
             res: {
@@ -312,9 +289,9 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/trash': {
+    '/gallery/trash-media': {
         post: {
-            req: RecycleMediaData;
+            req: TrashMediaData;
             res: {
                 /**
                  * OK
@@ -323,7 +300,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/settings/get': {
+    '/settings/get-settings': {
         get: {
             req: GetSettingsData;
             res: {
@@ -334,7 +311,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/settings/set': {
+    '/settings/set-settings': {
         post: {
             req: SetSettingsData;
             res: {

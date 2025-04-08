@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DownloadMediaData, DownloadMediaResponse, GetGalleryInfoResponse, GetMetadataData, GetMetadataResponse, ListFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, SearchMediaData, SearchMediaResponse, RecycleMediaData, RecycleMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
+import type { DownloadMediaData, DownloadMediaResponse, GetMediaFoldersResponse, GetMediaInfoData, GetMediaInfoResponse, GetMetadataData, GetMetadataResponse, ProcessImagesData, ProcessImagesResponse, RenameMediaData, RenameMediaResponse, ReplaceImageData, ReplaceImageResponse, SearchMediaData, SearchMediaResponse, TrashMediaData, TrashMediaResponse, GetSettingsData, GetSettingsResponse, SetSettingsData, SetSettingsResponse } from './types.gen';
 
 /**
  * @param data The data for the request.
@@ -13,7 +13,7 @@ import type { DownloadMediaData, DownloadMediaResponse, GetGalleryInfoResponse, 
  */
 export const downloadMedia = (data: DownloadMediaData = {}): CancelablePromise<DownloadMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/download',
+    url: '/gallery/download-media',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -22,32 +22,9 @@ export const downloadMedia = (data: DownloadMediaData = {}): CancelablePromise<D
  * @returns unknown OK
  * @throws ApiError
  */
-export const getGalleryInfo = (): CancelablePromise<GetGalleryInfoResponse> => { return __request(OpenAPI, {
+export const getMediaFolders = (): CancelablePromise<GetMediaFoldersResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/gallery/get-info'
-}); };
-
-/**
- * @param data The data for the request.
- * @param data.id
- * @returns unknown OK
- * @throws ApiError
- */
-export const getMetadata = (data: GetMetadataData = {}): CancelablePromise<GetMetadataResponse> => { return __request(OpenAPI, {
-    method: 'GET',
-    url: '/gallery/getMetadata',
-    query: {
-        id: data.id
-    }
-}); };
-
-/**
- * @returns unknown OK
- * @throws ApiError
- */
-export const listFolders = (): CancelablePromise<ListFoldersResponse> => { return __request(OpenAPI, {
-    method: 'GET',
-    url: '/gallery/list-folders'
+    url: '/gallery/get-media-folders'
 }); };
 
 /**
@@ -58,12 +35,26 @@ export const listFolders = (): CancelablePromise<ListFoldersResponse> => { retur
  */
 export const getMediaInfo = (data: GetMediaInfoData = {}): CancelablePromise<GetMediaInfoResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/gallery/mediaInfo',
+    url: '/gallery/get-media-info',
     query: {
         mediaId: data.mediaId
     },
     errors: {
         400: 'Bad Request'
+    }
+}); };
+
+/**
+ * @param data The data for the request.
+ * @param data.id
+ * @returns unknown OK
+ * @throws ApiError
+ */
+export const getMetadata = (data: GetMetadataData = {}): CancelablePromise<GetMetadataResponse> => { return __request(OpenAPI, {
+    method: 'GET',
+    url: '/gallery/get-metadata',
+    query: {
+        id: data.id
     }
 }); };
 
@@ -75,7 +66,7 @@ export const getMediaInfo = (data: GetMediaInfoData = {}): CancelablePromise<Get
  */
 export const processImages = (data: ProcessImagesData = {}): CancelablePromise<ProcessImagesResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/process',
+    url: '/gallery/process-images',
     body: data.requestBody,
     mediaType: 'application/json',
     errors: {
@@ -92,7 +83,7 @@ export const processImages = (data: ProcessImagesData = {}): CancelablePromise<P
  */
 export const renameMedia = (data: RenameMediaData = {}): CancelablePromise<RenameMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/rename',
+    url: '/gallery/rename-media',
     query: {
         mediaId: data.mediaId,
         newName: data.newName
@@ -112,7 +103,7 @@ export const renameMedia = (data: RenameMediaData = {}): CancelablePromise<Renam
  */
 export const replaceImage = (data: ReplaceImageData = {}): CancelablePromise<ReplaceImageResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/replace',
+    url: '/gallery/replace-image',
     query: {
         id: data.id,
         saveAs: data.saveAs
@@ -132,7 +123,7 @@ export const replaceImage = (data: ReplaceImageData = {}): CancelablePromise<Rep
  */
 export const searchMedia = (data: SearchMediaData = {}): CancelablePromise<SearchMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/search',
+    url: '/gallery/search-media',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -143,9 +134,9 @@ export const searchMedia = (data: SearchMediaData = {}): CancelablePromise<Searc
  * @returns unknown OK
  * @throws ApiError
  */
-export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<RecycleMediaResponse> => { return __request(OpenAPI, {
+export const trashMedia = (data: TrashMediaData = {}): CancelablePromise<TrashMediaResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/gallery/trash',
+    url: '/gallery/trash-media',
     body: data.requestBody,
     mediaType: 'application/json'
 }); };
@@ -158,7 +149,7 @@ export const recycleMedia = (data: RecycleMediaData = {}): CancelablePromise<Rec
  */
 export const getSettings = (data: GetSettingsData = {}): CancelablePromise<GetSettingsResponse> => { return __request(OpenAPI, {
     method: 'GET',
-    url: '/settings/get',
+    url: '/settings/get-settings',
     query: {
         userKey: data.userKey
     }
@@ -173,7 +164,7 @@ export const getSettings = (data: GetSettingsData = {}): CancelablePromise<GetSe
  */
 export const setSettings = (data: SetSettingsData = {}): CancelablePromise<SetSettingsResponse> => { return __request(OpenAPI, {
     method: 'POST',
-    url: '/settings/set',
+    url: '/settings/set-settings',
     query: {
         userKey: data.userKey
     },
