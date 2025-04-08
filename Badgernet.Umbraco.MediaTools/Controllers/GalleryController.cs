@@ -22,37 +22,20 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [Route("gallery")]
 public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor) : ControllerBase
 {
+    private const int MAX_WIDTH = 10000;
+    private const int MIN_WIDTH = 1;
+    private const int MAX_HEIGHT = 10000;
+    private const int MIN_HEIGHT = 1;
 
-    [HttpGet("get-info")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(GalleryInfoDto))]
-    public GalleryInfoDto GetGalleryInfo()
+    [HttpGet("get-media-folders")]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MediaFolderDto[]))]
+    public MediaFolderDto[] GetMediaFolders()
     {
-        var response = new GalleryInfoDto();
-        var allMedia = mediaHelper.GetAllMedia();
-
-        response.FolderCount = allMedia.OfTypes("Folder").Count(); //Count Folders 
-        response.MediaCount = allMedia.Count() - response.FolderCount; //The rest should be media files
-
-        var extensionCounts = allMedia
-            .Where(media => media.HasValue("UmbracoExtension"))
-            .GroupBy(media => media.Value("UmbracoExtension")?.ToString() ?? string.Empty)
-            .Select(group => new KeyValuePair<string, int>(group.Key, group.Count()))
-            .ToList();
-
-        response.CountByExtension = extensionCounts;
-
-        return response;
-    }
-
-    [HttpGet("list-folders")]
-    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string[]))]
-    public string[] ListFolders()
-    {
-        var response = mediaHelper.ListFolders();
+        var response = mediaHelper.GetFolders();
         return response.ToArray();
     }
 
-    [HttpGet("mediaInfo")]
+    [HttpGet("get-media-info")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(ImageMediaDto))]
     public IActionResult GetMediaInfo(int mediaId)
@@ -80,9 +63,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
     }
     
-    [HttpPost("filter")]
+    [HttpPost("search-media")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
-    public IActionResult FilterGallery(FilterImagesDto requestData)
+    public IActionResult SearchMedia(FilterImagesDto requestData)
     {
         IEnumerable<ImageMediaDto> images;
 
@@ -132,7 +115,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(images.ToArray());
     }
 
-    [HttpPost("rename")]
+    [HttpPost("rename-media")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult RenameMedia(int mediaId, string newName)
@@ -161,7 +144,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     }
 
-    [HttpPost("process")]
+    [HttpPost("process-images")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     public IActionResult ProcessImages(ProcessImagesDto requestData)
@@ -170,6 +153,10 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
         //Validate request
         var ids = requestData.Ids;
+        requestData.ConvertQuality = Math.Clamp(requestData.ConvertQuality, 1, 100);
+        requestData.Width = Math.Clamp(requestData.Width, MIN_WIDTH, MAX_WIDTH);
+        requestData.Height = Math.Clamp(requestData.Height, MIN_HEIGHT, MAX_HEIGHT);
+        
         
         if(ids.Length == 0)
         {
@@ -189,7 +176,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         }
 
         //Clamp convertQuality to 1 -> 100
-        Math.Clamp(requestData.ConvertQuality, 1, 100);
+        requestData.ConvertQuality = requestData.ConvertQuality;
 
 
         var converterCounter = 0;
@@ -380,9 +367,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return Ok(response);
     }
 
-    [HttpPost("trash")]
+    [HttpPost("trash-media")]
     [ProducesResponseType(typeof(OperationResponse),200)]
-    public OperationResponse RecycleMedia(int[] ids)
+    public OperationResponse TrashMedia(int[] ids)
     {
         var trashedCount = 0;
         var errorCount = 0;
@@ -433,7 +420,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
     }
 
-    [HttpPost("download")]
+    [HttpPost("download-media")]
     [ProducesResponseType(typeof(Stream), 200, "application/zip")]
     [Produces("application/zip")]
     public IActionResult DownloadMedia(int[] ids)
@@ -472,7 +459,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         return File(zipStream, "application/zip", "download.zip");
     }
 
-    [HttpPost("replace")]
+    [HttpPost("replace-image")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     [Consumes("multipart/form-data")]
@@ -548,7 +535,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     }
 
-    [HttpGet("getMetadata")]
+    [HttpGet("get-metadata")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public IActionResult GetMetadata(int id)

@@ -4,9 +4,9 @@ import { tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
 import {
     getSettings,
     setSettings,
-    filterGallery,
+    searchMedia,
     downloadMedia,
-    listFolders,
+    getMediaFolders,
     renameMedia,
     ReplaceImageData,
     ReplaceImageResponse,
@@ -20,20 +20,20 @@ import {
 import {
     DownloadMediaData,
     DownloadMediaResponse,
-    FilterGalleryData,
+    SearchMediaData,
     GetSettingsData,
     ImageMediaDto,
-    ListFoldersResponse,
+    GetMediaFoldersResponse,
     ProcessImagesData,
     ProcessImagesResponse,
     SetSettingsData,
     UserSettingsDto,
-    RecycleMediaData,
-    RecycleMediaResponse,
+    TrashMediaData,
+    TrashMediaResponse,
     processImages,
-    recycleMedia,
-    getGalleryInfo,
-    GetGalleryInfoResponse, RenameMediaData, RenameMediaResponse
+    trashMedia,
+    RenameMediaData,
+    RenameMediaResponse
 } from "../api";
 
 export class MediaToolsManagementDataSource {
@@ -49,20 +49,17 @@ export class MediaToolsManagementDataSource {
     async saveSettings(requestData: SetSettingsData): Promise<UmbDataSourceResponse<unknown>> {
         return await tryExecuteAndNotify(this.#host, setSettings(requestData));
     }
-    async getGalleryInfo():Promise<UmbDataSourceResponse<GetGalleryInfoResponse>>{
-        return await tryExecuteAndNotify(this.#host, getGalleryInfo());
+    async listFolders(): Promise<UmbDataSourceResponse<GetMediaFoldersResponse>>{
+        return await tryExecuteAndNotify(this.#host, getMediaFolders());
     }
-    async listFolders(): Promise<UmbDataSourceResponse<ListFoldersResponse>>{
-        return await tryExecuteAndNotify(this.#host, listFolders());
-    }
-    async filterGallery(requestData: FilterGalleryData ): Promise<UmbDataSourceResponse<ImageMediaDto[]>> {
-        return await tryExecuteAndNotify(this.#host, filterGallery(requestData));
+    async searchMedia(requestData: SearchMediaData ): Promise<UmbDataSourceResponse<ImageMediaDto[]>> {
+        return await tryExecuteAndNotify(this.#host, searchMedia(requestData));
     }
     async processImage(requestData: ProcessImagesData): Promise<UmbDataSourceResponse<ProcessImagesResponse>>{
         return await tryExecuteAndNotify(this.#host, processImages(requestData));
     }
-    async recycleMedia(requestData: RecycleMediaData ): Promise<UmbDataSourceResponse<RecycleMediaResponse>>{
-        return await tryExecuteAndNotify(this.#host, recycleMedia(requestData));
+    async trashMedia(requestData: TrashMediaData ): Promise<UmbDataSourceResponse<TrashMediaResponse>>{
+        return await tryExecuteAndNotify(this.#host, trashMedia(requestData));
     }
     async downloadMedia(requestData: DownloadMediaData): Promise<UmbDataSourceResponse<DownloadMediaResponse>>{
         return await tryExecuteAndNotify(this.#host, downloadMedia(requestData));

@@ -2,21 +2,24 @@ import { UmbControllerBase } from "@umbraco-cms/backoffice/class-api";
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
-import { UmbArrayState, UmbBooleanState,
-         UmbNumberState, UmbStringState } from "@umbraco-cms/backoffice/observable-api";
 import {
-    ConvertMode, DownloadMediaData, FilterGalleryData,
+    UmbArrayState, UmbBooleanState, UmbClassState,
+    UmbNumberState, UmbObjectState, UmbStringState
+} from "@umbraco-cms/backoffice/observable-api";
+import {
+    ConvertMode, DownloadMediaData, SearchMediaData,
     GetSettingsData, ProcessImagesData, SetSettingsData,
-    UserSettingsDto, RecycleMediaData, RenameMediaData,
-    ReplaceImageData, GetMediaInfoData, GetMetadataData
+    UserSettingsDto, TrashMediaData, RenameMediaData,
+    ReplaceImageData, GetMediaInfoData, GetMetadataData, MediaFolderDto, ResizerFolderOverride
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
+import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
 
-export type MediaFolder = {name: string, value: string};
 export class MediaToolsContext extends UmbControllerBase {
 
     #repository: MediaToolsRepository;
+    #currentUser?: UmbCurrentUserModel;
 
     #resizerEnabled = new UmbBooleanState(false);
     #converterEnabled = new UmbBooleanState(true);
@@ -28,7 +31,9 @@ export class MediaToolsContext extends UmbControllerBase {
     #targetHeight = new UmbNumberState(1080);
     #keepOriginals = new UmbBooleanState(false);
     #ignoreKeyword = new UmbStringState("ignoreme");
-    #mediaFolders = new UmbArrayState([{name: "All folders", value: ""} as MediaFolder],(element) => element);
+    #mediaFolders = new UmbArrayState<MediaFolderDto>([], (x) => x.key);
+    #mediaFolderOptions = new UmbArrayState<Option>([], (x) => x.value);
+    #resizerFolderOverrides = new UmbArrayState<ResizerFolderOverride>([], (x) => x.key);
     #removeDateTime = new UmbBooleanState(true);
     #removeCameraInfo = new UmbBooleanState(true);
     #removeGpsInfo = new UmbBooleanState(true);
@@ -36,7 +41,6 @@ export class MediaToolsContext extends UmbControllerBase {
     #removeXmpProfile = new UmbBooleanState(false);
     #removeIptcProfile = new UmbBooleanState(false);
     #metaTagsToRemove = new UmbArrayState<string>([], (item) => item);
-
     
     public get resizerEnabled() : Observable<boolean>{
         return this.#resizerEnabled.asObservable();  
@@ -89,6 +93,12 @@ export class MediaToolsContext extends UmbControllerBase {
         value = clampNumber(value, 1, 10000);
         this.#targetHeight.setValue(value);
     }
+    public get resizerFolderOverrides() : Observable<ResizerFolderOverride[]> {
+        return this.#resizerFolderOverrides.asObservable();
+    }
+    public set resizerFolderOverrides(value : ResizerFolderOverride[]) {
+        this.#resizerFolderOverrides.setValue(value);
+    }
     public get keepOriginals() :Observable<boolean> {
         return this.#keepOriginals.asObservable();
     }
@@ -101,11 +111,14 @@ export class MediaToolsContext extends UmbControllerBase {
     public set ignoreKeyword(value: string) {
         this.#ignoreKeyword.setValue(value);
     }
-    public get mediaFolders() : Observable<MediaFolder[]>{
+    public get mediaFolders() : Observable<MediaFolderDto[]>{
         return this.#mediaFolders.asObservable();  
     }
-    public set mediaFolders(value: {name: string, value: string}[]) {
+    public set mediaFolders(value: MediaFolderDto[]) {
         this.#mediaFolders.setValue(value)
+    }
+    public get mediaFoldersOptions() : Observable<Option[]>{
+        return this.#mediaFolderOptions.asObservable();
     }
     public get removeDateTime() : Observable<boolean> {
         return this.#removeDateTime.asObservable();  
@@ -131,32 +144,26 @@ export class MediaToolsContext extends UmbControllerBase {
     public set removeShootingSituationInfo(value: boolean) {
         this.#removeAuthorInfo.setValue(value);
     }
-    
     public get removeXmpProfile(): Observable<boolean> {
         return this.#removeXmpProfile.asObservable();
     }
     public set removeXmpProfile(value: boolean) {
         this.#removeXmpProfile.setValue(value);
     }
-    
     public get removeIptcProfile(): Observable<boolean> {
         return this.#removeIptcProfile.asObservable();
     }
-    
     public set removeIptcProfile(value: boolean) {
         this.#removeIptcProfile.setValue(value);
     }
-    
     public get metaTagsToRemove(): Observable<string[]> {
         return this.#metaTagsToRemove.asObservable();
     }
-    
     public addMetaTagsToRemove(value: string) {
         if(!this.#metaTagsToRemove.getValue().includes(value)) {
             this.#metaTagsToRemove.appendOne(value);
         }
     } 
-    
     public removeMetaTagsToRemove(value: string) {
         if(this.#metaTagsToRemove.getValue().includes(value)) {
            this.#metaTagsToRemove.remove([value]); 
@@ -167,18 +174,24 @@ export class MediaToolsContext extends UmbControllerBase {
         super(host);
         this.provideContext(MEDIA_TOOLS_CONTEXT_TOKEN, this);
         this.#repository = new MediaToolsRepository(this);
+
+        this.consumeContext(UMB_CURRENT_USER_CONTEXT, (instance) => {
+            this._observeCurrentUser(instance);
+        });
     }
 
-    async getGalleryInfo() {
-        const responseData = await this.#repository.getGalleryInfo();
-        if(responseData)
-            return responseData.data;
+    private async _observeCurrentUser(instance: typeof UMB_CURRENT_USER_CONTEXT.TYPE) {
+        this.observe(instance.currentUser, (currentUser) => {
+            this.#currentUser = currentUser;
+        });
     }
-    
-    async loadSettings(userKey: string){
+
+    async fetchUserSettings(){
+
+        if(!this.#currentUser) return null;
 
         const reqData: GetSettingsData = {
-            userKey: userKey
+            userKey: this.#currentUser.unique
         }
 
         const responseData = (await this.#repository.fetchSettings(reqData)).data as UserSettingsDto;
@@ -191,6 +204,7 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
             this.#targetWidth.setValue(responseData.resizer.targetWidth);
             this.#targetHeight.setValue(responseData.resizer.targetHeight);
+            this.#resizerFolderOverrides.setValue(responseData.resizer.folderOverrides);
             this.#keepOriginals.setValue(responseData.general.keepOriginals);
             this.#ignoreKeyword.setValue(responseData.general.ignoreKeyword);
             this.#metaRemoverEnabled.setValue(responseData.metadataRemover.enabled);
@@ -204,7 +218,9 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async saveSettings(userKey: string){
+    async saveSettings(){
+
+        if(!this.#currentUser) return null;
 
         //Map observables to settings object
         const settings: UserSettingsDto = {
@@ -212,7 +228,8 @@ export class MediaToolsContext extends UmbControllerBase {
                 enabled: this.#resizerEnabled.getValue(),
                 targetWidth: this.#targetWidth.getValue(),
                 targetHeight: this.#targetHeight.getValue(),
-                ignoreAspectRatio: this.#ignoreAspectRatio.getValue()
+                ignoreAspectRatio: this.#ignoreAspectRatio.getValue(),
+                folderOverrides: this.#resizerFolderOverrides.getValue()
             },
             converter: {
                 enabled: this.#converterEnabled.getValue(),
@@ -238,7 +255,7 @@ export class MediaToolsContext extends UmbControllerBase {
 
         //Build request data
         const reqData: SetSettingsData = {
-            userKey: userKey,
+            userKey: this.#currentUser.unique,
             requestBody: settings
         }
 
@@ -246,30 +263,30 @@ export class MediaToolsContext extends UmbControllerBase {
         await this.#repository.saveSettings(reqData);
     }
 
-    async listFolders(){
-
-        const responseData = (await this.#repository.listFolders());
-
-        if(responseData){
-            const foldersArray = responseData.data as Array<string>;
-            const options = new Array<Option>();
-
-            options.push({value: "All", name: "All folders", selected: true});
-            
-            for(let folder of foldersArray){
-                options.push({value: folder, name: folder});
+    async fetchMediaFolders(){
+        const response = (await this.#repository.listFolders());
+        if(response){
+            const responseData = response.data as Array<MediaFolderDto>;
+            if(responseData){
+                this.#mediaFolders.setValue(responseData);
             }
-            this.#mediaFolders.setValue(options);    
+            
+            let folderOptions: Array<Option> = [];
+            folderOptions.push({name: "All folders", value: "", selected: true} );
+            for(const item of responseData){
+                folderOptions.push({name: item.name, value: item.name, selected: false });
+            }
+            
+            this.#mediaFolderOptions.setValue(folderOptions);
         }
     }
 
-    async filterGallery(requestData: FilterGalleryData){
-        const responseData = (await this.#repository.filterGallery(requestData));
+    async searchMedia(requestData: SearchMediaData){
+        const responseData = (await this.#repository.searchMedia(requestData));
 
         if(responseData){
             return responseData;
         }
-
     }
 
     async processImage(requestData: ProcessImagesData){
@@ -280,8 +297,8 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async trashMedia(requestData: RecycleMediaData ){
-        const responseData = await this.#repository.recycleMedia(requestData);
+    async trashMedia(requestData: TrashMediaData ){
+        const responseData = await this.#repository.trashMedia(requestData);
 
         if(responseData){
             return responseData;

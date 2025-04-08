@@ -46,12 +46,18 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+
+#### 1.1.2
+- Resizer settings configurable per folder
+- Converter settings configurable per folder
+- Minor UI improvements
+
 #### 1.1.1
 - Metadata viewer improvements
 
 #### 1.1.0
 - Metadata remover (upon uploading)
-- Metadata Viewer
+- Metadata Viewer 
 - Performance & Memory usage improvements 
 - UI improvements
 

@@ -62,7 +62,7 @@ export class RenameMediaDialog extends UmbElementMixin(LitElement) {
 
             <uui-dialog-layout headline="Rename media">
                 
-                <uui-input id="nameInput" lable="Media name" 
+                <uui-input id="nameInput" label="Media name" 
                            style="width: 300px"
                            pristine="" 
                            value="${this.mediaName}"

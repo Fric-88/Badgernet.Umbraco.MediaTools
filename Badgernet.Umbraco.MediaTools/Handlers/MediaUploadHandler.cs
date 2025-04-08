@@ -20,6 +20,11 @@ namespace Badgernet.Umbraco.MediaTools.Handlers;
 
 public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotification>
     {
+        private const int MAX_WIDTH = 10000;
+        private const int MIN_WIDTH = 1;
+        private const int MAX_HEIGHT = 10000;
+        private const int MIN_HEIGHT = 1;
+        
         private readonly ISettingsService _settingsService;
         private readonly IMediaHelper _mediaHelper;
         private readonly IImageProcessor _imageProcessor;
@@ -40,6 +45,8 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             ILogger<MediaToolsUploadHandler> logger, 
             IBackOfficeSecurityAccessor backOfficeSecurity)
         {
+
+            
             _settingsService = settingsService;
             _mediaHelper = mediaHelper;
             _imageProcessor = imageProcessor;
@@ -61,8 +68,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             var settings = _settingsService.GetUserSettings(userKey);
 
             //Read settings object 
-            var resizingEnabled = settings.Resizer.Enabled;
-            var convertingEnabled = settings.Converter.Enabled;
+
             var convertQuality = settings.Converter.ConvertQuality;
             var targetWidth = settings.Resizer.TargetWidth;
             var targetHeight = settings.Resizer.TargetHeight;
@@ -71,23 +77,27 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             var ignoreKeyword = settings.General.IgnoreKeyword;
 
             //Prevent Options being out of bounds 
-            Math.Clamp(targetWidth, 1, 10000);
-            Math.Clamp(targetHeight, 1, 10000);
-            Math.Clamp(convertQuality, 1, 100);
+            targetWidth = Math.Clamp(targetWidth, MIN_WIDTH, MAX_WIDTH);
+            targetHeight = Math.Clamp(targetHeight, MIN_HEIGHT, MAX_HEIGHT);
+            convertQuality = Math.Clamp(convertQuality, 1, 100);
 
             
             using var imageStream = new MemoryStream();
 
             foreach(var media in notification.SavedEntities)
             {
+                //Re-read settings because they might get overwritten (settings for folders)
+                var resizingEnabled = settings.Resizer.Enabled;
+                var convertingEnabled = settings.Converter.Enabled;
+                
                 //Skip if not an image
                 if (string.IsNullOrEmpty(media.ContentType.Alias) || !media.ContentType.Alias.Equals("image", StringComparison.CurrentCultureIgnoreCase)) continue;  
                 
                 //Skip any not-new images
                 if (media.Id > 0) continue;
                 
-                string originalPath = _mediaHelper.GetRelativePath(media);
-                string tempSavingPath = _fileManager.GetFreePath(originalPath);
+                var originalPath = _mediaHelper.GetRelativePath(media);
+                var tempSavingPath = _fileManager.GetFreePath(originalPath);
                 Size originalResolution = new();
 
                 //Skip if paths not good
@@ -112,7 +122,21 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 {
                     continue; //Skip if resolution cannot be parsed 
                 }
-
+                
+                //Read user resizer folder settings
+                var parentFolder = _mediaHelper.GetMediaById(media.ParentId);
+                if (parentFolder is { ContentType.Alias: "Folder" })
+                {
+                    var folderSetting = settings.Resizer.FolderOverrides.SingleOrDefault(x => x.Key == parentFolder.Key);
+                    if (folderSetting != null)
+                    {
+                        targetHeight = Math.Clamp(folderSetting.TargetHeight, MIN_WIDTH, MAX_WIDTH);
+                        targetWidth = Math.Clamp(folderSetting.TargetWidth, MIN_WIDTH, MAX_WIDTH);
+                        resizingEnabled = folderSetting.ResizerEnabled;
+                    }
+                }
+                
+                
                 //Override user settings resolution if provided in image filename
                 var parsedTargetSize = ParseSizeFromFilename(Path.GetFileNameWithoutExtension(originalPath));
                 if(parsedTargetSize != null)

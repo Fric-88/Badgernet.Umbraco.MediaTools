@@ -9,14 +9,14 @@ import {
     UUIToastNotificationContainerElement,
     UUIToastNotificationElement
 } from "@umbraco-cms/backoffice/external/uui";
-import {FilterGalleryData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
+import {SearchMediaData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
-import "../elements/galleryToolsPanel.element.ts";
-import ProcessImagePanel, { ProcessingSettings } from "../elements/galleryToolsPanel.element.ts";
+import "../elements/myMediaToolsPanel.element.ts";
+import ProcessImagePanel, { ProcessingSettings } from "../elements/myMediaToolsPanel.element.ts";
 import ImagePreview from "../elements/imagePreview.element.ts";
 import "../elements/imagePreview.element.ts"
-import GallerySearchBar from "../elements/gallerySearchBar.element.ts";
-import "../elements/gallerySearchBar.element.ts"
+import MyMediaSearchBar from "../elements/myMediaSearchBar.element.ts";
+import "../elements/myMediaSearchBar.element.ts"
 import RenameMediaDialog from "../elements/renameMediaDialog.element.ts";  
 import "../elements/renameMediaDialog.element.ts"
 import ImageEditorDialog from "../elements/imageEditorDialog.element.ts";
@@ -26,8 +26,8 @@ import "../elements/acceptRejectDialog.element.ts"
 
 
 
-@customElement('badgernet_umbraco_mediatools-gallery-worker-dash')
-export class GalleryDashboard extends UmbElementMixin(LitElement) {
+@customElement('badgernet-umbraco-my-media-dashboard')
+export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -151,7 +151,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
     private async searchGallery(e: CustomEvent){
         let target = e.target;
 
-        if(target instanceof GallerySearchBar){
+        if(target instanceof MyMediaSearchBar){
 
             target.findButtonState = "waiting"; //Loading button look
 
@@ -160,14 +160,13 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 
             try{
 
-                const requestData = e.detail as FilterGalleryData;
-                const response = await this.#mediaToolsContext?.filterGallery(requestData);
+                const requestData = e.detail as SearchMediaData;
+                const response = await this.#mediaToolsContext?.searchMedia(requestData);
 
                 if(response?.data){
                     this.itemsList.fromArray(response.data);
-                    this.requestUpdate();
                 }
-
+                this.requestUpdate(); //Update list
                 target.findButtonState = undefined;//Normal button look
             }
             catch(error){
@@ -557,7 +556,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
         return html`
             <div class="dashboard">
                 <uui-box>
-                    <gallery-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></gallery-search-bar>
+                    <my-media-search-bar width = "${this.width}" height = "${this.height}" @find-button-click="${this.searchGallery}"></my-media-search-bar>
 
                     <div style="display: flex">
                         <div class="leftPanel">
@@ -565,7 +564,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                         </div>
                         
                         <span class="rightPanel">
-                            <gallery-tools-panel
+                            <my-media-tools-panel
                                 selectionCount="${this.itemsList.countSelectedItems()}"
                                 width="${this.width}"
                                 height="${this.height}"
@@ -574,7 +573,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.recycleSelectedImages}"
                                 @download-images-click="${this.downloadSelectedMedia}">
-                            </gallery-tools-panel>
+                            </my-media-tools-panel>
                         </span>
                     </div>
                 </uui-box>
@@ -689,6 +688,7 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
                 </uui-pagination>
                 
                 <uui-select style="margin-top: 0.5rem;"
+                            label="Items per page"
                             .options="${this.#itemsPerPageOptions}" 
                             @change="${this.#handleItemsPerPageChanged}">
                 </uui-select>
@@ -831,11 +831,11 @@ export class GalleryDashboard extends UmbElementMixin(LitElement) {
 }
 
 
-export default GalleryDashboard
+export default MyMediaDashboard
 
 declare global {
     interface HtmlElementTagNameMap {
-        'badgernet_umbraco_mediatools-gallery-worker-dash': GalleryDashboard
+        'badgernet-umbraco-my-media-dashboard': MyMediaDashboard
     }
 }
 

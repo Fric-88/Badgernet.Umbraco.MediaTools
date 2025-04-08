@@ -1,12 +1,12 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, state, property} from "@umbraco-cms/backoffice/external/lit";
 import { UUIButtonState, UUIInputElement, UUISelectElement, UUISliderElement } from "@umbraco-cms/backoffice/external/uui";
-import { FilterGalleryData, SizeFilter } from "../api";
+import { SearchMediaData, SizeFilter } from "../api";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 
 
-@customElement('gallery-search-bar')
-export class GallerySearchBar extends UmbElementMixin(LitElement) {
+@customElement('my-media-search-bar')
+export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
 
     #mediaToolsContext?: MediaToolsContext;
 
@@ -14,7 +14,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) height: number = 1080;
     @state() findButtonState: UUIButtonState = undefined; 
     @state() resolutionFilter: SizeFilter = "AllSizes";
-    @state() mediaFolders: Array<Option> =  [];
+    @state() mediaFolderOptions: Array<Option> =  [];
 
     private nameFilter: string = "";
     private extensionFilter: string = "";
@@ -24,7 +24,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
         super();
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#mediaToolsContext = _context;
-            this.observe(_context.mediaFolders, (_value) => { this.mediaFolders = _value; });
+            this.observe(_context.mediaFoldersOptions, (_value) => { this.mediaFolderOptions = _value; });
         });
 
     }
@@ -33,10 +33,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
     connectedCallback(): void {
         super.connectedCallback();
 
-        this.#mediaToolsContext?.listFolders()
-            .then( () => { 
-                console.log("Fetching folders");
-            })
+        this.#mediaToolsContext?.fetchMediaFolders()
             .catch(()=>{
                 console.log("Something went wrong fetching media folders");
             });
@@ -101,7 +98,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
 
     private findButtonClick(){
 
-        let filterRequest: FilterGalleryData = {
+        let filterRequest: SearchMediaData = {
             requestBody: {
                 folderName: this.selectedFolder,
                 width: this.width,
@@ -132,7 +129,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
                     <uui-select
                         label="Select folder"
                         placeholder="Select an option"
-                        .options="${this.mediaFolders}"
+                        .options="${this.mediaFolderOptions}"
                         @change="${this.folderSelectionChanged}">
                     </uui-select>
                 </div>
@@ -147,7 +144,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
                     </uui-select>
                 </div>
 
-                <div class="settingItem" style="flex: 1 1 80px;">
+                <div class="settingItem" style="flex: 1 1 100px;">
                     <uui-label class="inputLabel" for="Width">Width</uui-label>
                     <uui-input 
                         label="Width"
@@ -157,10 +154,11 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
                         value="${this.width}"
                         .disabled="${this.resolutionFilter === "AllSizes"}"
                         @change="${this.widthChanged}">
+                        <div class="extra" slot="append">px</div>
                     </uui-input>
                 </div>
 
-                <div class="settingItem" style="flex: 1 1 80px;">
+                <div class="settingItem" style="flex: 1 1 100px;">
                     <uui-label class="inputLabel" for="Height">Height</uui-label>
                     <uui-input 
                         label="Height"
@@ -170,6 +168,7 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
                         value="${this.height}"
                         .disabled="${this.resolutionFilter === "AllSizes"}"
                         @change="${this.heightChanged}">
+                        <div class="extra" slot="append">px</div>
                     </uui-input>
                 </div>
 
@@ -227,14 +226,31 @@ export class GallerySearchBar extends UmbElementMixin(LitElement) {
             font-style: italic;
             font-weight: lighter;
         }
+        .extra {
+            user-select: none;
+            height: 100%;
+            padding: 0 var(--uui-size-3);
+            background: #f3f3f3;
+            color: grey;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .extra:first-child {
+        var(--uui-input-border-color, var(--uui-color-border));
+        }
+        * + .extra {
+            border-left: 1px solid
+            var(--uui-input-border-color, var(--uui-color-border));
+        }
     `
 }
 
-export default GallerySearchBar;
+export default MyMediaSearchBar;
 
 declare global {
     interface HtmlElementTagNameMap {
-        'gallery-search-bar': GallerySearchBar
+        'my-media-search-bar': MyMediaSearchBar
     }
 }
 

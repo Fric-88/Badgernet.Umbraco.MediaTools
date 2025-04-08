@@ -17,13 +17,35 @@ public class MediaHelper(
     IUmbracoContextAccessor contextAccessor,
     IMediaService mediaService) : IMediaHelper
 {
-    public IEnumerable<string> ListFolders()
+    public IEnumerable<MediaFolderDto> GetFolders()
     {
-        if (contextAccessor .TryGetUmbracoContext(out var context) == false)
-            return [];
+        var result = new List<MediaFolderDto>();
+        var stack = new Stack<(IPublishedContent folder, string path)>();
 
-        var mediaRoot = context.Media!.GetAtRoot();
-        return mediaRoot.DescendantsOrSelf<IPublishedContent>().OfTypes("Folder").Select(x => x.Name);
+        foreach (var root in GetAllMedia())
+        {
+            if (root.ContentType.Alias == "Folder" && root.Level == 1)
+            {
+                stack.Push((root, ""));
+            }
+        }
+
+        while (stack.Count > 0)
+        {
+            var (folder, parentPath) = stack.Pop();
+            var currentPath = string.IsNullOrEmpty(parentPath) ? folder.Name : $"{parentPath}/{folder.Name}";
+
+            result.Add(new MediaFolderDto(folder.Key, folder.Name, currentPath));
+
+            foreach (var child in folder.Children())
+            {
+                if (child.ContentType.Alias == "Folder")
+                {
+                    stack.Push((child, currentPath));
+                }
+            }
+        }
+        return result;
     }
 
     public IEnumerable<IPublishedContent> GetAllMedia()

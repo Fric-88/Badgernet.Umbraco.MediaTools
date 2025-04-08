@@ -19,12 +19,6 @@ export type FilterImagesDto = {
     sizeFilter: SizeFilter;
 };
 
-export type GalleryInfoDto = {
-    mediaCount: number;
-    folderCount: number;
-    countByExtension: Array<(KeyValuePair_2)>;
-};
-
 export type GeneralSettings = {
     keepOriginals: boolean;
     ignoreKeyword: string;
@@ -50,9 +44,10 @@ export type ImageMetadataDto = {
     xmpProfile: string;
 };
 
-export type KeyValuePair_2 = {
-    key?: string | null;
-    value: number;
+export type MediaFolderDto = {
+    key: string;
+    name: string;
+    path: string;
 };
 
 export type MetadataRemoverSettings = {
@@ -96,11 +91,19 @@ export type ProcessImagesDto = {
 
 export type ResizeMode = 'FitInside' | 'ExactSize';
 
+export type ResizerFolderOverride = {
+    key: string;
+    targetWidth: number;
+    targetHeight: number;
+    resizerEnabled: boolean;
+};
+
 export type ResizerSettings = {
     enabled: boolean;
     ignoreAspectRatio: boolean;
     targetWidth: number;
     targetHeight: number;
+    folderOverrides: Array<(ResizerFolderOverride)>;
 };
 
 export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';
@@ -120,27 +123,19 @@ export type DownloadMediaData = {
 
 export type DownloadMediaResponse = (Blob | File);
 
-export type FilterGalleryData = {
-    requestBody?: FilterImagesDto;
-};
-
-export type FilterGalleryResponse = Array<(ImageMediaDto)>;
-
-export type GetGalleryInfoResponse = GalleryInfoDto;
-
-export type GetMetadataData = {
-    id?: number;
-};
-
-export type GetMetadataResponse = ImageMetadataDto;
-
-export type ListFoldersResponse = Array<(string)>;
+export type GetMediaFoldersResponse = Array<(MediaFolderDto)>;
 
 export type GetMediaInfoData = {
     mediaId?: number;
 };
 
 export type GetMediaInfoResponse = ImageMediaDto;
+
+export type GetMetadataData = {
+    id?: number;
+};
+
+export type GetMetadataResponse = ImageMetadataDto;
 
 export type ProcessImagesData = {
     requestBody?: ProcessImagesDto;
@@ -165,11 +160,17 @@ export type ReplaceImageData = {
 
 export type ReplaceImageResponse = OperationResponse;
 
-export type RecycleMediaData = {
+export type SearchMediaData = {
+    requestBody?: FilterImagesDto;
+};
+
+export type SearchMediaResponse = Array<(ImageMediaDto)>;
+
+export type TrashMediaData = {
     requestBody?: Array<(number)>;
 };
 
-export type RecycleMediaResponse = OperationResponse;
+export type TrashMediaResponse = OperationResponse;
 
 export type GetSettingsData = {
     userKey?: string;
@@ -185,7 +186,7 @@ export type SetSettingsData = {
 export type SetSettingsResponse = string;
 
 export type $OpenApiTs = {
-    '/gallery/download': {
+    '/gallery/download-media': {
         post: {
             req: DownloadMediaData;
             res: {
@@ -196,49 +197,17 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/filter': {
-        post: {
-            req: FilterGalleryData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: Array<(ImageMediaDto)>;
-            };
-        };
-    };
-    '/gallery/get-info': {
+    '/gallery/get-media-folders': {
         get: {
             res: {
                 /**
                  * OK
                  */
-                200: GalleryInfoDto;
+                200: Array<(MediaFolderDto)>;
             };
         };
     };
-    '/gallery/getMetadata': {
-        get: {
-            req: GetMetadataData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: ImageMetadataDto;
-            };
-        };
-    };
-    '/gallery/list-folders': {
-        get: {
-            res: {
-                /**
-                 * OK
-                 */
-                200: Array<(string)>;
-            };
-        };
-    };
-    '/gallery/mediaInfo': {
+    '/gallery/get-media-info': {
         get: {
             req: GetMediaInfoData;
             res: {
@@ -253,7 +222,18 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/process': {
+    '/gallery/get-metadata': {
+        get: {
+            req: GetMetadataData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: ImageMetadataDto;
+            };
+        };
+    };
+    '/gallery/process-images': {
         post: {
             req: ProcessImagesData;
             res: {
@@ -268,7 +248,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/rename': {
+    '/gallery/rename-media': {
         post: {
             req: RenameMediaData;
             res: {
@@ -283,7 +263,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/replace': {
+    '/gallery/replace-image': {
         post: {
             req: ReplaceImageData;
             res: {
@@ -298,9 +278,20 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/gallery/trash': {
+    '/gallery/search-media': {
         post: {
-            req: RecycleMediaData;
+            req: SearchMediaData;
+            res: {
+                /**
+                 * OK
+                 */
+                200: Array<(ImageMediaDto)>;
+            };
+        };
+    };
+    '/gallery/trash-media': {
+        post: {
+            req: TrashMediaData;
             res: {
                 /**
                  * OK
@@ -309,7 +300,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/settings/get': {
+    '/settings/get-settings': {
         get: {
             req: GetSettingsData;
             res: {
@@ -320,7 +311,7 @@ export type $OpenApiTs = {
             };
         };
     };
-    '/settings/set': {
+    '/settings/set-settings': {
         post: {
             req: SetSettingsData;
             res: {
