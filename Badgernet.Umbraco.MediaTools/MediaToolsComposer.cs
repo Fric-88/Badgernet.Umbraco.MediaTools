@@ -22,10 +22,7 @@ public class MediaToolsComposer : IComposer
 
         switch (umbVersion.Major)
         {
-            case 14:
-                builder.Services.AddSingleton<IMediaHelper, MediaHelper>();
-                break;
-            case 15:
+            case 16:
                 builder.Services.AddSingleton<IMediaHelper, MediaHelperV15>();
                 break;
 

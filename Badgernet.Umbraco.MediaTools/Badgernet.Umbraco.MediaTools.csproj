@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>1.1.2</Version>
+    <Version>16.0.0</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -34,8 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms" Version="[15, 16)" />
+    <PackageReference Include="Umbraco.Cms" Version="[16, 17) />
   </ItemGroup>
-
 
 </Project>
