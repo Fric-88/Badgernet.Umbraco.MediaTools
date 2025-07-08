@@ -3,8 +3,8 @@ import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { MediaToolsRepository } from "../repository/mediatools.repository";
 import { UmbContextToken } from "@umbraco-cms/backoffice/context-api";
 import {
-    UmbArrayState, UmbBooleanState, UmbClassState,
-    UmbNumberState, UmbObjectState, UmbStringState
+    UmbArrayState, UmbBooleanState, 
+    UmbNumberState, UmbStringState
 } from "@umbraco-cms/backoffice/observable-api";
 import {
     ConvertMode, DownloadMediaData, SearchMediaData,
@@ -194,7 +194,7 @@ export class MediaToolsContext extends UmbControllerBase {
             userKey: this.#currentUser.unique
         }
 
-        const responseData = (await this.#repository.fetchSettings(reqData)).data as UserSettingsDto;
+        const responseData = (await this.#repository.fetchSettings(reqData)) as UserSettingsDto;
 
         if(responseData) {
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
@@ -266,7 +266,7 @@ export class MediaToolsContext extends UmbControllerBase {
     async fetchMediaFolders(){
         const response = (await this.#repository.listFolders());
         if(response){
-            const responseData = response.data as Array<MediaFolderDto>;
+            const responseData = response as Array<MediaFolderDto>;
             if(responseData){
                 this.#mediaFolders.setValue(responseData);
             }

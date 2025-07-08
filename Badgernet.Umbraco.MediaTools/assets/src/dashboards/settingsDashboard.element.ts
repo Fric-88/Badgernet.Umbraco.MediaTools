@@ -7,7 +7,6 @@ import "../elements/inputElements/sliderBox.element.ts"
 import "../elements/inputElements/radioBox.element.ts"
 import { ConvertMode } from "../api";
 import {
-    UUICheckboxElement,
     UUIComboboxElement,
     UUIIconElement,
     UUIToastNotificationContainerElement,

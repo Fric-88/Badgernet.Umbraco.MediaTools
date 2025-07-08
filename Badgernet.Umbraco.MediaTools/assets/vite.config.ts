@@ -9,7 +9,7 @@ export default defineConfig({
         },
         outDir: "../wwwroot/App_Plugins/Badgernet.Umbraco.MediaTools", 
         emptyOutDir: true,
-        sourcemap: false,
+        sourcemap: true,
         rollupOptions: {
             external: [/^@umbraco/],
         },
