@@ -58,10 +58,12 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#mediaToolsContext = _context;
-
-            this.observe(_context.targetWidth, (_value) => { this.width = _value; } ); 
-            this.observe(_context.targetHeight, (_value) => { this.height = _value} ); 
-
+            
+            if(_context)
+            {
+                this.observe(_context.targetWidth, (_value) => { this.width = _value; } );
+                this.observe(_context.targetHeight, (_value) => { this.height = _value} );
+            }
         });
     }
 
@@ -124,7 +126,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
 
         if(response && !response.error){
-            const updatedImage = response.data as ImageMediaDto;
+            const updatedImage = response as ImageMediaDto;
             
             const images = this.itemsList.getPage(this.currentPage);
             if(images.length > 0 ){
@@ -163,8 +165,10 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 const requestData = e.detail as SearchMediaData;
                 const response = await this.#mediaToolsContext?.searchMedia(requestData);
 
-                if(response?.data){
-                    this.itemsList.fromArray(response.data);
+                if(response){
+                    this.itemsList.fromArray(response as Array<ImageMediaDto>);
+                    this.currentPage = 1;
+                    this.allSelected = false;
                 }
                 this.requestUpdate(); //Update list
                 target.findButtonState = undefined;//Normal button look
@@ -200,7 +204,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
             const response = await this.#mediaToolsContext?.renameMedia(requestData);
             if(response){
-                const operationResponse = response.data as OperationResponse;
+                const operationResponse = response as OperationResponse;
                 if(operationResponse){
                     if(operationResponse.status === "Success"){
                         this.#showToastNotification("Done",operationResponse.message, "","positive");
@@ -273,7 +277,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                         const response = await this.#mediaToolsContext?.processImage(requestData);
 
                         if (response) {
-                            const operationResponse = response.data;
+                            const operationResponse = response.data as OperationResponse;
 
                             if (operationResponse) {
                                 if (operationResponse.status === "Warning") {
@@ -700,8 +704,6 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
             `
         }
     }
-    
-    
 
 
     static styles = css`

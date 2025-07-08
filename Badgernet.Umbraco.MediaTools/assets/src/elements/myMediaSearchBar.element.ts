@@ -24,11 +24,13 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
         super();
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#mediaToolsContext = _context;
-            this.observe(_context.mediaFoldersOptions, (_value) => { this.mediaFolderOptions = _value; });
+            
+            if(_context){
+                this.observe(_context.mediaFoldersOptions, (_value) => { this.mediaFolderOptions = _value; });    
+            }
         });
 
     }
-
 
     connectedCallback(): void {
         super.connectedCallback();

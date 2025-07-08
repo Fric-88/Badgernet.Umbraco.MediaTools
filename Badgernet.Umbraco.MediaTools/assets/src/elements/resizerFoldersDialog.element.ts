@@ -63,11 +63,15 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
 
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
             this.#context = _context;
-            this.observe(_context.mediaFolders, (_value) => {this.#mediaFolders = _value});
-            this.observe(_context.resizerFolderOverrides, (_value) => {this.#folderOverrides = _value});
-            this.observe(_context.targetWidth, (_value ) => {this.globalTargetWidth = _value;});
-            this.observe(_context.targetHeight, (_value ) => {this.globalTargetHeight = _value;});
-            this.observe(_context.resizerEnabled, (_value ) => {this.globalResizerEnabled = _value;});
+            
+            if(_context){
+                this.observe(_context.mediaFolders, (_value) => {this.#mediaFolders = _value});
+                this.observe(_context.resizerFolderOverrides, (_value) => {this.#folderOverrides = _value});
+                this.observe(_context.targetWidth, (_value ) => {this.globalTargetWidth = _value;});
+                this.observe(_context.targetHeight, (_value ) => {this.globalTargetHeight = _value;});
+                this.observe(_context.resizerEnabled, (_value ) => {this.globalResizerEnabled = _value;});                
+            }
+
         });
     }
 

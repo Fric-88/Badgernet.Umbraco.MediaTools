@@ -58,24 +58,26 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
         this.consumeContext(MEDIA_TOOLS_CONTEXT_TOKEN,(_context) =>{
 
             this.#mediaToolsContext = _context;
-
-            this.observe(_context.resizerEnabled, (_value) => { this.resizerEnabled = _value; });
-            this.observe(_context.converterEnabled, (_value) => { this.converterEnabled = _value; } ); 
-            this.observe(_context.convertQuality, (_value) => { this.convertQuality = _value} );
-            this.observe(_context.convertMode, (_value) => { this.convertMode = _value; } ); 
-            this.observe(_context.ignoreAspectRatio,(_value) => { this.ignoreAspectRatio = _value} );
-            this.observe(_context.targetWidth, (_value) => { this.targetWidth = _value; } ); 
-            this.observe(_context.targetHeight, (_value) => { this.targetHeight = _value} ); 
-            this.observe(_context.keepOriginals, (_value) => { this.keepOriginals = _value} ); 
-            this.observe(_context.ignoreKeyword, (_value) => { this.ignoreKeyword = _value} );
-            this.observe(_context.removeDateTime, (_value) => { this.removeDateTime = _value} );
-            this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
-            this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
-            this.observe(_context.removeShootingSituationInfo, (_value) => { this.removeShootingSituationInfo = _value} );
-            this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
-            this.observe(_context.metaTagsToRemove, (_value) => { this.selectedTags = _value; } );
-            this.observe(_context.removeXmpProfile, (_value) => { this.removeXmpProfile = _value; } );
-            this.observe(_context.removeIptcProfile, (_value) => { this.removeIptcProfile = _value; } );
+            
+            if(_context){
+                this.observe(_context.resizerEnabled, (_value) => { this.resizerEnabled = _value; });
+                this.observe(_context.converterEnabled, (_value) => { this.converterEnabled = _value; } );
+                this.observe(_context.convertQuality, (_value) => { this.convertQuality = _value} );
+                this.observe(_context.convertMode, (_value) => { this.convertMode = _value; } );
+                this.observe(_context.ignoreAspectRatio,(_value) => { this.ignoreAspectRatio = _value} );
+                this.observe(_context.targetWidth, (_value) => { this.targetWidth = _value; } );
+                this.observe(_context.targetHeight, (_value) => { this.targetHeight = _value} );
+                this.observe(_context.keepOriginals, (_value) => { this.keepOriginals = _value} );
+                this.observe(_context.ignoreKeyword, (_value) => { this.ignoreKeyword = _value} );
+                this.observe(_context.removeDateTime, (_value) => { this.removeDateTime = _value} );
+                this.observe(_context.removeCameraInfo, (_value) => { this.removeCameraInfo = _value} );
+                this.observe(_context.removeGpsInfo, (_value) => { this.removeGpsInfo = _value} );
+                this.observe(_context.removeShootingSituationInfo, (_value) => { this.removeShootingSituationInfo = _value} );
+                this.observe(_context.metaRemoverEnabled, (_value) => { this.metaRemoverEnabled = _value; } );
+                this.observe(_context.metaTagsToRemove, (_value) => { this.selectedTags = _value; } );
+                this.observe(_context.removeXmpProfile, (_value) => { this.removeXmpProfile = _value; } );
+                this.observe(_context.removeIptcProfile, (_value) => { this.removeIptcProfile = _value; } );
+            }
         });
       
     }

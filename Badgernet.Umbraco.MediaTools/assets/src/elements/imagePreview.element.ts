@@ -57,8 +57,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         loadingPopup.openPopup("Loading preview...");
         
         const imgInfoResponse = await this.#context.getMediaInfo({mediaId: imageId});
-        if(!imgInfoResponse.data) return;
-        this.imageInfo = imgInfoResponse.data;
+        if(!imgInfoResponse) return;
+        this.imageInfo = imgInfoResponse as ImageMediaDto;
 
         const scaleWidth = this.maxWidth / this.imageInfo.width;
         const scaleHeight = this.maxHeight / this.imageInfo.height;
@@ -96,7 +96,7 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         const response = await this.#context?.getMediaMetadata(request);
 
         if(response && !response.error){
-            this.imageMetaData = response.data as GetMetadataResponse;
+            this.imageMetaData = response as GetMetadataResponse;
         }
     }
     

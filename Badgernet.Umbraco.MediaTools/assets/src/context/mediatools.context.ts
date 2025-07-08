@@ -282,7 +282,7 @@ export class MediaToolsContext extends UmbControllerBase {
     }
 
     async searchMedia(requestData: SearchMediaData){
-        const responseData = (await this.#repository.searchMedia(requestData));
+        const responseData = await this.#repository.searchMedia(requestData);
 
         if(responseData){
             return responseData;
@@ -290,7 +290,7 @@ export class MediaToolsContext extends UmbControllerBase {
     }
 
     async processImage(requestData: ProcessImagesData){
-        const responseData = (await this.#repository.processImage(requestData));
+        const responseData = await this.#repository.processImage(requestData);
 
         if(responseData){
             return responseData;
