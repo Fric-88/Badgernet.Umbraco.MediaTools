@@ -134,7 +134,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     if(images[i].id === updatedImage.id){
                         this.itemsList.replace(images[i], updatedImage);
                         this.requestUpdate(); //Redraw list 
-                        break; //Exit after first hit
+                        break; //Exit after the first hit
                     }
                 }
             }
@@ -277,7 +277,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                         const response = await this.#mediaToolsContext?.processImage(requestData);
 
                         if (response) {
-                            const operationResponse = response.data as OperationResponse;
+                            const operationResponse = response as OperationResponse;
 
                             if (operationResponse) {
                                 if (operationResponse.status === "Warning") {
@@ -319,8 +319,6 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     target.processButtonState = undefined;
                     target.trashButtonEnabled = true;
                     target.downloadButtonEnabled = true;
-
-
                 }
             }
         }
@@ -375,7 +373,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
             const response = await this.#mediaToolsContext?.trashMedia({requestBody: [imgId]});
 
             if(response) {
-                let responseData = response.data as OperationResponse;
+                let responseData = response as OperationResponse;
                 if (responseData) {
                     const trashedIds = responseData.payload as Array<number>;
 
@@ -420,7 +418,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
 
                 if(response){
-                    let responseData = response.data;
+                    let responseData = response as OperationResponse;
+                    
                     if(responseData){
 
                         const trashedIds = responseData.payload as Array<number>;
@@ -474,7 +473,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     if(response){
 
                         try{
-                            const blob = response.data as Blob;
+                            const blob = response as Blob;
                             // Create a download link for the Blob
                             const downloadUrl: string = window.URL.createObjectURL(blob);
                             const a: HTMLAnchorElement = document.createElement('a');

@@ -40,7 +40,6 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     
     #context?: MediatoolsContext;
     @state() dialogTemplate!: TemplateResult;
-    
     @state() globalTargetWidth?: number;
     @state() globalTargetHeight?: number;
     @state() globalResizerEnabled?: boolean;
@@ -130,10 +129,6 @@ export class ResizerFolderDialog extends UmbElementMixin(LitElement) {
     
     // Save changes and exit
     async #saveAndCloseDialog(){
-        
-        this.unsavedFolderOverrides.map(item => 
-            console.log(item.key, item.targetWidth, item.targetHeight, item.resizerEnabled)
-        );
         
         if(this.#context){
             this.#context.resizerFolderOverrides = this.unsavedFolderOverrides;

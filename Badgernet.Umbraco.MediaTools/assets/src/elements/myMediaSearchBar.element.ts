@@ -29,7 +29,6 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
                 this.observe(_context.mediaFoldersOptions, (_value) => { this.mediaFolderOptions = _value; });    
             }
         });
-
     }
 
     connectedCallback(): void {

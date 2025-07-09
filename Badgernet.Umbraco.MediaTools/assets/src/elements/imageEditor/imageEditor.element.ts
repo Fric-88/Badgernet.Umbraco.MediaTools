@@ -4,7 +4,7 @@ import "./imageEditorToolsPanel.ts"
 import {Canvas} from "./canvas.ts";
 import ImageEditorTools, {SliderValues} from "./imageEditorToolsPanel.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
-import {ReplaceImageData} from "../../api";
+import {OperationResponse, ReplaceImageData} from "../../api";
 import SaveImageDialog, {SavingMethod} from "./saveImageDialog.element.ts";
 import "./saveImageDialog.element.ts"
 import {UUIToastNotificationContainerElement, UUIToastNotificationElement} from "@umbraco-cms/backoffice/external/uui";
@@ -68,7 +68,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         window.removeEventListener('resize',() => this.resizeCanvas());
     }
 
-    //Resizing the canvas element when window size changes
+    //Resizing the canvas element when the window size changes
     private resizeCanvas(){
         
         const dpr = window.devicePixelRatio || 1; 
@@ -143,7 +143,7 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         loadingPopup.closePopup();
         
         if(response){
-            let responseData = response.data;
+            let responseData = response as OperationResponse
             if(responseData){
                 switch (responseData.status){
                     case "Success":
