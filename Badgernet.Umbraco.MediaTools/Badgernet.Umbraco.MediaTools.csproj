@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Folder-by-Folder resizer settings </PackageReleaseNotes> 
+    <PackageReleaseNotes>Update to Umbraco V16</PackageReleaseNotes> 
 
   </PropertyGroup>
 

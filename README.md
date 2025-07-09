@@ -46,10 +46,16 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+ 
 
-#### 16.0.0 (Umbraco 16)
+#### 16.0.0
 - Bumped up versions to work with Umbraco 16
 
+---
+### Important Versioning Change
+#### Starting with version 16.0.0, the first number in the package version (e.g., "16.x.x") will indicate the compatible Umbraco version.
+
+---
 #### 1.1.2 (Umbraco 15)
 - Resizer settings configurable per folder
 - Minor UI improvements
