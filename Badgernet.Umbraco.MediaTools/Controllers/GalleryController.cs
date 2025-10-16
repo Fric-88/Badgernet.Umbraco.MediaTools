@@ -313,7 +313,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
                     if (writtenToDisk)
                     {
-                        //Save processed media back to database
+                        //Save processed media back to the database
                         mediaHelper.SaveMedia(imageMedia);
 
                         try

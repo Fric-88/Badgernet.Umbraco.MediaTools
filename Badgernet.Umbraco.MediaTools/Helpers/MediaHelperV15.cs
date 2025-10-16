@@ -268,6 +268,11 @@ public class MediaHelperV15(
     {
         mediaService.Save(media);
     }
+    
+    public void SaveMedia(IEnumerable<IMedia> media)
+    {
+        mediaService.Save(media);
+    }
 
     public void TrashMedia(int mediaId)
     {

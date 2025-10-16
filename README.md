@@ -46,6 +46,9 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+
+#### 16.0.1
+- Fixed issues with mssql when uploading images in bulk
  
 
 #### 16.0.0

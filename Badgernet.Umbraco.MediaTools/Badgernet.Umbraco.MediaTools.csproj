@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>16.0.0</Version>
+    <Version>16.0.1</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Update to Umbraco V16</PackageReleaseNotes> 
+    <PackageReleaseNotes>Processing bulk fix for deadlocks</PackageReleaseNotes> 
 
   </PropertyGroup>
 
@@ -34,7 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Umbraco.Cms" Version="[16, 17)" />
+    <PackageReference Include="Umbraco.Cms" Version="16.0.0" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Badgernet.Umbraco.MediaTools.Helpers;
 using Badgernet.Umbraco.MediaTools.Models;
 using Badgernet.Umbraco.MediaTools.Services.FileManager;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using Umbraco.Cms.Core.Events;
+using Umbraco.Cms.Core.Models.Entities;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Security;
@@ -18,7 +20,7 @@ using Size = SixLabors.ImageSharp.Size;
 namespace Badgernet.Umbraco.MediaTools.Handlers;
 
 
-public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotification>
+public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotification>
     {
         private const int MAX_WIDTH = 10000;
         private const int MIN_WIDTH = 1;
@@ -46,7 +48,6 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             IBackOfficeSecurityAccessor backOfficeSecurity)
         {
 
-            
             _settingsService = settingsService;
             _mediaHelper = mediaHelper;
             _imageProcessor = imageProcessor;
@@ -57,9 +58,10 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
             _backOfficeSecurity = backOfficeSecurity ?? throw new ArgumentNullException(nameof(backOfficeSecurity));
         }
 
-        public void Handle(MediaSavingNotification notification)
+        public void Handle(MediaSavedNotification notification)
         {
-            //Try to get current backoffice user, bail if none found
+
+            //Try to get the current backoffice user, bail if none found
             var user = _backOfficeSecurity.BackOfficeSecurity?.CurrentUser;
             if(user == null) return;
 
@@ -83,19 +85,22 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
 
             
             using var imageStream = new MemoryStream();
-
-            foreach(var media in notification.SavedEntities)
+            
+            foreach (var media in notification.SavedEntities)
             {
                 //Re-read settings because they might get overwritten (settings for folders)
                 var resizingEnabled = settings.Resizer.Enabled;
                 var convertingEnabled = settings.Converter.Enabled;
-                
+
                 //Skip if not an image
-                if (string.IsNullOrEmpty(media.ContentType.Alias) || !media.ContentType.Alias.Equals("image", StringComparison.CurrentCultureIgnoreCase)) continue;  
-                
+                if (string.IsNullOrEmpty(media.ContentType.Alias) ||
+                    !media.ContentType.Alias.Equals("image", StringComparison.CurrentCultureIgnoreCase)) continue;
+
                 //Skip any not-new images
-                if (media.Id > 0) continue;
-                
+                IRememberBeingDirty dirty = media;
+                if(!dirty.WasPropertyDirty("Id")) continue;
+
+
                 var originalPath = _mediaHelper.GetRelativePath(media);
                 var tempSavingPath = _fileManager.GetFreePath(originalPath);
                 Size originalResolution = new();
@@ -103,14 +108,12 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 //Skip if paths not good
                 if (string.IsNullOrEmpty(originalPath) || string.IsNullOrEmpty(tempSavingPath)) continue;
 
-                //Skip if image name contains "ignoreKeyword"
-                if (Path.GetFileNameWithoutExtension(originalPath).Contains(ignoreKeyword,StringComparison.CurrentCultureIgnoreCase)) 
+                //Skip if the image name contains "ignoreKeyword"
+                if (Path.GetFileNameWithoutExtension(originalPath)
+                    .Contains(ignoreKeyword, StringComparison.CurrentCultureIgnoreCase))
                 {
                     continue;
                 }
-                
-                using var scope = _scopeProvider.CreateCoreScope(autoComplete: true);
-                using var _ = scope.Notifications.Suppress();
 
                 //Read resolution      
                 try
@@ -120,14 +123,15 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 }
                 catch
                 {
-                    continue; //Skip if resolution cannot be parsed 
+                    continue; //Skip if the resolution cannot be parsed 
                 }
-                
+
                 //Read user resizer folder settings
                 var parentFolder = _mediaHelper.GetMediaById(media.ParentId);
                 if (parentFolder is { ContentType.Alias: "Folder" })
                 {
-                    var folderSetting = settings.Resizer.FolderOverrides.SingleOrDefault(x => x.Key == parentFolder.Key);
+                    var folderSetting =
+                        settings.Resizer.FolderOverrides.SingleOrDefault(x => x.Key == parentFolder.Key);
                     if (folderSetting != null)
                     {
                         targetHeight = Math.Clamp(folderSetting.TargetHeight, MIN_WIDTH, MAX_WIDTH);
@@ -135,26 +139,26 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         resizingEnabled = folderSetting.ResizerEnabled;
                     }
                 }
-                
-                
+
+
                 //Override user settings resolution if provided in image filename
                 var parsedTargetSize = ParseSizeFromFilename(Path.GetFileNameWithoutExtension(originalPath));
-                if(parsedTargetSize != null)
+                if (parsedTargetSize != null)
                 {
                     targetWidth = parsedTargetSize.Value.Width;
                     targetHeight = parsedTargetSize.Value.Height;
                 }
-                
-                
+
+
                 //Reset stream and read new image
                 var fileReadSuccess = _fileManager.ReadToStream(originalPath, imageStream, true);
-                if(!fileReadSuccess) 
+                if (!fileReadSuccess)
                 {
                     _logger.LogError("Could not read file: {originalFilepath}", originalPath);
                     continue;
                 }
-                
-                //Load image from stream
+
+                //Load image from the stream
                 using var image = Image.Load(imageStream);
 
 
@@ -163,8 +167,9 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
 
                 //Image resizing part
                 var wasResizedFlag = false;
-                var needsDownsizing = originalResolution.Width > targetWidth || originalResolution.Height > targetHeight;
-                if(needsDownsizing && resizingEnabled)
+                var needsDownsizing = originalResolution.Width > targetWidth ||
+                                      originalResolution.Height > targetHeight;
+                if (needsDownsizing && resizingEnabled)
                 {
                     var targetResolution = new Size(targetWidth, targetHeight);
                     var resolution = _imageProcessor.CalculateResolution(originalResolution, targetResolution);
@@ -178,17 +183,17 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                     }
                     else
                     {
-                        _logger.LogError("Could not resize image {originalFilepath}",originalPath);
+                        _logger.LogError("Could not resize image {originalFilepath}", originalPath);
                     }
                 }
 
                 //Image converting part
                 var wasConvertedFlag = false;
-                if(convertingEnabled && !originalPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
+                if (convertingEnabled && !originalPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase))
                 {
                     var convertingSuccess = _imageProcessor.ConvertToWebp(image, convertMode, convertQuality);
 
-                    if(convertingSuccess)
+                    if (convertingSuccess)
                     {
                         var pathWithOldExtension = tempSavingPath;
                         tempSavingPath = Path.ChangeExtension(tempSavingPath, ".webp");
@@ -198,16 +203,16 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         finalSavingPath = tempSavingPath;
                         wasConvertedFlag = true;
                     }
-                    
+
                 }
-                
+
                 //Metadata remover part
                 var metadataProcessedFlag = false;
                 if (settings.MetadataRemover.Enabled)
                 {
                     //Orient image beforehand, in case of deletion of the "Orientation" Tag. 
                     image.Mutate(img => img.AutoOrient());
-                    
+
                     //Remove entire profiles
                     if (settings.MetadataRemover.RemoveXmpProfile)
                         image.Metadata.XmpProfile = null;
@@ -223,7 +228,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                         _metadataProcessor.RemoveExifGpsTags(image);
                     if (settings.MetadataRemover.RemoveShootingSituationInfo)
                         _metadataProcessor.RemoveExifSettingTags(image);
-                    
+
                     //Remove single exif tags
                     var tagsToRemove = settings.MetadataRemover.MetadataTagsToRemove.ToList();
                     foreach (var tagName in tagsToRemove)
@@ -242,10 +247,10 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
                 }
 
                 //Finally writing modified image back to file
-                if(wasConvertedFlag || wasResizedFlag || metadataProcessedFlag)
+                if (wasConvertedFlag || wasResizedFlag || metadataProcessedFlag)
                 {
                     var encoder = _imageProcessor.GetEncoder(finalSavingPath);
-                   
+
                     imageStream.Position = 0;
                     imageStream.SetLength(0);
 
@@ -254,14 +259,19 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavingNotificat
 
                     //Adjust media properties
                     var newFilename = Path.GetFileNameWithoutExtension(finalSavingPath);
-                    var newExtension = Path.GetExtension(finalSavingPath); 
-                        
-                    _mediaHelper.SetUmbBytes(media,imageStream.Length);
+                    var newExtension = Path.GetExtension(finalSavingPath);
+
+                    _mediaHelper.SetUmbBytes(media, imageStream.Length);
                     _mediaHelper.SetUmbFilename(media, newFilename);
                     _mediaHelper.SetUmbExtension(media, "." + newExtension);
                     _mediaHelper.SetUmbResolution(media, newResolution);
-                } 
-                
+                    
+                    //Saving modified media entity to the database 
+                    using var scope = _scopeProvider.CreateCoreScope(autoComplete:true);
+                    _mediaHelper.SaveMedia(media);
+                    scope.Complete();
+                }
+
                 //Deleting original files
                 if (!keepOriginals && wasResizedFlag || wasConvertedFlag || metadataProcessedFlag)
                 {

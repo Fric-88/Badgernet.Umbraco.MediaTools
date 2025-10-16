@@ -16,6 +16,7 @@ public interface IMediaHelper
         IEnumerable<IPublishedContent> GetMediaByType(string type);
         IEnumerable<ImageMediaDto> GetMediaDtoByType(string type);
         void SaveMedia(IMedia media);
+        void SaveMedia(IEnumerable<IMedia> media);
         void TrashMedia(int mediaId);
         bool RenameMedia(IMedia media, string newName);
         string GetRelativePath(IMedia media);

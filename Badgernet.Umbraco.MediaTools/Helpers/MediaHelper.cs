@@ -56,20 +56,15 @@ public class MediaHelper(
         var mediaRoot = context.Media?.GetAtRoot() ?? [];
         return mediaRoot.DescendantsOrSelf<IPublishedContent>();
     }
-    
-
-
     public IMedia? GetMediaById(int id)
     {
         return mediaService.GetById(id);
     }
-
     public IEnumerable<IMedia> GetMediaByIds(int[] ids)
     {
         var medias = mediaService.GetByIds(ids);
         return medias; 
     }
-        
     public IEnumerable<IPublishedContent> GetMediaByType(string type)
     {
         return GetAllMedia().OfTypes(type);
@@ -249,6 +244,11 @@ public class MediaHelper(
     public void SaveMedia(IMedia media)
     {
         mediaService.Save(media);
+    }
+
+    public void SaveMedia(IEnumerable<IMedia> media)
+    {
+        mediaService.Save(media);       
     }
 
     public void TrashMedia(int mediaId)
