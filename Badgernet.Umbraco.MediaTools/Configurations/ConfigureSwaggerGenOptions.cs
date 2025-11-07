@@ -6,9 +6,9 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 namespace Badgernet.Umbraco.MediaTools.Configurations;
 
 internal class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
-
 {
-    public void Configure(SwaggerGenOptions options){
+    public void Configure(SwaggerGenOptions options)
+    {
         options.SwaggerDoc(
             "mediatools",
             new OpenApiInfo
@@ -18,12 +18,8 @@ internal class ConfigureSwaggerGenOptions : IConfigureOptions<SwaggerGenOptions>
                 Description = "Automatic media resizing and converting"
             });
 
-        
-
-        // sets the operation Ids to be the same as the action
-        // so it loses all the v1... bits to the names.
-        options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["action"]}");
+        // Add our scoped operation-id logic:
+        options.OperationFilter<MediaToolsOperationIdFilter>();
     }
-
 }
 
