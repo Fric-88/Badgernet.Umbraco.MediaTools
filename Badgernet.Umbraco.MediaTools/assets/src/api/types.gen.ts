@@ -39,8 +39,8 @@ export type ImageMetadataDto = {
     horizontalResolution: number;
     decodedImageFormat: string;
     resolutionUnits: string;
-    exifTags: Array<(ParsedTag)>;
-    iptcTags: Array<(ParsedTag)>;
+    exifTags: Array<ParsedTag>;
+    iptcTags: Array<ParsedTag>;
     xmpProfile: string;
 };
 
@@ -58,7 +58,7 @@ export type MetadataRemoverSettings = {
     removeShootingSituationInfo: boolean;
     removeXmpProfile: boolean;
     removeIptcProfile: boolean;
-    metadataTagsToRemove: Array<(string)>;
+    metadataTagsToRemove: Array<string>;
 };
 
 export type NotificationHeaderModel = {
@@ -79,7 +79,7 @@ export type ParsedTag = {
 };
 
 export type ProcessImagesDto = {
-    ids: Array<(number)>;
+    ids: Array<number>;
     resize: boolean;
     convert: boolean;
     resizeMode: ResizeMode;
@@ -103,7 +103,7 @@ export type ResizerSettings = {
     ignoreAspectRatio: boolean;
     targetWidth: number;
     targetHeight: number;
-    folderOverrides: Array<(ResizerFolderOverride)>;
+    folderOverrides: Array<ResizerFolderOverride>;
 };
 
 export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';
@@ -118,208 +118,231 @@ export type UserSettingsDto = {
 };
 
 export type DownloadMediaData = {
-    requestBody?: Array<(number)>;
+    body?: Array<number>;
+    path?: never;
+    query?: never;
+    url: '/gallery/download-media';
 };
 
-export type DownloadMediaResponse = (Blob | File);
+export type DownloadMediaResponses = {
+    /**
+     * OK
+     */
+    200: Blob | File;
+};
 
-export type GetMediaFoldersResponse = Array<(MediaFolderDto)>;
+export type DownloadMediaResponse = DownloadMediaResponses[keyof DownloadMediaResponses];
+
+export type GetMediaFoldersData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/gallery/get-media-folders';
+};
+
+export type GetMediaFoldersResponses = {
+    /**
+     * OK
+     */
+    200: Array<MediaFolderDto>;
+};
+
+export type GetMediaFoldersResponse = GetMediaFoldersResponses[keyof GetMediaFoldersResponses];
 
 export type GetMediaInfoData = {
-    mediaId?: number;
+    body?: never;
+    path?: never;
+    query?: {
+        mediaId?: number;
+    };
+    url: '/gallery/get-media-info';
 };
 
-export type GetMediaInfoResponse = ImageMediaDto;
+export type GetMediaInfoErrors = {
+    /**
+     * Bad Request
+     */
+    400: ImageMediaDto;
+};
+
+export type GetMediaInfoError = GetMediaInfoErrors[keyof GetMediaInfoErrors];
+
+export type GetMediaInfoResponses = {
+    /**
+     * OK
+     */
+    200: ImageMediaDto;
+};
+
+export type GetMediaInfoResponse = GetMediaInfoResponses[keyof GetMediaInfoResponses];
 
 export type GetMetadataData = {
-    id?: number;
+    body?: never;
+    path?: never;
+    query?: {
+        id?: number;
+    };
+    url: '/gallery/get-metadata';
 };
 
-export type GetMetadataResponse = ImageMetadataDto;
+export type GetMetadataResponses = {
+    /**
+     * OK
+     */
+    200: ImageMetadataDto;
+};
+
+export type GetMetadataResponse = GetMetadataResponses[keyof GetMetadataResponses];
 
 export type ProcessImagesData = {
-    requestBody?: ProcessImagesDto;
+    body?: ProcessImagesDto;
+    path?: never;
+    query?: never;
+    url: '/gallery/process-images';
 };
 
-export type ProcessImagesResponse = OperationResponse;
+export type ProcessImagesErrors = {
+    /**
+     * Bad Request
+     */
+    400: OperationResponse;
+};
+
+export type ProcessImagesError = ProcessImagesErrors[keyof ProcessImagesErrors];
+
+export type ProcessImagesResponses = {
+    /**
+     * OK
+     */
+    200: OperationResponse;
+};
+
+export type ProcessImagesResponse = ProcessImagesResponses[keyof ProcessImagesResponses];
 
 export type RenameMediaData = {
-    mediaId?: number;
-    newName?: string;
+    body?: never;
+    path?: never;
+    query?: {
+        mediaId?: number;
+        newName?: string;
+    };
+    url: '/gallery/rename-media';
 };
 
-export type RenameMediaResponse = OperationResponse;
+export type RenameMediaErrors = {
+    /**
+     * Bad Request
+     */
+    400: OperationResponse;
+};
+
+export type RenameMediaError = RenameMediaErrors[keyof RenameMediaErrors];
+
+export type RenameMediaResponses = {
+    /**
+     * OK
+     */
+    200: OperationResponse;
+};
+
+export type RenameMediaResponse = RenameMediaResponses[keyof RenameMediaResponses];
 
 export type ReplaceImageData = {
-    formData?: {
-        imageFile?: (Blob | File);
+    body?: {
+        imageFile?: Blob | File;
     };
-    id?: number;
-    saveAs?: string;
+    path?: never;
+    query?: {
+        id?: number;
+        saveAs?: string;
+    };
+    url: '/gallery/replace-image';
 };
 
-export type ReplaceImageResponse = OperationResponse;
+export type ReplaceImageErrors = {
+    /**
+     * Bad Request
+     */
+    400: OperationResponse;
+};
+
+export type ReplaceImageError = ReplaceImageErrors[keyof ReplaceImageErrors];
+
+export type ReplaceImageResponses = {
+    /**
+     * OK
+     */
+    200: OperationResponse;
+};
+
+export type ReplaceImageResponse = ReplaceImageResponses[keyof ReplaceImageResponses];
 
 export type SearchMediaData = {
-    requestBody?: FilterImagesDto;
+    body?: FilterImagesDto;
+    path?: never;
+    query?: never;
+    url: '/gallery/search-media';
 };
 
-export type SearchMediaResponse = Array<(ImageMediaDto)>;
+export type SearchMediaResponses = {
+    /**
+     * OK
+     */
+    200: Array<ImageMediaDto>;
+};
+
+export type SearchMediaResponse = SearchMediaResponses[keyof SearchMediaResponses];
 
 export type TrashMediaData = {
-    requestBody?: Array<(number)>;
+    body?: Array<number>;
+    path?: never;
+    query?: never;
+    url: '/gallery/trash-media';
 };
 
-export type TrashMediaResponse = OperationResponse;
+export type TrashMediaResponses = {
+    /**
+     * OK
+     */
+    200: OperationResponse;
+};
+
+export type TrashMediaResponse = TrashMediaResponses[keyof TrashMediaResponses];
 
 export type GetSettingsData = {
-    userKey?: string;
+    body?: never;
+    path?: never;
+    query?: {
+        userKey?: string;
+    };
+    url: '/settings/get-settings';
 };
 
-export type GetSettingsResponse = UserSettingsDto;
+export type GetSettingsResponses = {
+    /**
+     * OK
+     */
+    200: UserSettingsDto;
+};
+
+export type GetSettingsResponse = GetSettingsResponses[keyof GetSettingsResponses];
 
 export type SetSettingsData = {
-    requestBody?: UserSettingsDto;
-    userKey?: string;
+    body?: UserSettingsDto;
+    path?: never;
+    query?: {
+        userKey?: string;
+    };
+    url: '/settings/set-settings';
 };
 
-export type SetSettingsResponse = string;
+export type SetSettingsResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
-export type $OpenApiTs = {
-    '/gallery/download-media': {
-        post: {
-            req: DownloadMediaData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: (Blob | File);
-            };
-        };
-    };
-    '/gallery/get-media-folders': {
-        get: {
-            res: {
-                /**
-                 * OK
-                 */
-                200: Array<(MediaFolderDto)>;
-            };
-        };
-    };
-    '/gallery/get-media-info': {
-        get: {
-            req: GetMediaInfoData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: ImageMediaDto;
-                /**
-                 * Bad Request
-                 */
-                400: ImageMediaDto;
-            };
-        };
-    };
-    '/gallery/get-metadata': {
-        get: {
-            req: GetMetadataData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: ImageMetadataDto;
-            };
-        };
-    };
-    '/gallery/process-images': {
-        post: {
-            req: ProcessImagesData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: OperationResponse;
-                /**
-                 * Bad Request
-                 */
-                400: OperationResponse;
-            };
-        };
-    };
-    '/gallery/rename-media': {
-        post: {
-            req: RenameMediaData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: OperationResponse;
-                /**
-                 * Bad Request
-                 */
-                400: OperationResponse;
-            };
-        };
-    };
-    '/gallery/replace-image': {
-        post: {
-            req: ReplaceImageData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: OperationResponse;
-                /**
-                 * Bad Request
-                 */
-                400: OperationResponse;
-            };
-        };
-    };
-    '/gallery/search-media': {
-        post: {
-            req: SearchMediaData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: Array<(ImageMediaDto)>;
-            };
-        };
-    };
-    '/gallery/trash-media': {
-        post: {
-            req: TrashMediaData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: OperationResponse;
-            };
-        };
-    };
-    '/settings/get-settings': {
-        get: {
-            req: GetSettingsData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: UserSettingsDto;
-            };
-        };
-    };
-    '/settings/set-settings': {
-        post: {
-            req: SetSettingsData;
-            res: {
-                /**
-                 * OK
-                 */
-                200: string;
-            };
-        };
-    };
+export type ClientOptions = {
+    baseUrl: 'http://localhost:2812' | (string & {});
 };

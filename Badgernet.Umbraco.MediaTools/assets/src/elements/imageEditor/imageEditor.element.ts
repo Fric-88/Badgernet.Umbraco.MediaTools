@@ -134,9 +134,14 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         const preferredExtension = e.detail as SavingMethod;
         
         const request: ReplaceImageData = {
-            id: this.imgId,
-            formData:  { imageFile: imgFile },
-            saveAs: preferredExtension
+            query: {
+                id: this.imgId,
+                saveAs: preferredExtension
+            },
+            body: {
+                imageFile: imgFile,
+            },
+            url: "/gallery/replace-image"
         }
         let response =  await this.#mediaToolsContext?.replaceImage(request);
 

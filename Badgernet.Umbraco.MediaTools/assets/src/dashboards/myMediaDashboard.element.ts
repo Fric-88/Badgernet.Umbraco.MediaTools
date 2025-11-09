@@ -198,8 +198,12 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         dialog.showModal(image.name, async () => {
 
             const requestData: RenameMediaData = {
-                mediaId: image.id,
-                newName: dialog.mediaName
+                query:{
+                    mediaId: image.id,
+                    newName: dialog.mediaName
+                },
+                url: "/gallery/rename-media"
+                
             }
 
             const response = await this.#mediaToolsContext?.renameMedia(requestData);
@@ -261,7 +265,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     const selectedItems = this.itemsList.getSelectedItems();
 
                     let requestData: ProcessImagesData = {
-                        requestBody: {
+                        body: {
                             ids: selectedItems.map((item) => item.id),
                             resize: settings.resize,
                             resizeMode: settings.resizeMode,
@@ -270,7 +274,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                             convert: settings.convert,
                             convertMode: settings.convertMode,
                             convertQuality: settings.convertQuality
-                        }
+                        },
+                        url: "/gallery/process-images"
                     }
 
                     try {

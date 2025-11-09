@@ -100,14 +100,15 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
     private findButtonClick(){
 
         let filterRequest: SearchMediaData = {
-            requestBody: {
+            body: {
                 folderName: this.selectedFolder,
                 width: this.width,
                 height: this.height,
                 nameLike: this.nameFilter,
                 extensionLike: this.extensionFilter,
                 sizeFilter: this.resolutionFilter
-            }
+            },
+            url: "/gallery/search-media"
         }
 
         const event = new CustomEvent("find-button-click",{

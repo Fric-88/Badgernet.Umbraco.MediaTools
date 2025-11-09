@@ -1,6 +1,6 @@
-﻿import type { ManifestDashboard } from "@umbraco-cms/backoffice/extension-registry";
+﻿
 
-const dashboards: Array<ManifestDashboard> = [
+const dashboards: Array<UmbExtensionManifest> = [
     {
         type: 'dashboard',
         name: 'Badgernet.Umbraco.MediaTools',

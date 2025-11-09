@@ -14,7 +14,11 @@ import {
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
-import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
+import {
+    UMB_CURRENT_USER_CONTEXT,
+    UmbCurrentUserContext,
+    UmbCurrentUserModel
+} from "@umbraco-cms/backoffice/current-user";
 
 export class MediaToolsContext extends UmbControllerBase {
 
@@ -180,7 +184,8 @@ export class MediaToolsContext extends UmbControllerBase {
         });
     }
 
-    private async _observeCurrentUser(instance: typeof UMB_CURRENT_USER_CONTEXT.TYPE) {
+    private async _observeCurrentUser(instance: UmbCurrentUserContext | undefined) {
+        if(instance === undefined) return;
         this.observe(instance.currentUser, (currentUser) => {
             this.#currentUser = currentUser;
         });
@@ -191,7 +196,10 @@ export class MediaToolsContext extends UmbControllerBase {
         if(!this.#currentUser) return null;
 
         const reqData: GetSettingsData = {
-            userKey: this.#currentUser.unique
+            query: {
+                userKey: this.#currentUser.unique
+            },
+            url: "/settings/get-settings"
         }
 
         const responseData = (await this.#repository.fetchSettings(reqData)) as UserSettingsDto;
@@ -255,8 +263,11 @@ export class MediaToolsContext extends UmbControllerBase {
 
         //Build request data
         const reqData: SetSettingsData = {
-            userKey: this.#currentUser.unique,
-            requestBody: settings
+            query: {
+                userKey: this.#currentUser.unique
+            },
+            body: settings,
+            url: "/settings/set-settings"
         }
 
         //Send setting to server

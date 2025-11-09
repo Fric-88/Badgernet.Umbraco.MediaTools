@@ -92,7 +92,13 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
     }
     
     async #loadMetadata(imageId:number){
-        let request: GetMetadataData = {id: imageId };
+        let request: GetMetadataData = {
+            query: {
+                id: imageId
+            },
+            url: "/gallery/get-metadata"
+             
+        };
         const response = await this.#context?.getMediaMetadata(request);
 
         if(response && !response.error){
