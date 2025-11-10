@@ -193,9 +193,12 @@ export class MediaToolsContext extends UmbControllerBase {
 
         if(!this.#currentUser) return null;
         const userKey = this.#currentUser.unique;
-        const responseData = (await this.#repository.fetchSettings(userKey)) as UserSettingsDto;
+        const response = await this.#repository.fetchSettings(userKey) 
+       
 
-        if(responseData) {
+        if(response) {
+            const responseData = response.data as UserSettingsDto;
+            
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
             this.#converterEnabled.setValue(responseData.converter.enabled);
             this.#convertMode.setValue(responseData.converter.convertMode);

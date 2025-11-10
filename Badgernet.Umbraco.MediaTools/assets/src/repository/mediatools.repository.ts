@@ -28,7 +28,8 @@ export class MediaToolsRepository extends UmbControllerBase {
             },
             url: "/settings/get-settings"
             
-        }  
+        }
+        
         return this.#datasource.fetchSettings(requestData);
     }
     async saveSettings(userKey?: string, userSettings?: UserSettingsDto){

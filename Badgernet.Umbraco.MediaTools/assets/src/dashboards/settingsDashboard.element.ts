@@ -95,7 +95,8 @@ export class SettingsDashboard extends UmbElementMixin(LitElement) {
     //Read setting from a file on the server
     private async loadSettings(){
 
-        await this.#mediaToolsContext?.fetchUserSettings().catch(()=>{ 
+        await this.#mediaToolsContext?.fetchUserSettings().catch((error)=>{ 
+            console.error(error);
             this.#showToastNotification("Oops", "Something went wrong","danger");
         });
       

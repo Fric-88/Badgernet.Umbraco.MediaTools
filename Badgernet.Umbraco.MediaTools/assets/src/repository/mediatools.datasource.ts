@@ -1,6 +1,8 @@
 import { UmbControllerHost } from "@umbraco-cms/backoffice/controller-api";
 import { UmbDataSourceResponse  } from "@umbraco-cms/backoffice/repository";
-import {tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
+import {tryExecuteAndNotify, tryExecute } from '@umbraco-cms/backoffice/resources';
+
+ 
 import {
     getSettings,
     setSettings,
@@ -39,42 +41,46 @@ import {
 export class MediaToolsManagementDataSource {
 
     #host: UmbControllerHost;
+    
+    
+    
 
     constructor(host: UmbControllerHost) {
         this.#host = host;
     }
     async fetchSettings(requestData: GetSettingsData): Promise<UmbDataSourceResponse<UserSettingsDto>> {
-        return await tryExecuteAndNotify(this.#host, getSettings(requestData));
+      
+        return await tryExecute(this.#host, getSettings(requestData)) 
     }
     async saveSettings(requestData: SetSettingsData): Promise<UmbDataSourceResponse<unknown>> {
-        return await tryExecuteAndNotify(this.#host, setSettings(requestData));
+        return await tryExecute(this.#host, setSettings(requestData));
     }
     async listFolders(): Promise<UmbDataSourceResponse<GetMediaFoldersResponse>>{
-        return await tryExecuteAndNotify(this.#host, getMediaFolders());
+        return await tryExecute(this.#host, getMediaFolders());
     }
     async searchMedia(requestData: SearchMediaData ): Promise<UmbDataSourceResponse<ImageMediaDto[]>> {
-        return await tryExecuteAndNotify(this.#host, searchMedia(requestData));
+        return await tryExecute(this.#host, searchMedia(requestData));
     }
     async processImage(requestData: ProcessImagesData): Promise<UmbDataSourceResponse<ProcessImagesResponse>>{
-        return await tryExecuteAndNotify(this.#host, processImages(requestData));
+        return await tryExecute(this.#host, processImages(requestData));
     }
     async trashMedia(requestData: TrashMediaData ): Promise<UmbDataSourceResponse<TrashMediaResponse>>{
-        return await tryExecuteAndNotify(this.#host, trashMedia(requestData));
+        return await tryExecute(this.#host, trashMedia(requestData));
     }
     async downloadMedia(requestData: DownloadMediaData): Promise<UmbDataSourceResponse<DownloadMediaResponse>>{
-        return await tryExecuteAndNotify(this.#host, downloadMedia(requestData));
+        return await tryExecute(this.#host, downloadMedia(requestData));
     }
     async renameMedia(requestData: RenameMediaData): Promise<UmbDataSourceResponse<RenameMediaResponse>> {
-        return await tryExecuteAndNotify(this.#host, renameMedia(requestData));
+        return await tryExecute(this.#host, renameMedia(requestData));
     }
     async replaceImage(requestData: ReplaceImageData): Promise<UmbDataSourceResponse<ReplaceImageResponse>>{
-        return await tryExecuteAndNotify(this.#host, replaceImage(requestData));
+        return await tryExecute(this.#host, replaceImage(requestData));
     }
     async getMediaInfo(requestData: GetMediaInfoData):Promise<UmbDataSourceResponse<GetMediaInfoResponse>>{
-        return await tryExecuteAndNotify(this.#host, getMediaInfo(requestData));
+        return await tryExecute(this.#host, getMediaInfo(requestData));
     }
     async getMediaMetadata(requestData: GetMetadataData ): Promise<UmbDataSourceResponse<GetMetadataResponse>>{
-        return await tryExecuteAndNotify(this.#host, getMetadata(requestData));
+        return await tryExecute(this.#host, getMetadata(requestData));
     }
 
     

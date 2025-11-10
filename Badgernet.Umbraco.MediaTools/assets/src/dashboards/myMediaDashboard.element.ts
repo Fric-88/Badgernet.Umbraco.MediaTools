@@ -133,7 +133,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         const response = await this.#mediaToolsContext?.getMediaInfo(imageId);
 
         if(response && !response.error){
-            const updatedImage = response as ImageMediaDto;
+            const updatedImage = response.data as ImageMediaDto;
             
             const images = this.itemsList.getPage(this.currentPage);
             if(images.length > 0 ){
