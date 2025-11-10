@@ -1,10 +1,10 @@
-import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
-import {LitElement, html, css, customElement, query, state, property } from "@umbraco-cms/backoffice/external/lit";
+import {UmbElementMixin} from "@umbraco-cms/backoffice/element-api";
+import {css, customElement, html, LitElement, property, query} from "@umbraco-cms/backoffice/external/lit";
 import "./imageEditorToolsPanel.ts"
 import {Canvas} from "./canvas.ts";
 import ImageEditorTools, {SliderValues} from "./imageEditorToolsPanel.ts";
 import MediaToolsContext, {MEDIA_TOOLS_CONTEXT_TOKEN} from "../../context/mediatools.context.ts";
-import {OperationResponse, ReplaceImageData} from "../../api";
+import {OperationResponse} from "../../api";
 import SaveImageDialog, {SavingMethod} from "./saveImageDialog.element.ts";
 import "./saveImageDialog.element.ts"
 import {UUIToastNotificationContainerElement, UUIToastNotificationElement} from "@umbraco-cms/backoffice/external/uui";
@@ -132,23 +132,13 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         const imgFile = new File([pngBlob], "editedImage.png", { type: "image/png" });
         
         const preferredExtension = e.detail as SavingMethod;
-        
-        const request: ReplaceImageData = {
-            query: {
-                id: this.imgId,
-                saveAs: preferredExtension
-            },
-            body: {
-                imageFile: imgFile,
-            },
-            url: "/gallery/replace-image"
-        }
-        let response =  await this.#mediaToolsContext?.replaceImage(request);
+        const imageId = this.imgId;
+        let response =  await this.#mediaToolsContext?.replaceImage(imageId, preferredExtension, imgFile);
 
         loadingPopup.closePopup();
         
         if(response){
-            let responseData = response as OperationResponse
+            let responseData = response.data as OperationResponse
             if(responseData){
                 switch (responseData.status){
                     case "Success":

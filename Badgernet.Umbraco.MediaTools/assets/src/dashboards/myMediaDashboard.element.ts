@@ -9,7 +9,14 @@ import {
     UUIToastNotificationContainerElement,
     UUIToastNotificationElement
 } from "@umbraco-cms/backoffice/external/uui";
-import {SearchMediaData, ImageMediaDto, OperationResponse, ProcessImagesData, RenameMediaData} from "../api";
+import {
+    SearchMediaData,
+    ImageMediaDto,
+    OperationResponse,
+    ProcessImagesData,
+    RenameMediaData,
+    FilterImagesDto, ProcessImagesDto
+} from "../api";
 import { SelectablePagedList } from "../code/pagedList";
 import "../elements/myMediaToolsPanel.element.ts";
 import ProcessImagePanel, { ProcessingSettings } from "../elements/myMediaToolsPanel.element.ts";
@@ -123,7 +130,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
         if(!imageId && imageId < 0) return;
 
-        const response = await this.#mediaToolsContext?.getMediaInfo({mediaId: imageId});
+        const response = await this.#mediaToolsContext?.getMediaInfo(imageId);
 
         if(response && !response.error){
             const updatedImage = response as ImageMediaDto;
@@ -162,11 +169,11 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
             try{
 
-                const requestData = e.detail as SearchMediaData;
-                const response = await this.#mediaToolsContext?.searchMedia(requestData);
+                const imageFilter = e.detail.body as FilterImagesDto;
+                const response = await this.#mediaToolsContext?.searchMedia(imageFilter);
 
                 if(response){
-                    this.itemsList.fromArray(response as Array<ImageMediaDto>);
+                    this.itemsList.fromArray(response.data as Array<ImageMediaDto>);
                     this.currentPage = 1;
                     this.allSelected = false;
                 }
@@ -197,18 +204,12 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         
         dialog.showModal(image.name, async () => {
 
-            const requestData: RenameMediaData = {
-                query:{
-                    mediaId: image.id,
-                    newName: dialog.mediaName
-                },
-                url: "/gallery/rename-media"
-                
-            }
+            const newName = dialog.mediaName;
+            const mediaId = image.id;
 
-            const response = await this.#mediaToolsContext?.renameMedia(requestData);
+            const response = await this.#mediaToolsContext?.renameMedia(mediaId, newName);
             if(response){
-                const operationResponse = response as OperationResponse;
+                const operationResponse = response.data as OperationResponse;
                 if(operationResponse){
                     if(operationResponse.status === "Success"){
                         this.#showToastNotification("Done",operationResponse.message, "","positive");
@@ -264,8 +265,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
                     const selectedItems = this.itemsList.getSelectedItems();
 
-                    let requestData: ProcessImagesData = {
-                        body: {
+                    const imageProcessData: ProcessImagesDto = {
                             ids: selectedItems.map((item) => item.id),
                             resize: settings.resize,
                             resizeMode: settings.resizeMode,
@@ -274,15 +274,13 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                             convert: settings.convert,
                             convertMode: settings.convertMode,
                             convertQuality: settings.convertQuality
-                        },
-                        url: "/gallery/process-images"
-                    }
+                    }                   
 
                     try {
-                        const response = await this.#mediaToolsContext?.processImage(requestData);
+                        const response = await this.#mediaToolsContext?.processImage(imageProcessData);
 
                         if (response) {
-                            const operationResponse = response as OperationResponse;
+                            const operationResponse = response.data as OperationResponse;
 
                             if (operationResponse) {
                                 if (operationResponse.status === "Warning") {
@@ -375,10 +373,10 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         const accepted = await dialog.show();
         if(accepted){
             
-            const response = await this.#mediaToolsContext?.trashMedia({requestBody: [imgId]});
+            const response = await this.#mediaToolsContext?.trashMedia([imgId]);
 
             if(response) {
-                let responseData = response as OperationResponse;
+                let responseData = response.data as OperationResponse;
                 if (responseData) {
                     const trashedIds = responseData.payload as Array<number>;
 
@@ -420,10 +418,11 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 target.processButtonEnabled = false;
                 target.downloadButtonEnabled = false;
 
-                const response = await this.#mediaToolsContext?.trashMedia({requestBody: selectedImages.map(item => item.id)});
+                const imageIds = selectedImages.map(item => item.id);
+                const response = await this.#mediaToolsContext?.trashMedia(imageIds);
 
                 if(response){
-                    let responseData = response as OperationResponse;
+                    let responseData = response.data as OperationResponse;
                     
                     if(responseData){
 
@@ -473,12 +472,13 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     target.processButtonEnabled = false;
                     target.trashButtonEnabled = false;
 
-                    const response = await this.#mediaToolsContext?.downloadMedia({requestBody: selectedImages.map(item => item.id)});
+                    const imageIds = selectedImages.map(item => item.id);
+                    const response = await this.#mediaToolsContext?.downloadMedia(imageIds);
     
                     if(response){
 
                         try{
-                            const blob = response as Blob;
+                            const blob = response.data as Blob;
                             // Create a download link for the Blob
                             const downloadUrl: string = window.URL.createObjectURL(blob);
                             const a: HTMLAnchorElement = document.createElement('a');
