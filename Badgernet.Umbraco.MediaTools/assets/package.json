@@ -4,9 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "buildMini": "tsc && vite build --minify 'eslint'",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "watch": "vite build --watch",
     "generateApi": "openapi-ts --input http://localhost:2812/umbraco/swagger/mediatools/swagger.json --output src/api",
@@ -21,6 +20,7 @@
     "@hey-api/openapi-ts": "^0.81.1",
     "eslint": "^9.8.0",
     "lit": "^3.2.1",
+    "terser": "^5.44.1",
     "typescript": "^5.8.2",
     "vite": "^6.2.2"
   }
