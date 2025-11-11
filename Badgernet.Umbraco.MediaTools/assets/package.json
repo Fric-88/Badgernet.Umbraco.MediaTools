@@ -4,22 +4,23 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "buildMini": "tsc && vite build --minify 'eslint'",
+    "build:dev": "vite build --mode development",
+    "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "watch": "vite build --watch",
-    "generateApi": "openapi-ts --input http://localhost:2812/umbraco/swagger/mediatools/swagger.json --output src/api --debug false --schemas false"
+    "generateApi": "openapi-ts --input http://localhost:2812/umbraco/swagger/mediatools/swagger.json --output src/api",
+    "buildWasm": "emcc src/elements/imageEditor/wasm/manipulate.cpp -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web -s EXPORTED_FUNCTIONS='[_manipulateImageData,_malloc,_free]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap,HEAPU8]' -o src/elements/imageEditor/wasm/manipulate.js"
   },
   "dependencies": {
-    "@hey-api/openapi-ts": "^0.46.3",
-    "@umbraco-cms/backoffice": "^14.3.3",
-    "node": "^20.19.0"
+    "@hey-api/openapi-ts": "^0.81.1",
+    "@umbraco-cms/backoffice": "^16.3.4",
+    "node": "^23.11.1"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.46.3",
+    "@hey-api/openapi-ts": "^0.81.1",
     "eslint": "^9.8.0",
     "lit": "^3.2.1",
+    "terser": "^5.44.1",
     "typescript": "^5.8.2",
     "vite": "^6.2.2"
   }

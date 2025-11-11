@@ -2,6 +2,8 @@ import {ImageDataList} from "./imageDataList.ts";
 import {Point, subtractPoints} from "./point.ts";
 import {CropOverlay} from "./cropOverlay.ts";
 import {Mouse} from "./mouse.ts";
+import { initWasm, manipulateArrayBufferWasm} from "./wasm";
+import LoadingPopup from "./loadingPopup.ts";
 
 
 export class Canvas {
@@ -22,6 +24,7 @@ export class Canvas {
     #offscreenContext?: OffscreenCanvasRenderingContext2D | null;
 
     constructor(canvas: HTMLCanvasElement){
+       
         this.#canvas = canvas;
         this.#context = this.#canvas.getContext("2d");
         this.#imageDataList = new ImageDataList(50);
@@ -34,6 +37,12 @@ export class Canvas {
         this.#drawOrigin = {x: 0, y: 0}
         this.#drawWidth = 0;
         this.#drawHeight = 0;
+
+    }
+    
+    public async initialize(){
+        await initWasm();
+        console.log("WASM initialized");
     }
     
     public registerListeners(){
@@ -435,30 +444,33 @@ export class Canvas {
         if (!this.#backCanvas) return;
         const ctx = this.backContext
         if (!ctx) return;
-
+        
+        
         //Need to work with a copy of the unedited image to prevent stacking of the adjustments
         const image = this.#imageDataList.getCurrentCopy();
+
+        manipulateArrayBufferWasm(image,red, green, blue, brightness, contrast, exposure);
         
-        const factor = (259 * (contrast + 255)) / (255 * (259 - contrast)); // Contrast factor
-        let adjustment: number = 0; 
-        
-        for(let i= 0; i < image.data.length; i+= 4){
-
-            adjustment = image.data[i] + brightness;
-            adjustment = factor * (adjustment - 128) + 128;
-            adjustment = adjustment * exposure;
-            image.data[i] = adjustment + red;
-
-            adjustment = image.data[i + 1] + brightness;
-            adjustment = factor * (adjustment - 128) + 128;
-            adjustment = adjustment * exposure;
-            image.data[i + 1] = adjustment + green;
-
-            adjustment = image.data[i + 2] + brightness + blue;
-            adjustment = factor * (adjustment - 128) + 128;
-            adjustment = adjustment * exposure;
-            image.data[i + 2] = adjustment + blue;
-        }
+        // const factor = (259 * (contrast + 255)) / (255 * (259 - contrast)); // Contrast factor
+        // let adjustment: number = 0; 
+        //
+        // for(let i= 0; i < image.data.length; i+= 4){
+        //
+        //     adjustment = image.data[i] + brightness;
+        //     adjustment = factor * (adjustment - 128) + 128;
+        //     adjustment = adjustment * exposure;
+        //     image.data[i] = adjustment + red;
+        //
+        //     adjustment = image.data[i + 1] + brightness;
+        //     adjustment = factor * (adjustment - 128) + 128;
+        //     adjustment = adjustment * exposure;
+        //     image.data[i + 1] = adjustment + green;
+        //
+        //     adjustment = image.data[i + 2] + brightness + blue;
+        //     adjustment = factor * (adjustment - 128) + 128;
+        //     adjustment = adjustment * exposure;
+        //     image.data[i + 2] = adjustment + blue;
+        // }
         
         ctx.putImageData(image, 0, 0);
         this.renderFrontCanvas();

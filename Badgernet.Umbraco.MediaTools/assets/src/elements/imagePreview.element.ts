@@ -50,15 +50,16 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         this.currentPage = "EXIF";
     }
 
+    //Open preview 
     public async showPreview(imageId: number, showMetadataFirst: boolean = false){
         if(!this.#context) return;
 
         const loadingPopup = this.loadingPopup as LoadingPopup;
         loadingPopup.openPopup("Loading preview...");
         
-        const imgInfoResponse = await this.#context.getMediaInfo({mediaId: imageId});
+        const imgInfoResponse = await this.#context.getMediaInfo(imageId);
         if(!imgInfoResponse) return;
-        this.imageInfo = imgInfoResponse as ImageMediaDto;
+        this.imageInfo = imgInfoResponse.data as ImageMediaDto;
 
         const scaleWidth = this.maxWidth / this.imageInfo.width;
         const scaleHeight = this.maxHeight / this.imageInfo.height;
@@ -92,11 +93,10 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
     }
     
     async #loadMetadata(imageId:number){
-        let request: GetMetadataData = {id: imageId };
-        const response = await this.#context?.getMediaMetadata(request);
+        const response = await this.#context?.getMediaMetadata(imageId);
 
         if(response && !response.error){
-            this.imageMetaData = response as GetMetadataResponse;
+            this.imageMetaData = response.data as GetMetadataResponse;
         }
     }
     

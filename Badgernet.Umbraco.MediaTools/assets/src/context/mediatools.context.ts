@@ -7,14 +7,16 @@ import {
     UmbNumberState, UmbStringState
 } from "@umbraco-cms/backoffice/observable-api";
 import {
-    ConvertMode, DownloadMediaData, SearchMediaData,
-    GetSettingsData, ProcessImagesData, SetSettingsData,
-    UserSettingsDto, TrashMediaData, RenameMediaData,
-    ReplaceImageData, GetMediaInfoData, GetMetadataData, MediaFolderDto, ResizerFolderOverride
+    ConvertMode,UserSettingsDto,MediaFolderDto,
+    ResizerFolderOverride, FilterImagesDto, ProcessImagesDto
 } from "../api";
 import { clampNumber } from "../code/helperFunctions";
 import { Observable } from "@umbraco-cms/backoffice/observable-api";
-import { UMB_CURRENT_USER_CONTEXT, UmbCurrentUserModel } from "@umbraco-cms/backoffice/current-user";
+import {
+    UMB_CURRENT_USER_CONTEXT,
+    UmbCurrentUserContext,
+    UmbCurrentUserModel
+} from "@umbraco-cms/backoffice/current-user";
 
 export class MediaToolsContext extends UmbControllerBase {
 
@@ -180,7 +182,8 @@ export class MediaToolsContext extends UmbControllerBase {
         });
     }
 
-    private async _observeCurrentUser(instance: typeof UMB_CURRENT_USER_CONTEXT.TYPE) {
+    private async _observeCurrentUser(instance: UmbCurrentUserContext | undefined) {
+        if(instance === undefined) return;
         this.observe(instance.currentUser, (currentUser) => {
             this.#currentUser = currentUser;
         });
@@ -189,14 +192,13 @@ export class MediaToolsContext extends UmbControllerBase {
     async fetchUserSettings(){
 
         if(!this.#currentUser) return null;
+        const userKey = this.#currentUser.unique;
+        const response = await this.#repository.fetchSettings(userKey) 
+       
 
-        const reqData: GetSettingsData = {
-            userKey: this.#currentUser.unique
-        }
-
-        const responseData = (await this.#repository.fetchSettings(reqData)) as UserSettingsDto;
-
-        if(responseData) {
+        if(response) {
+            const responseData = response.data as UserSettingsDto;
+            
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
             this.#converterEnabled.setValue(responseData.converter.enabled);
             this.#convertMode.setValue(responseData.converter.convertMode);
@@ -221,7 +223,8 @@ export class MediaToolsContext extends UmbControllerBase {
     async saveSettings(){
 
         if(!this.#currentUser) return null;
-
+        const userKey = this.#currentUser.unique;
+        
         //Map observables to settings object
         const settings: UserSettingsDto = {
             resizer: {
@@ -252,21 +255,14 @@ export class MediaToolsContext extends UmbControllerBase {
                 
             }
         }
-
-        //Build request data
-        const reqData: SetSettingsData = {
-            userKey: this.#currentUser.unique,
-            requestBody: settings
-        }
-
         //Send setting to server
-        await this.#repository.saveSettings(reqData);
+        await this.#repository.saveSettings(userKey, settings);
     }
 
     async fetchMediaFolders(){
-        const response = (await this.#repository.listFolders());
+        const response = await this.#repository.listFolders();
         if(response){
-            const responseData = response as Array<MediaFolderDto>;
+            const responseData = response.data as Array<MediaFolderDto>;
             if(responseData){
                 this.#mediaFolders.setValue(responseData);
             }
@@ -281,51 +277,51 @@ export class MediaToolsContext extends UmbControllerBase {
         }
     }
 
-    async searchMedia(requestData: SearchMediaData){
-        const responseData = await this.#repository.searchMedia(requestData);
+    async searchMedia(imageFilter: FilterImagesDto){
+        const responseData = await this.#repository.searchMedia(imageFilter);
 
         if(responseData){
             return responseData;
         }
     }
 
-    async processImage(requestData: ProcessImagesData){
-        const responseData = await this.#repository.processImage(requestData);
+    async processImage(imageProcessData: ProcessImagesDto){
+        const responseData = await this.#repository.processImage(imageProcessData);
 
         if(responseData){
             return responseData;
         }
     }
 
-    async trashMedia(requestData: TrashMediaData ){
-        const responseData = await this.#repository.trashMedia(requestData);
+    async trashMedia(imageIds: Array<number>){
+        const responseData = await this.#repository.trashMedia(imageIds);
 
         if(responseData){
             return responseData;
         }
     }
 
-    async downloadMedia(requestData: DownloadMediaData){
-        const responseData = await this.#repository.downloadMedia(requestData);
+    async downloadMedia(imageIds: Array<number>){
+        const responseData = await this.#repository.downloadMedia(imageIds);
 
         if(responseData){
             return responseData;
         }
     }
     
-    async renameMedia(requestData: RenameMediaData ){
-        return await this.#repository.renameMedia(requestData);
+    async renameMedia(imageId: number, newName: string){
+        return await this.#repository.renameMedia(imageId, newName);
     }
     
-    async replaceImage(requestData: ReplaceImageData ){
-        return await this.#repository.replaceImage(requestData);
+    async replaceImage(imageId: number, saveAs: string, imageData: Blob | File ){
+        return await this.#repository.replaceImage(imageId, saveAs, imageData);
     }
-    async getMediaInfo(requestData: GetMediaInfoData){
-        return await this.#repository.getMediaInfo(requestData); 
+    async getMediaInfo(mediaId: number){
+        return await this.#repository.getMediaInfo(mediaId); 
     }
     
-    async getMediaMetadata(requestData: GetMetadataData){
-        return await this.#repository.getMediaMetadata(requestData);
+    async getMediaMetadata(mediaId: number){
+        return await this.#repository.getMediaMetadata(mediaId);
     }
 }
 

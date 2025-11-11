@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ESNext",
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
@@ -11,6 +14,10 @@
       "dom"
     ],
     "skipLibCheck": true,
+    
+    "types": [
+      "@umbraco-cms/backoffice/extension-types"
+    ],
 
     /* Bundler mode */
     "moduleResolution": "bundler",

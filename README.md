@@ -46,6 +46,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+#### 16.0.2
+- Improved performance when editing RGB, contrast, brightness and exposure channels in the Editor 
+- Custom Swagger definitions scoped to MediaTools
+- Bumped up the Backoffice version package
 
 #### 16.0.1
 - Fixed issues with mssql when uploading images in bulk
