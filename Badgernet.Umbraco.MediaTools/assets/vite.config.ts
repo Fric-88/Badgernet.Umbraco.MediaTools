@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+    assetsInclude: ["**/*.wasm"],
     build: {
         minify: true,
         lib: {
@@ -13,5 +14,6 @@ export default defineConfig({
         rollupOptions: {
             external: [/^@umbraco/],
         },
-    },
+    }
+    
 });

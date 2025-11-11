@@ -59,12 +59,15 @@ export class ImageEditorTools extends UmbElementMixin(LitElement) {
         }
         
         //Throttle dispatching event
-        if(this.#eventThrottleTimer) return;
+        // if(this.#eventThrottleTimer) return;
 
-        this.#eventThrottleTimer = setTimeout(() => {
-            this.#eventThrottleTimer = null;
-            this.#dispatchSliderChange();
-        }, 400);
+        // this.#eventThrottleTimer = setTimeout(() => {
+        //     this.#eventThrottleTimer = null;
+        //     this.#dispatchSliderChange();
+        // }, 400);
+
+        // No need to throttle if WASM is doing its job
+        this.#dispatchSliderChange();
 
     }
     #dispatchSliderChange(): void {

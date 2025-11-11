@@ -12,6 +12,7 @@ import LoadingPopup from "./loadingPopup.ts";
 import "./loadingPopup.ts"
 
 
+
 @customElement('canvas-image-editor')
 export class CanvasImageEditor extends UmbElementMixin(LitElement) {
 
@@ -48,6 +49,8 @@ export class CanvasImageEditor extends UmbElementMixin(LitElement) {
         loadingPopup.openPopup("Loading image...");
         
         this.#canvas = new Canvas(this.canvasElement);
+        // Wait for the canvas (WASM) to be initialized
+        await this.#canvas?.initialize(); 
         this.resizeCanvas();
         
         //Load the image into canvas

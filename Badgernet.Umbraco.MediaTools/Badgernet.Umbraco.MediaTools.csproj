@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>16.0.1</Version>
+    <Version>16.0.2</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Processing bulk fix for deadlocks</PackageReleaseNotes> 
+    <PackageReleaseNotes>WASM integration</PackageReleaseNotes> 
 
   </PropertyGroup>
 
@@ -35,6 +35,14 @@
 
   <ItemGroup>
     <PackageReference Include="Umbraco.Cms" Version="16.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ClCompile Include="assets\src\elements\imageEditor\wasm\manipulate.cpp" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="assets\public\wasm\" />
   </ItemGroup>
 
 </Project>
