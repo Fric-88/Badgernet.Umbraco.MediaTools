@@ -20,17 +20,7 @@ public class MediaToolsComposer : IComposer
         
         var umbVersion = builder.Services.BuildServiceProvider().GetRequiredService<IUmbracoVersion>().Version;
 
-        // switch (umbVersion.Major)
-        // {
-        //     case 16:
-        //         builder.Services.AddSingleton<IMediaHelper, MediaHelperV15>();
-        //         break;
-        //
-        //     default:
-        //         throw new Exception("Badgernet.MediaTools -> Unsupported Umbraco Version"); 
-        // }
-        
-        builder.Services.AddSingleton<IMediaHelper, MediaHelperV15>();
+        builder.Services.AddSingleton<IMediaHelper, MediaHelper>();
         
         builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
         builder.Services.AddSingleton<IFileManager, FileManager>();

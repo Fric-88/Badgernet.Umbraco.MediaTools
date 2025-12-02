@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Nodes;
+using System.Text.Json.Nodes;
 using Badgernet.Umbraco.MediaTools.Models;
 using SixLabors.ImageSharp;
 using Umbraco.Cms.Core.Models;
@@ -8,15 +8,48 @@ using Umbraco.Cms.Core.PublishedCache;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Services.Navigation;
 using Umbraco.Cms.Core.Web;
-using Exception = System.Exception;
 
 namespace Badgernet.Umbraco.MediaTools.Helpers;
 
 public class MediaHelper(
     MediaUrlGeneratorCollection mediaUrlGeneratorCollection, 
-    IUmbracoContextAccessor contextAccessor,
+    IMediaCacheService mediaCacheService,
+    IMediaNavigationQueryService mediaQueryService,
     IMediaService mediaService) : IMediaHelper
 {
+
+
+    private async Task<IEnumerable<IPublishedContent>> GetMediaContent(IEnumerable<Guid> keys)
+    {
+        var medias = new List<IPublishedContent>();
+        foreach (var key in keys)
+        {
+            var content = await mediaCacheService.GetByKeyAsync(key).ConfigureAwait(false);
+            if (content == null) continue;
+            medias.Add(content);
+        }
+        return medias;
+    }
+
+    public IEnumerable<IPublishedContent> GetAllMedia()
+    {
+        if (!mediaQueryService.TryGetRootKeys(out var rootKeys))
+            return [];
+        
+        var keys = new List<Guid>(rootKeys);
+
+        foreach (var key in rootKeys)
+        {
+            if (mediaQueryService.TryGetDescendantsKeys(key, out var descendantKeys))
+            {
+                keys.AddRange(descendantKeys);
+            }
+        }
+
+        //TODO Change IMediaHelper to async in later versions  
+        return Task.Run(() => GetMediaContent(keys)).GetAwaiter().GetResult();
+    }
+    
     public IEnumerable<MediaFolderDto> GetFolders()
     {
         var result = new List<MediaFolderDto>();
@@ -33,7 +66,7 @@ public class MediaHelper(
         while (stack.Count > 0)
         {
             var (folder, parentPath) = stack.Pop();
-            var currentPath = string.IsNullOrEmpty(parentPath) ? folder.Name : $"{parentPath}/{folder.Name}";
+            var currentPath = string.IsNullOrEmpty(parentPath)? $"/{folder.Name}" : $"{parentPath}/{folder.Name}";
 
             result.Add(new MediaFolderDto(folder.Key, folder.Name, currentPath));
 
@@ -45,26 +78,21 @@ public class MediaHelper(
                 }
             }
         }
+
         return result;
     }
 
-    public IEnumerable<IPublishedContent> GetAllMedia()
-    {
-        if (contextAccessor.TryGetUmbracoContext(out var context) == false)
-            return [];
-
-        var mediaRoot = context.Media?.GetAtRoot() ?? [];
-        return mediaRoot.DescendantsOrSelf<IPublishedContent>();
-    }
     public IMedia? GetMediaById(int id)
     {
         return mediaService.GetById(id);
     }
+
     public IEnumerable<IMedia> GetMediaByIds(int[] ids)
     {
         var medias = mediaService.GetByIds(ids);
         return medias; 
     }
+        
     public IEnumerable<IPublishedContent> GetMediaByType(string type)
     {
         return GetAllMedia().OfTypes(type);
@@ -74,7 +102,6 @@ public class MediaHelper(
     {
         try
         {
-            
             return GetMediaByType("Image")
                 .Select(i => new ImageMediaDto
                 {
@@ -98,16 +125,13 @@ public class MediaHelper(
     public IEnumerable<IPublishedContent> GetMediaByFolderName(string folderName)
     {
         if(string.IsNullOrEmpty(folderName)) return[];
-        if (contextAccessor .TryGetUmbracoContext(out var context) == false) return [];
-        if (context.Content == null) return [];
+        var medias = GetAllMedia();
+        var folder = medias.OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
+        if(folder == null) return [];
 
-        var mediaRoot = context.Media!.GetAtRoot();
-        var folder = mediaRoot.DescendantsOrSelf<IPublishedContent>().OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
-
-        if(folder == null) return [];        
-        var images = folder.Descendants<IPublishedContent>().OfTypes("Image");
-
-        return images;
+        mediaQueryService.TryGetDescendantsKeys(folder.Key, out var descendantKeys);
+        var images = Task.Run(() => GetMediaContent(descendantKeys)).GetAwaiter().GetResult();
+        return images.OfTypes("Image");
     }
 
     public IEnumerable<ImageMediaDto> GetMediaDtoByFolderName(string folderName)
@@ -136,7 +160,7 @@ public class MediaHelper(
     /// Parses image size (resolution) from IMedia item
     /// </summary>
     /// <param name="media">IMedia item</param>
-    /// <returns>Returns Size or "Size.Empty if error occurred</returns>
+    /// <returns>Returns Size or Size.Empty if error occurred</returns>
     public Size GetUmbResolution(IMedia media)
     {
         try
@@ -180,7 +204,6 @@ public class MediaHelper(
             var extension = Path.GetExtension(src);
             return extension?.TrimStart(".") ?? string.Empty;
         }
-
     }
     public void SetUmbExtension(IMedia media, string extension)
     {
@@ -245,10 +268,10 @@ public class MediaHelper(
     {
         mediaService.Save(media);
     }
-
+    
     public void SaveMedia(IEnumerable<IMedia> media)
     {
-        mediaService.Save(media);       
+        mediaService.Save(media);
     }
 
     public void TrashMedia(int mediaId)
