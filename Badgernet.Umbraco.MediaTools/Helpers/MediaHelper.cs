@@ -31,7 +31,7 @@ public class MediaHelper(
         return medias;
     }
 
-    public IEnumerable<IPublishedContent> GetAllMedia()
+    public async Task<IEnumerable<IPublishedContent>> GetAllMediaAsync()
     {
         if (!mediaQueryService.TryGetRootKeys(out var rootKeys))
             return [];
@@ -46,16 +46,17 @@ public class MediaHelper(
             }
         }
 
-        //TODO Change IMediaHelper to async in later versions  
-        return Task.Run(() => GetMediaContent(keys)).GetAwaiter().GetResult();
+        return await GetMediaContent(keys);
     }
     
-    public IEnumerable<MediaFolderDto> GetFolders()
+    public async Task<IEnumerable<MediaFolderDto>> GetFoldersAsync()
     {
         var result = new List<MediaFolderDto>();
         var stack = new Stack<(IPublishedContent folder, string path)>();
 
-        foreach (var root in GetAllMedia())
+        var rootMedia = await GetAllMediaAsync();
+        
+        foreach (var root in rootMedia)
         {
             if (root.ContentType.Alias == "Folder" && root.Level == 1)
             {
@@ -93,16 +94,18 @@ public class MediaHelper(
         return medias; 
     }
         
-    public IEnumerable<IPublishedContent> GetMediaByType(string type)
+    public async Task<IEnumerable<IPublishedContent>> GetMediaByTypeAsync(string type)
     {
-        return GetAllMedia().OfTypes(type);
+        var allMedia = await GetAllMediaAsync();
+        return allMedia.OfTypes(type);
     }
 
-    public IEnumerable<ImageMediaDto> GetMediaDtoByType(string type)
+    public async Task<IEnumerable<ImageMediaDto>> GetMediaDtoByTypeAsync(string type)
     {
         try
         {
-            return GetMediaByType("Image")
+            var images = await GetMediaByTypeAsync("Image");
+            return images
                 .Select(i => new ImageMediaDto
                 {
                     Id = i.Id,
@@ -122,10 +125,10 @@ public class MediaHelper(
 
     }
 
-    public IEnumerable<IPublishedContent> GetMediaByFolderName(string folderName)
+    public async Task<IEnumerable<IPublishedContent>> GetMediaByFolderNameAsync(string folderName)
     {
-        if(string.IsNullOrEmpty(folderName)) return[];
-        var medias = GetAllMedia();
+        if(string.IsNullOrEmpty(folderName)) return Enumerable.Empty<IPublishedContent>();
+        var medias = await GetAllMediaAsync();
         var folder = medias.OfTypes("Folder").SingleOrDefault(x => x.Name == folderName);
         if(folder == null) return [];
 
@@ -134,9 +137,10 @@ public class MediaHelper(
         return images.OfTypes("Image");
     }
 
-    public IEnumerable<ImageMediaDto> GetMediaDtoByFolderName(string folderName)
+    public async Task<IEnumerable<ImageMediaDto>> GetMediaDtoByFolderName(string folderName)
     {
-        return  GetMediaByFolderName(folderName)
+        var folders = await GetMediaByFolderNameAsync(folderName);
+        return  folders
             .Select(i => new ImageMediaDto
             {
                 Id =i.Id,

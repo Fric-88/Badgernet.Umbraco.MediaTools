@@ -29,9 +29,9 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
     [HttpGet("get-media-folders")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MediaFolderDto[]))]
-    public MediaFolderDto[] GetMediaFolders()
+    public async Task<MediaFolderDto[]> GetMediaFolders()
     {
-        var response = mediaHelper.GetFolders();
+        var response =await mediaHelper.GetFoldersAsync();
         return response.ToArray();
     }
 
@@ -65,17 +65,17 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     
     [HttpPost("search-media")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMediaDto[]))]
-    public IActionResult SearchMedia(FilterImagesDto requestData)
+    public async Task<IActionResult> SearchMedia(FilterImagesDto requestData)
     {
         IEnumerable<ImageMediaDto> images;
 
         if(string.IsNullOrEmpty(requestData.FolderName))  
         {
-            images = mediaHelper.GetMediaDtoByType("Image");
+            images = await mediaHelper.GetMediaDtoByTypeAsync("Image");
         }
         else
         {
-            images = mediaHelper.GetMediaDtoByFolderName(requestData.FolderName);
+            images = await mediaHelper.GetMediaDtoByFolderName(requestData.FolderName);
         }
 
         if (!images.Any())
@@ -379,6 +379,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         {
             try
             {
+                
                 mediaHelper.TrashMedia(id);
                 trashedIds.Add(id);
                 trashedCount++;

@@ -7,14 +7,14 @@ namespace Badgernet.Umbraco.MediaTools.Helpers;
 
 public interface IMediaHelper
 {
-        IEnumerable<MediaFolderDto> GetFolders();
-        IEnumerable<IPublishedContent> GetAllMedia();
+        Task<IEnumerable<MediaFolderDto>> GetFoldersAsync();
+        Task<IEnumerable<IPublishedContent>> GetAllMediaAsync();
         IMedia? GetMediaById(int id);
         IEnumerable<IMedia> GetMediaByIds(int[] ids);
-        IEnumerable<IPublishedContent> GetMediaByFolderName(string folderName);
-        IEnumerable<ImageMediaDto> GetMediaDtoByFolderName(string folderName);
-        IEnumerable<IPublishedContent> GetMediaByType(string type);
-        IEnumerable<ImageMediaDto> GetMediaDtoByType(string type);
+        Task<IEnumerable<IPublishedContent>> GetMediaByFolderNameAsync(string folderName);
+        Task<IEnumerable<ImageMediaDto>> GetMediaDtoByFolderName(string folderName);
+        Task<IEnumerable<IPublishedContent>> GetMediaByTypeAsync(string type);
+        Task<IEnumerable<ImageMediaDto>> GetMediaDtoByTypeAsync(string type);
         void SaveMedia(IMedia media);
         void SaveMedia(IEnumerable<IMedia> media);
         void TrashMedia(int mediaId);
