@@ -46,6 +46,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+#### 17.0.1
+- Repackaged without unnecessary TypeScript files
+- Bumped up backoffice version package
+
 #### 17.0.0
 - Bumped up versions to work with Umbraco 17
 

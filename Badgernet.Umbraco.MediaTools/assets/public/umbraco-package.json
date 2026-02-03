@@ -2,7 +2,7 @@
     "$schema": "../umbraco-package-schema.json",
     "name": "Badgernet.Umbraco.MediaTools",
     "id": "Badgernet.Umbraco.MediaTools",
-    "version": "0.1.0",
+    "version": "17.0.1",
     "allowTelemetry": true,
     "extensions": [
         {
