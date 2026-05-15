@@ -12,8 +12,6 @@ export type ConverterSettings = {
     convertQuality: number;
 };
 
-export type EventMessageTypeModel = 'Default' | 'Info' | 'Error' | 'Success' | 'Warning';
-
 export type FilterImagesDto = {
     folderName?: string | null;
     width: number;
@@ -63,12 +61,6 @@ export type MetadataRemoverSettings = {
     removeXmpProfile: boolean;
     removeIptcProfile: boolean;
     metadataTagsToRemove: Array<string>;
-};
-
-export type NotificationHeaderModel = {
-    message: string;
-    category: string;
-    type: EventMessageTypeModel;
 };
 
 export type OperationResponse = {
