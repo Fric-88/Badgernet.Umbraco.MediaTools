@@ -27,7 +27,7 @@ export class Canvas {
        
         this.#canvas = canvas;
         this.#context = this.#canvas.getContext("2d");
-        this.#imageDataList = new ImageDataList(50);
+        this.#imageDataList = new ImageDataList(10);
         this.#cropOverlay = new CropOverlay({x: 400, y: 400},{x: 250, y: 250 }, 12);
         this.#cropOverlayActive = false;
         this.#mouse = new Mouse();

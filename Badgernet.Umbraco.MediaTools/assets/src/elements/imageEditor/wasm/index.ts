@@ -23,6 +23,7 @@ export function manipulateArrayBufferWasm(
     const len = data.length;
 
     const ptr = wasm._malloc(len);
+    if (!ptr) throw new Error("WASM memory allocation failed");
     
     const heap = (wasm as any).HEAPU8;
     heap.set(data, ptr);

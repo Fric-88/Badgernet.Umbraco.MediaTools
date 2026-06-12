@@ -41,6 +41,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
     @state() width: number = 1;
     @state() height: number = 1;
+    @state() convertQuality: number = 85; 
 
     @state() currentPage: number = 1;
     @state() itemsList: SelectablePagedList<ImageMediaDto> = new SelectablePagedList<ImageMediaDto>(10);
@@ -273,10 +274,10 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     const imageProcessData: ProcessImagesDto = {
                             ids: selectedItems.map((item) => item.id),
                             resize: settings.resize,
+                            convert: settings.convert,
                             resizeMode: settings.resizeMode,
                             width: settings.width,
                             height: settings.height,
-                            convert: settings.convert,
                             convertMode: settings.convertMode,
                             convertQuality: settings.convertQuality
                     }                   
@@ -489,6 +490,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                             const a: HTMLAnchorElement = document.createElement('a');
                             a.href = downloadUrl;
                             a.download = 'download.zip'; // Filename for the downloaded file
+                            a.style.display = 'none';
+                            a.onclick = (e) => e.stopPropagation(); // Prevent Umbraco router from intercepting
                             document.body.appendChild(a);
                             a.click(); // Trigger the download
                             a.remove(); // Clean up the DOM
@@ -507,8 +510,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     
                     //Reset buttons states and visibility
                     target.downloadButtonState = undefined;
-                    target.processButtonEnabled = false;
-                    target.trashButtonEnabled = false;
+                    target.processButtonEnabled = true;
+                    target.trashButtonEnabled = true;
                     
                 }
             }
@@ -582,7 +585,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                                 width="${this.width}"
                                 height="${this.height}"
                                 convertMode="Lossy"
-                                convertQuality="85"
+                                convertQuality="${this.convertQuality}"
                                 @process-images-click="${this.processSelectedImages}"
                                 @trash-images-click="${this.recycleSelectedImages}"
                                 @download-images-click="${this.downloadSelectedMedia}">

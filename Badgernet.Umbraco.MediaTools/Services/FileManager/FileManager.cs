@@ -36,7 +36,35 @@ public class FileManager(MediaFileManager mediaFileManager) : IFileManager
                 outStream.Position = 0;
                 return true;
             }
-            catch (Exception e)
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public async Task<bool> ReadToStreamAsync(string relativePath, MemoryStream outStream, bool overwrite = true)
+    {
+        outStream ??= new MemoryStream();
+
+        if(_fileSystem.FileExists(relativePath))
+        {
+            try
+            {
+                using var fileStream =  _fileSystem.OpenFile(relativePath);
+                
+                if (overwrite)
+                {
+                    outStream.Position = 0;
+                    outStream.SetLength(0);
+                }
+
+                await fileStream.CopyToAsync(outStream);
+                outStream.Position = 0;
+                return true;
+            }
+            catch (Exception)
             {
                 return false;
             }
@@ -49,6 +77,13 @@ public class FileManager(MediaFileManager mediaFileManager) : IFileManager
         fileStream.Position = 0;
         _fileSystem.AddFile(relativePath, fileStream, true);
         return true;
+    }
+
+    public Task<bool> WriteFileAsync(string relativePath, Stream fileStream)
+    {
+        fileStream.Position = 0;
+        _fileSystem.AddFile(relativePath, fileStream, true);
+        return Task.FromResult(true);
     }
 
     public string GetFreePath(string relativePath, string targetExtension = "" )

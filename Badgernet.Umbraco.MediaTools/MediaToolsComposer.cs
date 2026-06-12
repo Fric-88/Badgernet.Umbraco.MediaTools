@@ -20,7 +20,7 @@ public class MediaToolsComposer : IComposer
         
         var umbVersion = builder.Services.BuildServiceProvider().GetRequiredService<IUmbracoVersion>().Version;
 
-        builder.Services.AddSingleton<IMediaHelper, MediaHelper>();
+        builder.Services.AddScoped<IMediaHelper, MediaHelper>();
         
         builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
         builder.Services.AddSingleton<IFileManager, FileManager>();
@@ -35,7 +35,7 @@ public class MediaToolsComposer : IComposer
 
         });
 
-        builder.AddNotificationHandler<MediaSavedNotification, MediaToolsUploadHandler>();
+        builder.AddNotificationAsyncHandler<MediaSavedNotification, MediaToolsUploadHandler>();
         
 
     }

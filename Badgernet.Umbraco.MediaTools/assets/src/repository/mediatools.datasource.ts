@@ -68,7 +68,7 @@ export class MediaToolsManagementDataSource {
         return await tryExecute(this.#host, trashMedia(requestData));
     }
     async downloadMedia(requestData: DownloadMediaData): Promise<UmbDataSourceResponse<DownloadMediaResponse>>{
-        return await tryExecute(this.#host, downloadMedia(requestData));
+        return await tryExecute(this.#host, downloadMedia({ ...requestData, parseAs: 'blob' }));
     }
     async renameMedia(requestData: RenameMediaData): Promise<UmbDataSourceResponse<RenameMediaResponse>> {
         return await tryExecute(this.#host, renameMedia(requestData));

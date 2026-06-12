@@ -31,12 +31,12 @@ export default defineConfig(({ mode, command }) => {
                     compress: {
                         drop_console: true,
                         drop_debugger: true,
-                        booleans_as_integers: true,
+                        booleans_as_integers: false,
                         pure_funcs: ['console.log', 'console.info', 'console.warn', 'console.error'],
                     },
                     format: {
                         comments: false,
-                        beutify: false,
+                        beautify: false,
                         preamble: '/* minified */',
                     }
                 }

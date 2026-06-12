@@ -12,8 +12,11 @@ using SixLabors.ImageSharp;
 using Size = SixLabors.ImageSharp.Size;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Security.Permissions;
+using System.Threading;
+using System.Collections.Concurrent;
 using K4os.Compression.LZ4.Internal;
 using Microsoft.Extensions.Caching.Distributed;
+using Umbraco.Cms.Core.Models;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -149,7 +152,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [HttpPost("process-images")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
-    public IActionResult ProcessImages(ProcessImagesDto requestData)
+    public async Task<IActionResult> ProcessImages([FromBody]ProcessImagesDto requestData)
     {
         var response = new OperationResponse();
 
@@ -177,153 +180,110 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             return BadRequest(response);
         }
 
-        //Clamp convertQuality to 1 -> 100
-        requestData.ConvertQuality = requestData.ConvertQuality;
-
-
-        var converterCounter = 0;
         var resizerCounter = 0;
-        var processedMedias = new List<ImageMediaDto>();
+        var converterCounter = 0;
+        var processedMedias = new ConcurrentBag<ImageMediaDto>();
+        var mediasToSave = new ConcurrentBag<IMedia>();
+
+        //Batch fetch media items first to avoid concurrent calls to IMediaService inside the loop
+        var mediaItems = mediaHelper.GetMediaByIds(ids).ToList();
         
-        using var imageStream = new MemoryStream();
-        
-        foreach(var id in ids)
+        await Parallel.ForEachAsync(mediaItems, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, async (imageMedia, ct) =>
         {
+            var id = imageMedia.Id;
+            
             try
             {
-                var imageMedia = mediaHelper.GetMediaById(id);
-
-                if(imageMedia == null)
-                {
-                    logger.LogError("Could not find media with id: {id}", id);
-                    response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
-                    continue;
-                }
-
+                
                 var originalResolution = mediaHelper.GetUmbResolution(imageMedia);
                 if(originalResolution == Size.Empty)
                 {
                     logger.LogError("Could not read resolution of media with id: {id}", id);
-                    response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
-                    continue;
+                    response.Status = ResponseStatus.Warning; 
+                    return;
                 } 
                 
                 var preserveAspectRatio = requestData.ResizeMode == ResizeMode.FitInside;
                 var targetResolution = new Size(requestData.Width,requestData.Height);
-                var newResolution =imageProcessor.CalculateResolution(originalResolution, targetResolution, preserveAspectRatio);
+                var newResolution = imageProcessor.CalculateResolution(originalResolution, targetResolution, preserveAspectRatio);
 
                 var mediaPath = mediaHelper.GetRelativePath(imageMedia);
                 var newMediaPath = fileManager.GetFreePath(mediaPath);
                 var filename = Path.GetFileName(newMediaPath);
 
-
-                var fileReadSuccess = fileManager.ReadToStream(mediaPath, imageStream, true);
+                using var imageStream = new MemoryStream();
+                var fileReadSuccess = await fileManager.ReadToStreamAsync(mediaPath, imageStream, true);
                 if(!fileReadSuccess)
                 {
                     logger.LogError("Image with id: {id} could not be read.", id);
-                    response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
-                    continue;
+                    response.Status = ResponseStatus.Warning; 
+                    return;
                 }
 
                 using var image = Image.Load(imageStream);
 
-                //Image will be saved under this path if processing succeeds
-                var finalSavingPath = string.Empty;
+                var workDone = false;
+                var currentNewMediaPath = newMediaPath;
+                var currentFilename = filename;
 
                 //Resizing part
                 if(requestData.Resize) {
-                    var resizingSuccess = imageProcessor.Resize(image,newResolution);
-                    if(resizingSuccess)//If resizing succeeded
+                    var resizingSuccess = imageProcessor.Resize(image, newResolution);
+                    if(resizingSuccess)
                     {
-                        //Set properties
-                        mediaHelper.SetUmbFilename(imageMedia, filename);
+                        mediaHelper.SetUmbFilename(imageMedia, currentFilename);
                         mediaHelper.SetUmbResolution(imageMedia, newResolution);
-
-                        //Delete old image File
-                        fileManager.DeleteFile(mediaPath);
-
-                        //Reassign path
-                        mediaPath = newMediaPath;
-                        finalSavingPath = mediaPath;
-                        resizerCounter++;
-                        //SUCCESS
+                        workDone = true;
+                        Interlocked.Increment(ref resizerCounter);
                     }
                     else
                     {
                         logger.LogError("Resizing image with id: {id} failed.", id);
                         response.Status = ResponseStatus.Warning;
                     }
-
                 }
 
                 //Converting part
                 if(requestData.Convert)
                 {
-                    var convertMode = requestData.ConvertMode;   
-                    var convertQuality = requestData.ConvertQuality; 
-
                     if(!mediaPath.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) &&
                        !mediaPath.EndsWith(".svg", StringComparison.OrdinalIgnoreCase))
                     {
-                        newMediaPath = Path.ChangeExtension(newMediaPath, ".webp");
-
-                        var convertingSuccess = imageProcessor.ConvertToWebp(image, convertMode, convertQuality);
+                        var convertingSuccess = imageProcessor.ConvertToWebp(image, requestData.ConvertMode, requestData.ConvertQuality);
                         
-                        if(convertingSuccess)//If converting succeeded
+                        if(convertingSuccess)
                         {
-                            mediaHelper.SetUmbFilename(imageMedia, filename);
+                            currentNewMediaPath = Path.ChangeExtension(currentNewMediaPath, ".webp");
+                            currentFilename = Path.GetFileName(currentNewMediaPath);
+                            
+                            mediaHelper.SetUmbFilename(imageMedia, currentFilename);
                             mediaHelper.SetUmbExtension(imageMedia, ".webp" );
-
-                            //Delete original image (before extension change)
-                            fileManager.DeleteFile(mediaPath);
-                            finalSavingPath = newMediaPath;
-                            converterCounter++;
-                            //SUCCESS
+                            workDone = true;
+                            Interlocked.Increment(ref converterCounter);
                         }
-                        
                     }
                     else
                     {
                         logger.LogInformation("Image with id: {id} already in correct format, skipping converting.", id);
-                        response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
+                        response.Status = ResponseStatus.Warning; 
                     }
                 }
 
-                //If finalSavingPath is empty, there was no work done
-                if(finalSavingPath != string.Empty)
+                if(workDone)
                 {
-                    var writtenToDisk = false;
-                    
                     try{
+                        var encoder = imageProcessor.GetEncoder(currentNewMediaPath, false, requestData.ConvertQuality, requestData.ConvertMode);
                         
-                        var encoder = imageProcessor.GetEncoder(finalSavingPath);
+                        using var saveStream = new MemoryStream();
+                        image.Save(saveStream, encoder);
+                        var writtenToDisk = await fileManager.WriteFileAsync(currentNewMediaPath, saveStream);
                         
-                        //Encode processed image into a stream and write it on disk
-                        imageStream.Position = 0;
-                        imageStream.SetLength(0);
-                        image.Save(imageStream, encoder);
-                        fileManager.WriteFile(finalSavingPath, imageStream);
-                        mediaHelper.SetUmbBytes(imageMedia, imageStream.Length);
-
-                        writtenToDisk = true;
-                    }
-                    catch(Exception ex)
-                    {
-                        logger.LogError("Image with id: {id} could not be saved to file system.", id);
-                        logger.LogError(ex.Message);
-                    }
-
-                    if (writtenToDisk)
-                    {
-                        //Save processed media back to the database
-                        mediaHelper.SaveMedia(imageMedia);
-                        
-                        //Bust the cache 
-                        distributedCache.Refresh(imageMedia.Key.ToString());
-
-                        try
+                        if (writtenToDisk)
                         {
-                            var imgResolution = mediaHelper.GetUmbResolution(imageMedia);
+                            mediaHelper.SetUmbBytes(imageMedia, saveStream.Length);
+                            fileManager.DeleteFile(mediaPath);
+                            mediasToSave.Add(imageMedia);
+                            distributedCache.Refresh(imageMedia.Key.ToString());
 
                             processedMedias.Add(new ImageMediaDto
                             {
@@ -332,42 +292,42 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                                 Name = imageMedia.Name ?? string.Empty,
                                 Path = mediaHelper.GetRelativePath(imageMedia),
                                 Extension = mediaHelper.GetUmbExtension(imageMedia),
-                                Width = imgResolution.Width,
-                                Height = imgResolution.Height,
-                                Size = ExtensionMethods.ToReadableFileSize(mediaHelper.GetUmbBytes(imageMedia))
+                                Width = mediaHelper.GetUmbResolution(imageMedia).Width,
+                                Height = mediaHelper.GetUmbResolution(imageMedia).Height,
+                                Size = ExtensionMethods.ToReadableFileSize(saveStream.Length)
                             });
-
-                        }
-                        catch
-                        {
-                            //Ignore
                         }
                     }
-                        
+                    catch(Exception ex)
+                    {
+                        logger.LogError("Image with id: {id} could not be saved to file system: {Message}", id, ex.Message);
+                        response.Status = ResponseStatus.Warning;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError("Error processing image: {Message}", ex.Message);
-                response.Status = ResponseStatus.Warning; //Indicates that log messages were generated
+                logger.LogError("Error processing image with id {id}: {Message}", id, ex.Message);
+                response.Status = ResponseStatus.Warning; 
             }
-            
+        });
+
+        if (!mediasToSave.IsEmpty)
+        {
+            mediaHelper.SaveMedia(mediasToSave);
         }
 
         //Build response message
-        response.Payload = processedMedias; 
+        response.Payload = processedMedias.ToArray(); 
         
-        if(requestData.Resize && requestData.Convert)
+        var messages = new List<string>();
+        if (resizerCounter > 0) messages.Add($"{resizerCounter} images resized");
+        if (converterCounter > 0) messages.Add($"{converterCounter} images converted");
+        
+        response.Message = string.Join("\n", messages);
+        if (string.IsNullOrEmpty(response.Message) && response.Status != ResponseStatus.Error)
         {
-            response.Message = $"{resizerCounter} images resized \n\n {converterCounter} images converted.";
-        }
-        else if(requestData.Resize)
-        {
-            response.Message += $"{resizerCounter} images resized.";
-        }
-        else if(requestData.Convert)
-        {
-            response.Message += $"{converterCounter} images converted.";
+            response.Message = "No images were processed.";
         }
 
         return Ok(response);
@@ -430,12 +390,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [HttpPost("download-media")]
     [ProducesResponseType(typeof(Stream), 200, "application/zip")]
     [Produces("application/zip")]
-    public IActionResult DownloadMedia(int[] ids)
+    public async Task<IActionResult> DownloadMedia(int[] ids)
     {
         var images = mediaHelper.GetMediaByIds(ids);
         
         var zipStream = new MemoryStream();
-        using var fileStream = new MemoryStream();
         
         using (var zipArchive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
         {
@@ -443,15 +402,16 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             {
                 //Read physical file into a stream
                 var relativePath = mediaHelper.GetRelativePath(imageMedia);
-
-                var readSuccess = fileManager.ReadToStream(relativePath, fileStream, true);
+                
+                using var fileStream = new MemoryStream();
+                var readSuccess = await fileManager.ReadToStreamAsync(relativePath, fileStream, true);
 
                 //Add it to the zip archive if it was successfully read 
                 if (!readSuccess) continue;
                 
                 var zipEntry = zipArchive.CreateEntry(imageMedia.Name! + Path.GetExtension(relativePath));
                 using (var entryStream = zipEntry.Open()){
-                    fileStream.CopyTo(entryStream);
+                    await fileStream.CopyToAsync(entryStream);
                 }
                     
                 //Stop if resulting archive exceeds 300MB
@@ -460,7 +420,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     break;
                 }
             }
-        }
+        } // zipArchive is disposed here, finalizing the ZIP structure
 
         zipStream.Position = 0;
         return File(zipStream, "application/zip", "download.zip");
@@ -470,7 +430,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(OperationResponse))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(OperationResponse))]
     [Consumes("multipart/form-data")]
-    public IActionResult ReplaceImage(int id, IFormFile imageFile, string? saveAs)
+    public async Task<IActionResult> ReplaceImage(int id, IFormFile imageFile, string? saveAs)
     {
         var response = new OperationResponse();
 
@@ -503,7 +463,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
 
 
         using var oldImageStream = new MemoryStream();
-        var readSuccess = fileManager.ReadToStream(oldFilePath, oldImageStream, true);
+        var readSuccess = await fileManager.ReadToStreamAsync(oldFilePath, oldImageStream, true);
         if (!readSuccess)
         {
             response.Message = $"Image with id {id}  cannot be read";
@@ -514,7 +474,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         
         using var oldImage = Image.Load(oldImageStream);
         using var fileStream = imageFile.OpenReadStream();
-        using var newImage =Image.Load(fileStream);
+        using var newImage = Image.Load(fileStream);
         
         //Copy metadata from old image and change resolution values
         metadataProcessor.CopyMetadata(oldImage, newImage);
@@ -525,7 +485,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         newImage.Save(converted, encoder);
         converted.Position = 0;
         
-        var writeSuccess = fileManager.WriteFile(newFilePath, converted);
+        var writeSuccess = await fileManager.WriteFileAsync(newFilePath, converted);
 
         if (writeSuccess)
         {
@@ -545,7 +505,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
     [HttpGet("get-metadata")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ImageMetadataDto))]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-    public IActionResult GetMetadata(int id)
+    public async Task<IActionResult> GetMetadata(int id)
     {
         
         var imageMedia = mediaHelper.GetMediaById(id);
@@ -560,7 +520,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
             var filepath = mediaHelper.GetRelativePath(imageMedia);
 
             using var imageStream = new MemoryStream();
-            var readSuccess = fileManager.ReadToStream(filepath,imageStream, true);
+            var readSuccess = await fileManager.ReadToStreamAsync(filepath, imageStream, true);
 
             if (!readSuccess)
             {

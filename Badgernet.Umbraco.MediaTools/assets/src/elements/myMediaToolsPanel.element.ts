@@ -1,6 +1,11 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, property, state, ifDefined} from "@umbraco-cms/backoffice/external/lit";
-import { UUIInputElement, UUIButtonState, UUIRadioGroupElement } from "@umbraco-cms/backoffice/external/uui";
+import {
+    UUIInputElement,
+    UUIButtonState,
+    UUIRadioGroupElement,
+    UUISliderElement
+} from "@umbraco-cms/backoffice/external/uui";
 import { ConvertMode } from "../api";
 
 
@@ -98,6 +103,14 @@ export class MyMediaToolsPanel extends UmbElementMixin(LitElement) {
             this.resizeMode = target.value as ResizeMode;
         }
     }
+    
+    private convertQualityChanged(e: Event){
+        const target = e.target
+        
+        if(target instanceof UUISliderElement){
+            this.convertQuality = Number(target.value);
+        }
+    }
 
 
     render() {
@@ -165,7 +178,8 @@ export class MyMediaToolsPanel extends UmbElementMixin(LitElement) {
                         step="${5}"
                         ?hide-step-values="${false}"
                         .disabled="${!this.convert}"
-                        value="85">
+                        value="85"
+                        @input="${this.convertQualityChanged}">
                     </uui-slider>
                 </div>
 

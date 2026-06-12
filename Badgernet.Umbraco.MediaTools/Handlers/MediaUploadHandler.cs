@@ -20,7 +20,7 @@ using Size = SixLabors.ImageSharp.Size;
 namespace Badgernet.Umbraco.MediaTools.Handlers;
 
 
-public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotification>
+public class MediaToolsUploadHandler : INotificationAsyncHandler<MediaSavedNotification>
     {
         private const int MAX_WIDTH = 10000;
         private const int MIN_WIDTH = 1;
@@ -58,7 +58,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
             _backOfficeSecurity = backOfficeSecurity ?? throw new ArgumentNullException(nameof(backOfficeSecurity));
         }
 
-        public void Handle(MediaSavedNotification notification)
+        public async Task HandleAsync(MediaSavedNotification notification, CancellationToken cancellationToken)
         {
 
             //Try to get the current backoffice user, bail if none found
@@ -69,36 +69,30 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
             var userKey = user.Key.ToString();
             var settings = _settingsService.GetUserSettings(userKey);
 
-            //Read settings object 
-
-            var convertQuality = settings.Converter.ConvertQuality;
-            var targetWidth = settings.Resizer.TargetWidth;
-            var targetHeight = settings.Resizer.TargetHeight;
-            var keepOriginals = settings.General.KeepOriginals;
-            var convertMode = settings.Converter.ConvertMode;
-            var ignoreKeyword = settings.General.IgnoreKeyword;
-
-            //Prevent Options being out of bounds 
-            targetWidth = Math.Clamp(targetWidth, MIN_WIDTH, MAX_WIDTH);
-            targetHeight = Math.Clamp(targetHeight, MIN_HEIGHT, MAX_HEIGHT);
-            convertQuality = Math.Clamp(convertQuality, 1, 100);
-
-            
-            using var imageStream = new MemoryStream();
-            
-            foreach (var media in notification.SavedEntities)
+            await Parallel.ForEachAsync(notification.SavedEntities, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount, CancellationToken = cancellationToken }, async (media, ct) =>
             {
                 //Re-read settings because they might get overwritten (settings for folders)
                 var resizingEnabled = settings.Resizer.Enabled;
                 var convertingEnabled = settings.Converter.Enabled;
+                var targetWidth = settings.Resizer.TargetWidth;
+                var targetHeight = settings.Resizer.TargetHeight;
+                var convertQuality = settings.Converter.ConvertQuality;
+                var convertMode = settings.Converter.ConvertMode;
+                var keepOriginals = settings.General.KeepOriginals;
+                var ignoreKeyword = settings.General.IgnoreKeyword;
+
+                //Prevent Options being out of bounds 
+                targetWidth = Math.Clamp(targetWidth, MIN_WIDTH, MAX_WIDTH);
+                targetHeight = Math.Clamp(targetHeight, MIN_HEIGHT, MAX_HEIGHT);
+                convertQuality = Math.Clamp(convertQuality, 1, 100);
 
                 //Skip if not an image
                 if (string.IsNullOrEmpty(media.ContentType.Alias) ||
-                    !media.ContentType.Alias.Equals("image", StringComparison.CurrentCultureIgnoreCase)) continue;
+                    !media.ContentType.Alias.Equals("image", StringComparison.CurrentCultureIgnoreCase)) return;
 
                 //Skip any not-new images
                 IRememberBeingDirty dirty = media;
-                if(!dirty.WasPropertyDirty("Id")) continue;
+                if(!dirty.WasPropertyDirty("Id")) return;
 
 
                 var originalPath = _mediaHelper.GetRelativePath(media);
@@ -106,13 +100,13 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
                 Size originalResolution = new();
 
                 //Skip if paths not good
-                if (string.IsNullOrEmpty(originalPath) || string.IsNullOrEmpty(tempSavingPath)) continue;
+                if (string.IsNullOrEmpty(originalPath) || string.IsNullOrEmpty(tempSavingPath)) return;
 
                 //Skip if the image name contains "ignoreKeyword"
                 if (Path.GetFileNameWithoutExtension(originalPath)
                     .Contains(ignoreKeyword, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    continue;
+                    return;
                 }
 
                 //Read resolution      
@@ -123,7 +117,7 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
                 }
                 catch
                 {
-                    continue; //Skip if the resolution cannot be parsed 
+                    return; //Skip if the resolution cannot be parsed 
                 }
 
                 //Read user resizer folder settings
@@ -151,11 +145,12 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
 
 
                 //Reset stream and read new image
-                var fileReadSuccess = _fileManager.ReadToStream(originalPath, imageStream, true);
+                using var imageStream = new MemoryStream();
+                var fileReadSuccess = await _fileManager.ReadToStreamAsync(originalPath, imageStream, true);
                 if (!fileReadSuccess)
                 {
                     _logger.LogError("Could not read file: {originalFilepath}", originalPath);
-                    continue;
+                    return;
                 }
 
                 //Load image from the stream
@@ -249,21 +244,19 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
                 //Finally writing modified image back to file
                 if (wasConvertedFlag || wasResizedFlag || metadataProcessedFlag)
                 {
-                    var encoder = _imageProcessor.GetEncoder(finalSavingPath);
+                    var encoder = _imageProcessor.GetEncoder(finalSavingPath, false, convertQuality, convertMode);
 
-                    imageStream.Position = 0;
-                    imageStream.SetLength(0);
-
-                    image.Save(imageStream, encoder);
-                    _fileManager.WriteFile(finalSavingPath, imageStream);
+                    using var saveStream = new MemoryStream();
+                    image.Save(saveStream, encoder);
+                    await _fileManager.WriteFileAsync(finalSavingPath, saveStream);
 
                     //Adjust media properties
                     var newFilename = Path.GetFileNameWithoutExtension(finalSavingPath);
                     var newExtension = Path.GetExtension(finalSavingPath);
 
-                    _mediaHelper.SetUmbBytes(media, imageStream.Length);
+                    _mediaHelper.SetUmbBytes(media, saveStream.Length);
                     _mediaHelper.SetUmbFilename(media, newFilename);
-                    _mediaHelper.SetUmbExtension(media, "." + newExtension);
+                    _mediaHelper.SetUmbExtension(media, newExtension);
                     _mediaHelper.SetUmbResolution(media, newResolution);
                     
                     //Saving modified media entity to the database 
@@ -273,11 +266,11 @@ public class MediaToolsUploadHandler : INotificationHandler<MediaSavedNotificati
                 }
 
                 //Deleting original files
-                if (!keepOriginals && wasResizedFlag || wasConvertedFlag || metadataProcessedFlag)
+                if (!keepOriginals && (wasResizedFlag || wasConvertedFlag || metadataProcessedFlag))
                 {
                     _fileManager.DeleteFile(originalPath);
                 }
-            }
+            });
         }
 
         private Size? ParseSizeFromFilename(string fileName)

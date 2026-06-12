@@ -24,7 +24,7 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
     {
         try
         {
-            var format = image.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
+            _ = image.Metadata.DecodedImageFormat ?? throw new Exception("No image Format found");
 
             image.Mutate(x =>
             {
@@ -49,26 +49,14 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
     }
     public bool ConvertToWebp(Image image, ConvertMode convertMode, int convertQuality)
     {
-        var encoder = new WebpEncoder
-            {
-                Quality = convertQuality,
-                FileFormat = convertMode == ConvertMode.Lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
-            };
-
         try
         {
-            image.Mutate(x => x.AutoOrient() );
-
-            using var converted = new MemoryStream();
-            image.Save(converted, encoder);
-            converted.Position = 0; 
-            image = Image.Load(converted);
-
+            image.Mutate(x => x.AutoOrient());
             return true;
         }
         catch (Exception e)
         {
-            logger.LogError("Error converting image file: {Message}", e.Message);
+            logger.LogError("Error orienting image file: {Message}", e.Message);
             return false;
         }
 
@@ -92,24 +80,31 @@ public class ImageProcessor(ILogger<ImageProcessor> logger) : IImageProcessor
 
             return new Size(newWidth, newHeight);
         }
-    public ImageEncoder GetEncoder(string filePath, bool skipMetadata = false)
+    public ImageEncoder GetEncoder(string filePath, bool skipMetadata = false, int? quality = null, ConvertMode? convertMode = null)
     {
         var extension = Path.GetExtension(filePath).ToLower();
 
         return extension switch
         {
-            ".pbm" => new PbmEncoder(){SkipMetadata = skipMetadata},
-            ".png" => new PngEncoder(){SkipMetadata = skipMetadata},
-            ".gif" => new GifEncoder(){SkipMetadata = skipMetadata},
-            ".qoi" => new QoiEncoder(){SkipMetadata = skipMetadata},
-            ".tga" => new TgaEncoder(){SkipMetadata = skipMetadata},
-            ".jpg" => new JpegEncoder(){SkipMetadata = skipMetadata},
-            ".jpeg" => new JpegEncoder(){SkipMetadata = skipMetadata},
-            ".bmp" => new BmpEncoder(){SkipMetadata = skipMetadata},
-            ".tiff" => new TiffEncoder(){SkipMetadata = skipMetadata},
-            _ => new WebpEncoder(){SkipMetadata = skipMetadata}
+            ".pbm" => new PbmEncoder { SkipMetadata = skipMetadata },
+            ".png" => new PngEncoder { SkipMetadata = skipMetadata },
+            ".gif" => new GifEncoder { SkipMetadata = skipMetadata },
+            ".qoi" => new QoiEncoder { SkipMetadata = skipMetadata },
+            ".tga" => new TgaEncoder { SkipMetadata = skipMetadata },
+            ".jpg" or ".jpeg" => new JpegEncoder
+            {
+                SkipMetadata = skipMetadata,
+                Quality = quality
+            },
+            ".bmp" => new BmpEncoder { SkipMetadata = skipMetadata },
+            ".tiff" => new TiffEncoder { SkipMetadata = skipMetadata },
+            _ => new WebpEncoder
+            {
+                SkipMetadata = skipMetadata,
+                Quality = quality ?? 80,
+                FileFormat = convertMode == ConvertMode.Lossless ? WebpFileFormatType.Lossless : WebpFileFormatType.Lossy
+            }
         };
-        ;
     }
 
 }

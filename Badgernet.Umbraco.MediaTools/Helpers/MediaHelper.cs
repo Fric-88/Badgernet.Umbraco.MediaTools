@@ -21,14 +21,9 @@ public class MediaHelper(
 
     private async Task<IEnumerable<IPublishedContent>> GetMediaContent(IEnumerable<Guid> keys)
     {
-        var medias = new List<IPublishedContent>();
-        foreach (var key in keys)
-        {
-            var content = await mediaCacheService.GetByKeyAsync(key).ConfigureAwait(false);
-            if (content == null) continue;
-            medias.Add(content);
-        }
-        return medias;
+        var tasks = keys.Select(key => mediaCacheService.GetByKeyAsync(key));
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        return results.Where(content => content != null)!;
     }
 
     public async Task<IEnumerable<IPublishedContent>> GetAllMediaAsync()
@@ -51,14 +46,16 @@ public class MediaHelper(
     
     public async Task<IEnumerable<MediaFolderDto>> GetFoldersAsync()
     {
+        if (!mediaQueryService.TryGetRootKeys(out var rootKeys))
+            return [];
+
+        var roots = await GetMediaContent(rootKeys);
         var result = new List<MediaFolderDto>();
         var stack = new Stack<(IPublishedContent folder, string path)>();
 
-        var rootMedia = await GetAllMediaAsync();
-        
-        foreach (var root in rootMedia)
+        foreach (var root in roots)
         {
-            if (root.ContentType.Alias == "Folder" && root.Level == 1)
+            if (root.ContentType.Alias == "Folder")
             {
                 stack.Push((root, ""));
             }
@@ -67,7 +64,7 @@ public class MediaHelper(
         while (stack.Count > 0)
         {
             var (folder, parentPath) = stack.Pop();
-            var currentPath = string.IsNullOrEmpty(parentPath)? $"/{folder.Name}" : $"{parentPath}/{folder.Name}";
+            var currentPath = string.IsNullOrEmpty(parentPath) ? $"/{folder.Name}" : $"{parentPath}/{folder.Name}";
 
             result.Add(new MediaFolderDto(folder.Key, folder.Name, currentPath));
 
@@ -134,7 +131,7 @@ public class MediaHelper(
         if(folder == null) return [];
 
         mediaQueryService.TryGetDescendantsKeys(folder.Key, out var descendantKeys);
-        var images = Task.Run(() => GetMediaContent(descendantKeys)).GetAwaiter().GetResult();
+        var images = await GetMediaContent(descendantKeys);
         return images.OfTypes("Image");
     }
 
