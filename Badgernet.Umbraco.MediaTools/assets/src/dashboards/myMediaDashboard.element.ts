@@ -1,6 +1,7 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, state, query } from "@umbraco-cms/backoffice/external/lit";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
+import { repeat } from "@umbraco-cms/backoffice/external/lit";
 import {
     UUICheckboxElement,
     UUIPaginationElement, UUISelectElement,
@@ -78,29 +79,33 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         super.connectedCallback();
     }
 
-    //Toggling row selection
-    private handleRowClicked(e: Event){
-        const target = e.target;
+    // Toggling row selection
+    private handleRowClicked(e: Event) {
 
-        if(target instanceof UUITableCellElement){
+        const cell = (e.target as HTMLElement).closest("uui-table-cell") as UUITableCellElement | null;
 
-            let row = target.parentElement as UUITableRowElement;
-            let itemIndex = Number(row.dataset.imageRow);
-            let item: ImageMediaDto | undefined = this.itemsList.itemAt(itemIndex);
+        if (cell) {
+            
+            const rowElement = cell.closest("uui-table-row") as HTMLElement | null;
 
-            if(item === undefined) return; //Item not found
+            if (rowElement) {
+                let itemIndex = Number(rowElement.dataset.imageRow ?? -1);
+                if (itemIndex < 0) return;
 
-            if(this.itemsList.isSelected(item)){
-                this.itemsList.unselect(item);
-                this.allSelected = false;
-            }
-            else{
-                this.itemsList.select(item);
-                if(this.itemsList.count() === this.itemsList.countSelectedItems()){
-                    this.allSelected = true;
+                let item: ImageMediaDto | undefined = this.itemsList.itemAt(itemIndex);
+                if (item === undefined) return; // Item not found
+
+                if (this.itemsList.isSelected(item)) {
+                    this.itemsList.unselect(item);
+                    this.allSelected = false;
+                } else {
+                    this.itemsList.select(item);
+                    if (this.itemsList.count() === this.itemsList.countSelectedItems()) {
+                        this.allSelected = true;
+                    }
                 }
+                this.requestUpdate();
             }
-            this.requestUpdate();
         }
     }
 
@@ -189,7 +194,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     //Opens popup to rename media
     private async renameMedia(e: Event){
 
-        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
         if(!imgRow) return;
         
         const imgIndex = Number(imgRow.dataset.imageRow ?? -1);
@@ -223,7 +228,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     
     //Opens popup image editor
     private editMedia(e: Event){
-        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
         if(imgRow){
             //Find editor element 
             const editor = this.editImageDialog as ImageEditorDialog;
@@ -329,7 +334,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     
     //Opens image preview popup
     private async showImagePreview(e: Event){
-        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
         if(imgRow){
             const previewElement = this.previewModal as ImagePreview;
             if(previewElement) {
@@ -344,7 +349,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
     //Opens metadata preview popup
     private async showMetadataPreview(e: Event){
-        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
         if(imgRow){
             const previewElement = this.previewModal as ImagePreview;
             if(previewElement) {
@@ -361,7 +366,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     private async recycleSingleImage(e: Event){
         if(!this.#mediaToolsContext)return; 
         
-        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row");
+        const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
         if(!imgRow) return;
         let imgId = Number(imgRow.dataset.imageId ?? -1);
         if(imgId < 0) return;
@@ -512,7 +517,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     
     //Change items per Page
     #handleItemsPerPageChanged(e: Event){
-        var target = e.target;
+        const target = e.target;
         if(target instanceof UUISelectElement){
             this.itemsList.pageSize = Number(target.value);
             this.requestUpdate();
@@ -629,22 +634,21 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                         <uui-table-head-cell></uui-table-head-cell>
                     </uui-table-head>
 
-                    ${this.itemsList.getPage(this.currentPage).map(img =>
-
-                        html`
+                    ${repeat(
+                            this.itemsList.getPage(this.currentPage),
+                            (img) => `${img.id}-${img.path}`, // 🔥 Dynamic key! If path changes, Lit completely recreates this row
+                            (img) => html`
                             <uui-table-row class="${this.itemsList.isSelected(img) ? 'selectableRow selectedRow' : 'selectableRow'}"
                                            data-image-id="${img.id}"
+                                           data-image-key="${img.key}"
                                            data-image-row="${this.itemsList.indexOf(img)}"
                                            data-image-path="${img.path}"
                                            @click="${this.handleRowClicked}">
-
-                              
+                                
                                 <uui-table-cell>
-                                    <div 
-                                        class="imagePreview"
-                                        style="background: url('${img.path}?width=45&height=45')"
-                                        @click="${this.showImagePreview}">
-                                    </div>
+
+                                    <umb-imaging-thumbnail class="imagePreview" @click="${this.showImagePreview}" .unique="${img.key}" .src="${img.path}" width="250" height="250" mode=""></umb-imaging-thumbnail>
+
                                 </uui-table-cell>
 
                                 <uui-table-cell style="padding-left: 1rem">
@@ -786,8 +790,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
         .imagePreview{
             display: block;
-            width: 45px;
-            height: 45px;
+            width: 65px;
+            height: 65px;
         }
         
         .selectableRow{

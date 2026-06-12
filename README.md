@@ -46,6 +46,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+#### 17.0.2
+- Fixed the issue with displaying Thumbnails and image preview
+- Bumped up the Backoffice and Umbraco version
+
 #### 17.0.1
 - Repackaged without unnecessary TypeScript files
 - Bumped up backoffice version package

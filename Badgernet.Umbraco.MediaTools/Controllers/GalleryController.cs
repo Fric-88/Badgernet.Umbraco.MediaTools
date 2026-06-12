@@ -13,6 +13,7 @@ using Size = SixLabors.ImageSharp.Size;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using System.Security.Permissions;
 using K4os.Compression.LZ4.Internal;
+using Microsoft.Extensions.Caching.Distributed;
 
 
 namespace Badgernet.Umbraco.MediaTools.Controllers;
@@ -20,7 +21,7 @@ namespace Badgernet.Umbraco.MediaTools.Controllers;
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = "mediatools")]
 [Route("gallery")]
-public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor) : ControllerBase
+public class GalleryController(ILogger<SettingsController> logger, IMediaHelper mediaHelper, IFileManager fileManager, IImageProcessor imageProcessor, IMetadataProcessor metadataProcessor, IDistributedCache distributedCache) : ControllerBase
 {
     private const int MAX_WIDTH = 10000;
     private const int MIN_WIDTH = 1;
@@ -51,6 +52,7 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         var mediaInfo = new ImageMediaDto
         {
             Id = media.Id,
+            Key = media.Key,
             Name = media.Name ?? "Name missing",
             Path = mediaHelper.GetRelativePath(media),
             Width = mediaHelper.GetUmbResolution(media).Width,
@@ -315,14 +317,18 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
                     {
                         //Save processed media back to the database
                         mediaHelper.SaveMedia(imageMedia);
+                        
+                        //Bust the cache 
+                        distributedCache.Refresh(imageMedia.Key.ToString());
 
                         try
                         {
                             var imgResolution = mediaHelper.GetUmbResolution(imageMedia);
-                            
+
                             processedMedias.Add(new ImageMediaDto
                             {
                                 Id = imageMedia.Id,
+                                Key = imageMedia.Key,
                                 Name = imageMedia.Name ?? string.Empty,
                                 Path = mediaHelper.GetRelativePath(imageMedia),
                                 Extension = mediaHelper.GetUmbExtension(imageMedia),

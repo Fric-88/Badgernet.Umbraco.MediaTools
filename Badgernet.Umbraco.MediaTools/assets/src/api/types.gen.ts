@@ -28,6 +28,7 @@ export type GeneralSettings = {
 
 export type ImageMediaDto = {
     id: number;
+    key: string;
     name: string;
     width: number;
     height: number;

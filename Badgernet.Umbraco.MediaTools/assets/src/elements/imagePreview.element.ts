@@ -106,9 +106,15 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             <uui-modal-dialog id="dialogElement">
                 <uui-dialog-layout class="layout" headline="Preview">
                     
-                    <div class="imageContainer" style="width: ${this.renderWidth?.toFixed(0)}px; height: ${this.renderHeight?.toFixed(0)}px">
-                        <img src="${this.imageInfo?.path}?width=${this.renderWidth?.toFixed(0)}&height=${this.renderHeight?.toFixed(0)}"
-                             alt="${ifDefined(this.imageInfo?.name)}" onload="this.classList.add('loaded')">
+                        <umb-imaging-thumbnail  
+                                unique="${this.imageInfo?.key}" 
+                                width="${this.renderWidth?.toFixed(0)}" 
+                                height="${this.renderHeight?.toFixed(0)}"
+                                alt="${ifDefined(this.imageInfo?.name)}"
+                                mode="crop"
+                                onload="this.classList.add('loaded')">
+                        </umb-imaging-thumbnail>
+                    
                     </div>
 
                     

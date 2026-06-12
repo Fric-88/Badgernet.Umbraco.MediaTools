@@ -109,6 +109,7 @@ public class MediaHelper(
                 .Select(i => new ImageMediaDto
                 {
                     Id = i.Id,
+                    Key = i.Key,
                     Name = i.Name,
                     Path = i.GetProperty("UmbracoFile")?.GetValue("Src")?.ToString() ?? string.Empty,
                     Width = Convert.ToInt32(i.GetProperty("umbracoWidth")?.GetValue() ?? 0),
@@ -144,6 +145,7 @@ public class MediaHelper(
             .Select(i => new ImageMediaDto
             {
                 Id =i.Id,
+                Key = i.Key,    
                 Name = i.Name,
                 Path = i.GetProperty("UmbracoFile")?.GetValue("Src")?.ToString() ?? string.Empty,
                 Width = Convert.ToInt32(i.GetProperty("umbracoWidth")?.GetValue() ?? 0),
