@@ -10,7 +10,7 @@
 
   <PropertyGroup>
     <PackageId>Badgernet.Umbraco.MediaTools</PackageId>
-    <Version>17.0.1</Version>
+    <Version>17.0.2</Version>
 
     <Description>This package adds additional functionalities to Umbraco media section.
     </Description>
@@ -23,7 +23,7 @@
     <PackageTags>umbraco-marketplace</PackageTags> 
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile> 
     <PackageRequireLicenseAcceptance>False</PackageRequireLicenseAcceptance> 
-    <PackageReleaseNotes>Repackage the NuGet without including unnessesary files.</PackageReleaseNotes> 
+    <PackageReleaseNotes>Thumbnails fixed, performance improvements</PackageReleaseNotes> 
 
   </PropertyGroup>
 
