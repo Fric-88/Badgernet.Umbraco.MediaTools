@@ -8,7 +8,7 @@
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "watch": "vite build --watch",
-    "generateApi": "openapi-ts --input http://localhost:2812/umbraco/swagger/mediatools/swagger.json --output src/api",
+    "generateApi": "openapi-ts --input http://localhost:2812/umbraco/openapi/mediatools.json --output src/api",
     "buildWasm": "emcc src/elements/imageEditor/wasm/manipulate.cpp -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='[_manipulateImageData,_malloc,_free]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap,HEAPU8]' -o src/elements/imageEditor/wasm/manipulate.js"
   },
   "dependencies": {

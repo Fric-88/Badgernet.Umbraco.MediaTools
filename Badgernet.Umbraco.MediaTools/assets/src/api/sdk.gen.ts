@@ -18,12 +18,12 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
     meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
 
-export const downloadMedia = <ThrowOnError extends boolean = false>(options?: Options<DownloadMediaData, ThrowOnError>): RequestResult<DownloadMediaResponses, unknown, ThrowOnError> => (options?.client ?? client).post<DownloadMediaResponses, unknown, ThrowOnError>({
+export const downloadMedia = <ThrowOnError extends boolean = false>(options: Options<DownloadMediaData, ThrowOnError>): RequestResult<DownloadMediaResponses, unknown, ThrowOnError> => (options.client ?? client).post<DownloadMediaResponses, unknown, ThrowOnError>({
     url: '/gallery/download-media',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options?.headers
+        ...options.headers
     }
 });
 
@@ -33,52 +33,52 @@ export const getMediaInfo = <ThrowOnError extends boolean = false>(options?: Opt
 
 export const getMetadata = <ThrowOnError extends boolean = false>(options?: Options<GetMetadataData, ThrowOnError>): RequestResult<GetMetadataResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetMetadataResponses, unknown, ThrowOnError>({ url: '/gallery/get-metadata', ...options });
 
-export const processImages = <ThrowOnError extends boolean = false>(options?: Options<ProcessImagesData, ThrowOnError>): RequestResult<ProcessImagesResponses, ProcessImagesErrors, ThrowOnError> => (options?.client ?? client).post<ProcessImagesResponses, ProcessImagesErrors, ThrowOnError>({
+export const processImages = <ThrowOnError extends boolean = false>(options: Options<ProcessImagesData, ThrowOnError>): RequestResult<ProcessImagesResponses, ProcessImagesErrors, ThrowOnError> => (options.client ?? client).post<ProcessImagesResponses, ProcessImagesErrors, ThrowOnError>({
     url: '/gallery/process-images',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options?.headers
+        ...options.headers
     }
 });
 
 export const renameMedia = <ThrowOnError extends boolean = false>(options?: Options<RenameMediaData, ThrowOnError>): RequestResult<RenameMediaResponses, RenameMediaErrors, ThrowOnError> => (options?.client ?? client).post<RenameMediaResponses, RenameMediaErrors, ThrowOnError>({ url: '/gallery/rename-media', ...options });
 
-export const replaceImage = <ThrowOnError extends boolean = false>(options?: Options<ReplaceImageData, ThrowOnError>): RequestResult<ReplaceImageResponses, ReplaceImageErrors, ThrowOnError> => (options?.client ?? client).post<ReplaceImageResponses, ReplaceImageErrors, ThrowOnError>({
+export const replaceImage = <ThrowOnError extends boolean = false>(options: Options<ReplaceImageData, ThrowOnError>): RequestResult<ReplaceImageResponses, ReplaceImageErrors, ThrowOnError> => (options.client ?? client).post<ReplaceImageResponses, ReplaceImageErrors, ThrowOnError>({
     ...formDataBodySerializer,
     url: '/gallery/replace-image',
     ...options,
     headers: {
         'Content-Type': null,
-        ...options?.headers
+        ...options.headers
     }
 });
 
-export const searchMedia = <ThrowOnError extends boolean = false>(options?: Options<SearchMediaData, ThrowOnError>): RequestResult<SearchMediaResponses, unknown, ThrowOnError> => (options?.client ?? client).post<SearchMediaResponses, unknown, ThrowOnError>({
+export const searchMedia = <ThrowOnError extends boolean = false>(options: Options<SearchMediaData, ThrowOnError>): RequestResult<SearchMediaResponses, unknown, ThrowOnError> => (options.client ?? client).post<SearchMediaResponses, unknown, ThrowOnError>({
     url: '/gallery/search-media',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options?.headers
+        ...options.headers
     }
 });
 
-export const trashMedia = <ThrowOnError extends boolean = false>(options?: Options<TrashMediaData, ThrowOnError>): RequestResult<TrashMediaResponses, unknown, ThrowOnError> => (options?.client ?? client).post<TrashMediaResponses, unknown, ThrowOnError>({
+export const trashMedia = <ThrowOnError extends boolean = false>(options: Options<TrashMediaData, ThrowOnError>): RequestResult<TrashMediaResponses, unknown, ThrowOnError> => (options.client ?? client).post<TrashMediaResponses, unknown, ThrowOnError>({
     url: '/gallery/trash-media',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options?.headers
+        ...options.headers
     }
 });
 
 export const getSettings = <ThrowOnError extends boolean = false>(options?: Options<GetSettingsData, ThrowOnError>): RequestResult<GetSettingsResponses, unknown, ThrowOnError> => (options?.client ?? client).get<GetSettingsResponses, unknown, ThrowOnError>({ url: '/settings/get-settings', ...options });
 
-export const setSettings = <ThrowOnError extends boolean = false>(options?: Options<SetSettingsData, ThrowOnError>): RequestResult<SetSettingsResponses, unknown, ThrowOnError> => (options?.client ?? client).post<SetSettingsResponses, unknown, ThrowOnError>({
+export const setSettings = <ThrowOnError extends boolean = false>(options: Options<SetSettingsData, ThrowOnError>): RequestResult<SetSettingsResponses, unknown, ThrowOnError> => (options.client ?? client).post<SetSettingsResponses, unknown, ThrowOnError>({
     url: '/settings/set-settings',
     ...options,
     headers: {
         'Content-Type': 'application/json',
-        ...options?.headers
+        ...options.headers
     }
 });

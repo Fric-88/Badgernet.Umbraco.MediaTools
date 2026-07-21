@@ -7,6 +7,7 @@ using Badgernet.Umbraco.MediaTools.Services.ImageProcessing.Metadata;
 using Badgernet.Umbraco.MediaTools.Services.Settings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Umbraco.Cms.Api.Common.OpenApi;
 using Umbraco.Cms.Core.Composing;
 using Umbraco.Cms.Core.Configuration;
 using Umbraco.Cms.Core.Notifications;
@@ -19,10 +20,33 @@ public class MediaToolsComposer : IComposer
     {
         
         var umbVersion = builder.Services.BuildServiceProvider().GetRequiredService<IUmbracoVersion>().Version;
+        
+        // Register the transformer
+        builder.Services.AddTransient<MediaToolsOperationIdTransformer>();
+
+        //Register your custom OpenApi Document
+        builder.AddBackOfficeOpenApiDocument(
+            
+            "mediatools", // Group name
+            document => document
+                .WithTitle("Badgernet Mediatools")
+                .ConfigureOpenApiOptions(options =>
+                {
+                    
+                    options.AddDocumentTransformer((doc, context, cancellationToken) =>
+                    {
+                        doc.Info.Version = "Latest";
+                        doc.Info.Description = "Automatic media resizing and converting";
+                        return Task.CompletedTask;
+                    });
+
+                    // Custom OperationId transformer
+                    options.AddOperationTransformer<MediaToolsOperationIdTransformer>();
+                })
+        );
 
         builder.Services.AddScoped<IMediaHelper, MediaHelper>();
         
-        builder.Services.ConfigureOptions<ConfigureSwaggerGenOptions>();
         builder.Services.AddSingleton<IFileManager, FileManager>();
         builder.Services.AddSingleton<IImageProcessor, ImageProcessor>(); 
         builder.Services.AddSingleton<IMetadataProcessor, MetadataProcessor>(); 
