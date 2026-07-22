@@ -93,11 +93,11 @@ public class GalleryController(ILogger<SettingsController> logger, IMediaHelper 
         {
             case SizeFilter.BiggerThan:
                 //Get all images that are bigger than provided size, ignore .svg images
-                images = images.Where(x => x.Width > requestData.Width || x.Height > requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
+                images = images.Where(x => x.Width > requestData.Width && x.Height > requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
                 break;
             case SizeFilter.SmallerThan:
                 //Get all images that are smaller than provided size, ignore .svg images
-                images = images.Where(x => x.Width < requestData.Width || x.Height < requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
+                images = images.Where(x => x.Width < requestData.Width && x.Height < requestData.Height).Where(x => !x.Extension.EndsWith("svg"));
                 break;
             case SizeFilter.AllSizes:
             default:

@@ -12,12 +12,12 @@
     "buildWasm": "emcc src/elements/imageEditor/wasm/manipulate.cpp -O3 -s WASM=1 -s MODULARIZE=1 -s EXPORT_ES6=1 -s ENVIRONMENT=web -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS='[_manipulateImageData,_malloc,_free]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap,HEAPU8]' -o src/elements/imageEditor/wasm/manipulate.js"
   },
   "dependencies": {
-    "@hey-api/openapi-ts": "^0.98.2",
-    "@umbraco-cms/backoffice": "^17.4.2",
-    "node": "^23.11.1"
+    "@hey-api/openapi-ts": "^0.99.0",
+    "@umbraco-cms/backoffice": "^18.0.2",
+    "node": "^24.13.1"
   },
   "devDependencies": {
-    "@hey-api/openapi-ts": "^0.98.2",
+    "@hey-api/openapi-ts": "^0.99.0",
     "eslint": "^9.8.0",
     "lit": "^3.3.3",
     "terser": "^5.44.1",
