@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class FilterImagesDto
@@ -10,6 +12,7 @@ public class FilterImagesDto
     public SizeFilter SizeFilter { get; set; } = SizeFilter.AllSizes;
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SizeFilter{
     AllSizes, BiggerThan, SmallerThan
 }

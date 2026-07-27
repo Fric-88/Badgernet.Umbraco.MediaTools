@@ -60,9 +60,12 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         const imgInfoResponse = await this.#context.getMediaInfo(imageId);
         if(!imgInfoResponse) return;
         this.imageInfo = imgInfoResponse.data as ImageMediaDto;
+        
+        const imageWidth: number = this.imageInfo.width as number;
+        const imageHeight: number = this.imageInfo.height as number;
 
-        const scaleWidth = this.maxWidth / this.imageInfo.width;
-        const scaleHeight = this.maxHeight / this.imageInfo.height;
+        const scaleWidth = this.maxWidth / imageWidth;
+        const scaleHeight = this.maxHeight / imageHeight;
         let scale: number = 0;
 
         if (scaleWidth < scaleHeight)
@@ -70,8 +73,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
         else
             scale = scaleHeight;
 
-        this.renderWidth = (this.imageInfo.width * scale);
-        this.renderHeight = (this.imageInfo.height * scale);
+        this.renderWidth = (imageWidth * scale);
+        this.renderHeight = (imageHeight * scale);
 
         await this.#loadMetadata(imageId).catch((e) => {console.log(e)}).then(() =>
             loadingPopup.closePopup()

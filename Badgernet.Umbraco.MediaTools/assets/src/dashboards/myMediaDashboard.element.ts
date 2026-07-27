@@ -4,6 +4,7 @@ import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediato
 import { repeat } from "@umbraco-cms/backoffice/external/lit";
 import {
     UUICheckboxElement,
+    UUISelectOption,
     UUIPaginationElement, UUISelectElement,
     UUITableCellElement,
     UUITableRowElement,
@@ -34,6 +35,7 @@ import "../elements/acceptRejectDialog.element.ts"
 
 
 
+
 @customElement('badgernet-umbraco-my-media-dashboard')
 export class MyMediaDashboard extends UmbElementMixin(LitElement) {
 
@@ -53,7 +55,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     @query("#editImageDialog") editImageDialog!: ImageEditorDialog;
     @query("#acceptRejectDialog") acceptRejectDialog!: AcceptRejectDialog;
 
-    #itemsPerPageOptions: Option[] = [
+    #itemsPerPageOptions: UUISelectOption[] = [
         {name: "10", value: "10", selected: true},
         {name: "15", value: "15"},
         {name: "20", value: "20"},
@@ -204,14 +206,13 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         const image = this.itemsList.itemAt(imgIndex);
         if(!image) return;
 
-
         const dialog = this.renameMediaDialog as RenameMediaDialog;
         if(!dialog) return;
         
         dialog.showModal(image.name, async () => {
 
             const newName = dialog.mediaName;
-            const mediaId = image.id;
+            const mediaId = image.id as number;
 
             const response = await this.#mediaToolsContext?.renameMedia(mediaId, newName);
             if(response){
@@ -225,6 +226,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 }
             }
         });
+        
+        e.stopPropagation();
     }
     
     //Opens popup image editor
@@ -243,6 +246,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
             //Open editor
             editor.openEditor(900, 900, filePath, imageId);
         }
+        
+        e.stopPropagation();
     }
     
     //Lets selected images get resized and/or converted
@@ -336,6 +341,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     //Opens image preview popup
     private async showImagePreview(e: Event){
         const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
+        e.stopPropagation();
         if(imgRow){
             const previewElement = this.previewModal as ImagePreview;
             if(previewElement) {
@@ -346,11 +352,15 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 await previewElement.showPreview(imgId);
             }
         }
+        
+        
     }
 
     //Opens metadata preview popup
     private async showMetadataPreview(e: Event){
         const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
+        e.stopPropagation();
+        
         if(imgRow){
             const previewElement = this.previewModal as ImagePreview;
             if(previewElement) {
@@ -365,6 +375,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
     
     //Moves single image to trash
     private async recycleSingleImage(e: Event){
+        
         if(!this.#mediaToolsContext)return; 
         
         const imgRow = (e.target as HTMLDivElement).closest("uui-table-row") as HTMLElement | null;
@@ -374,6 +385,8 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
         
         const dialog = this.acceptRejectDialog as AcceptRejectDialog;
         if(dialog == null) return;
+        
+        e.stopPropagation();
         
         dialog.build("Are you sure?","Do you want to move this image to trash?", "", "Yes", "Cancel");
         const accepted = await dialog.show();
@@ -424,7 +437,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                 target.processButtonEnabled = false;
                 target.downloadButtonEnabled = false;
 
-                const imageIds = selectedImages.map(item => item.id);
+                const imageIds = selectedImages.map(item => item.id as number);
                 const response = await this.#mediaToolsContext?.trashMedia(imageIds);
 
                 if(response){
@@ -478,7 +491,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                     target.processButtonEnabled = false;
                     target.trashButtonEnabled = false;
 
-                    const imageIds = selectedImages.map(item => item.id);
+                    const imageIds = selectedImages.map(item => item.id as number);
                     const response = await this.#mediaToolsContext?.downloadMedia(imageIds);
     
                     if(response){
@@ -649,9 +662,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                                            @click="${this.handleRowClicked}">
                                 
                                 <uui-table-cell>
-
                                     <umb-imaging-thumbnail class="imagePreview" @click="${this.showImagePreview}" .unique="${img.key}" .src="${img.path}" width="250" height="250" mode=""></umb-imaging-thumbnail>
-
                                 </uui-table-cell>
 
                                 <uui-table-cell style="padding-left: 1rem">
@@ -803,6 +814,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
             transition: background-color 0.2s ease-in-out;
         }
             .selectableRow:hover {
+                border-radius: 0;
                 -webkit-box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
                 box-shadow: inset 0 0 10px 0 rgba(0,0,0,0.2);
             }

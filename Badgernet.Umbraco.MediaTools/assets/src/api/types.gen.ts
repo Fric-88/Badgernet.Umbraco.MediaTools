@@ -10,7 +10,7 @@ export type ConverterSettings = {
     convertQuality: number | string;
 };
 
-export type ConvertMode = number;
+export type ConvertMode = 'Lossy' | 'Lossless';
 
 export type FilterImagesDto = {
     folderName?: null | string;
@@ -88,7 +88,7 @@ export type ProcessImagesDto = {
     convertQuality: number | string;
 };
 
-export type ResizeMode = number;
+export type ResizeMode = 'FitInside' | 'ExactSize';
 
 export type ResizerFolderOverride = {
     key: string;
@@ -105,9 +105,9 @@ export type ResizerSettings = {
     folderOverrides: Array<ResizerFolderOverride>;
 };
 
-export type ResponseStatus = number;
+export type ResponseStatus = 'Success' | 'Error' | 'Skipped' | 'Warning';
 
-export type SizeFilter = number;
+export type SizeFilter = 'AllSizes' | 'BiggerThan' | 'SmallerThan';
 
 export type Stream = Blob | File;
 

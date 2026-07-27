@@ -226,7 +226,7 @@ export class MyMediaToolsPanel extends UmbElementMixin(LitElement) {
 
     .toolbox{
         border:1px #D8D7D9 solid;
-        border-radius: 3px;
+        border-radius: 12px;
         overflow: hidden;
         padding: 1rem;
         

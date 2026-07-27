@@ -1,6 +1,6 @@
 import { UmbElementMixin } from "@umbraco-cms/backoffice/element-api";
 import { LitElement, html, css, customElement, state, property} from "@umbraco-cms/backoffice/external/lit";
-import { UUIButtonState, UUIInputElement, UUISelectElement, UUISliderElement } from "@umbraco-cms/backoffice/external/uui";
+import { UUIButtonState, UUIInputElement, UUISelectElement, UUISelectOption, UUISliderElement } from "@umbraco-cms/backoffice/external/uui";
 import { SearchMediaData, SizeFilter } from "../api";
 import MediaToolsContext, { MEDIA_TOOLS_CONTEXT_TOKEN } from "../context/mediatools.context";
 
@@ -14,7 +14,7 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
     @property({attribute: true, type: Number}) height: number = 1080;
     @state() findButtonState: UUIButtonState = undefined; 
     @state() resolutionFilter: SizeFilter = "AllSizes";
-    @state() mediaFolderOptions: Array<Option> =  [];
+    @state() mediaFolderOptions: Array<UUISelectOption> =  [];
 
     private nameFilter: string = "";
     private extensionFilter: string = "";
@@ -41,7 +41,7 @@ export class MyMediaSearchBar extends UmbElementMixin(LitElement) {
         
     }
 
-    #resolutionOptions: Array<Option> = [
+    #resolutionOptions: Array<UUISelectOption> = [
         { name: "All", value: "AllSizes", selected: true },
         { name: "Bigger than", value: 'BiggerThan' },
         { name: "Smaller than", value: 'SmallerThan' },

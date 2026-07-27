@@ -1,4 +1,6 @@
-﻿namespace Badgernet.Umbraco.MediaTools.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace Badgernet.Umbraco.MediaTools.Models;
 
 public class UserSettingsDto
 {
@@ -53,6 +55,7 @@ public record class ResizerFolderOverride
     public bool ResizerEnabled { get; init; } = false;
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ConvertMode
 {
     Lossy,

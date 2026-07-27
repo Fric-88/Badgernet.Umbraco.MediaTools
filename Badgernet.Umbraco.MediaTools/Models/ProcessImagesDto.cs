@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Badgernet.Umbraco.MediaTools.Models;
 
 public record struct ProcessImagesDto()
@@ -12,6 +14,7 @@ public record struct ProcessImagesDto()
     public int ConvertQuality { get; set; } = 85;
 }
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ResizeMode
 {
     FitInside,

@@ -6,6 +6,7 @@ import {
     UmbArrayState, UmbBooleanState, 
     UmbNumberState, UmbStringState
 } from "@umbraco-cms/backoffice/observable-api";
+import {UUISelectOption} from "@umbraco-cms/backoffice/external/uui";
 import {
     ConvertMode,UserSettingsDto,MediaFolderDto,
     ResizerFolderOverride, FilterImagesDto, ProcessImagesDto
@@ -34,7 +35,7 @@ export class MediaToolsContext extends UmbControllerBase {
     #keepOriginals = new UmbBooleanState(false);
     #ignoreKeyword = new UmbStringState("ignoreme");
     #mediaFolders = new UmbArrayState<MediaFolderDto>([], (x) => x.key);
-    #mediaFolderOptions = new UmbArrayState<Option>([], (x) => x.value);
+    #mediaFolderOptions = new UmbArrayState<UUISelectOption>([], (x) => x.value);
     #resizerFolderOverrides = new UmbArrayState<ResizerFolderOverride>([], (x) => x.key);
     #removeDateTime = new UmbBooleanState(true);
     #removeCameraInfo = new UmbBooleanState(true);
@@ -119,7 +120,7 @@ export class MediaToolsContext extends UmbControllerBase {
     public set mediaFolders(value: MediaFolderDto[]) {
         this.#mediaFolders.setValue(value)
     }
-    public get mediaFoldersOptions() : Observable<Option[]>{
+    public get mediaFoldersOptions() : Observable<UUISelectOption[]>{
         return this.#mediaFolderOptions.asObservable();
     }
     public get removeDateTime() : Observable<boolean> {
@@ -202,10 +203,10 @@ export class MediaToolsContext extends UmbControllerBase {
             this.#resizerEnabled.setValue(responseData.resizer.enabled);
             this.#converterEnabled.setValue(responseData.converter.enabled);
             this.#convertMode.setValue(responseData.converter.convertMode);
-            this.#convertQuality.setValue(responseData.converter.convertQuality);
+            this.#convertQuality.setValue(responseData.converter.convertQuality as number);
             this.#ignoreAspectRatio.setValue(responseData.resizer.ignoreAspectRatio);
-            this.#targetWidth.setValue(responseData.resizer.targetWidth);
-            this.#targetHeight.setValue(responseData.resizer.targetHeight);
+            this.#targetWidth.setValue(responseData.resizer.targetWidth as number);
+            this.#targetHeight.setValue(responseData.resizer.targetHeight as number);
             this.#resizerFolderOverrides.setValue(responseData.resizer.folderOverrides);
             this.#keepOriginals.setValue(responseData.general.keepOriginals);
             this.#ignoreKeyword.setValue(responseData.general.ignoreKeyword);
@@ -267,7 +268,7 @@ export class MediaToolsContext extends UmbControllerBase {
                 this.#mediaFolders.setValue(responseData);
             }
             
-            let folderOptions: Array<Option> = [];
+            let folderOptions: Array<UUISelectOption> = [];
             folderOptions.push({name: "All folders", value: "", selected: true} );
             for(const item of responseData){
                 folderOptions.push({name: item.name, value: item.name, selected: false });

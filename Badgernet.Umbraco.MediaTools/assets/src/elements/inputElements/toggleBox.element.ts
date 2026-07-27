@@ -10,7 +10,6 @@ export class ToggleBox extends BoxControl{
     constructor() {
         super();
     }
-
     connectedCallback() {
         super.connectedCallback();
         this.label = this.checked ? "Enabled" : "Disabled"

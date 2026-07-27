@@ -34,6 +34,8 @@ export class MediaToolsRepository extends UmbControllerBase {
     }
     async saveSettings(userKey?: string, userSettings?: UserSettingsDto){
         
+        if(userSettings == undefined) return;
+        
         const requestData: SetSettingsData = {
             body: userSettings,
             query: {
