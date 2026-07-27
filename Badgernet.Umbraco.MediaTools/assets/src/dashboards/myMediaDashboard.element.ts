@@ -662,7 +662,7 @@ export class MyMediaDashboard extends UmbElementMixin(LitElement) {
                                            @click="${this.handleRowClicked}">
                                 
                                 <uui-table-cell>
-                                    <umb-imaging-thumbnail class="imagePreview" @click="${this.showImagePreview}" .unique="${img.key}" .src="${img.path}" width="250" height="250" mode=""></umb-imaging-thumbnail>
+                                    <umb-imaging-thumbnail style="border-radius: 8px" class="imagePreview" @click="${this.showImagePreview}" .unique="${img.key}" .src="${img.path}" width="250" height="250" mode=""></umb-imaging-thumbnail>
                                 </uui-table-cell>
 
                                 <uui-table-cell style="padding-left: 1rem">

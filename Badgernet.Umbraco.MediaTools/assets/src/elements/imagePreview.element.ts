@@ -109,7 +109,8 @@ export class ImagePreview extends UmbElementMixin(LitElement) {
             <uui-modal-dialog id="dialogElement">
                 <uui-dialog-layout class="layout" headline="Preview">
                     
-                        <umb-imaging-thumbnail  
+                        <umb-imaging-thumbnail
+                                style="border-radius: 12px"
                                 unique="${this.imageInfo?.key}" 
                                 width="${this.renderWidth?.toFixed(0)}" 
                                 height="${this.renderHeight?.toFixed(0)}"
