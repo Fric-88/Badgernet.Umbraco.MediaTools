@@ -46,6 +46,10 @@ dotnet remove package Badgernet.Umbraco.MediaTools
 ---
 
 # 📈 Changelog
+#### 18.0.0
+- Fixed filtering images by size
+- Bumped up versions to work with Umbraco 18 
+
 #### 17.0.2
 - Fixed the issue with displaying Thumbnails and image preview
 - Bumped up the Backoffice and Umbraco version
